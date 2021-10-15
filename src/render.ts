@@ -41,7 +41,7 @@ const shaderTriangle = () => {
 
 export const renderTriangle = async () => {
     if (!checkWebGPU()) {
-        throw "WebGPU not supported";
+        return
     }
 
     const canvas = document.getElementById('canvas-webgpu') as HTMLCanvasElement;
