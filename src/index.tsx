@@ -8,13 +8,7 @@ import {
   
 import HomePage from './pages/HomePage'
 import ShaderCanvas from './components/ShaderCanvas'
-
-// import {checkWebGPU} from './helper'
-//import {renderTriangle} from "./render"
-
 import "./assets/style.css"
-
-// const message = checkWebGPU() ? "hello, triangle!" : "webgpu not supported!"
 
 ReactDOM.render(
     <React.StrictMode>
@@ -24,7 +18,7 @@ ReactDOM.render(
                     <Route path="/" exact>
                         <HomePage />
                     </Route>
-                    <Route path="/users">
+                    <Route path="/shader">
                         <ShaderCanvas />
                     </Route>
                 </Switch>
@@ -34,5 +28,3 @@ ReactDOM.render(
     </React.StrictMode>,
     document.getElementById('root')
 );
-
-//renderTriangle().then(() => {})
