@@ -6,11 +6,11 @@ env:
   CI: false
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
     types: closed
     branches:
-      - master
+      - main
 jobs:
   build:
     runs-on: ubuntu-18.04
