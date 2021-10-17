@@ -1,8 +1,16 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
+import {
+    BrowserRouter as Router,
+    Switch,
+    Route
+} from "react-router-dom";
+  
+import HomePage from './pages/HomePage'
 import ShaderCanvas from './components/ShaderCanvas'
+
 // import {checkWebGPU} from './helper'
-import {renderTriangle} from "./render"
+//import {renderTriangle} from "./render"
 
 import "./assets/style.css"
 
@@ -11,10 +19,20 @@ import "./assets/style.css"
 ReactDOM.render(
     <React.StrictMode>
         <div id="body">
-            <ShaderCanvas />
+            <Router>
+                <Switch>
+                    <Route path="/" exact>
+                        <HomePage />
+                    </Route>
+                    <Route path="/users">
+                        <ShaderCanvas />
+                    </Route>
+                </Switch>
+            </Router>
+            
         </div>
     </React.StrictMode>,
     document.getElementById('root')
 );
 
-renderTriangle().then(() => {})
+//renderTriangle().then(() => {})
