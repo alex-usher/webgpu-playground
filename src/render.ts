@@ -45,9 +45,9 @@ export const renderTriangle = async () => {
     }
 
     const canvas = document.getElementById('canvas-webgpu') as HTMLCanvasElement;
-    const adapter = await navigator.gpu.requestAdapter() as GPUAdapter;
-    const device = await adapter.requestDevice() as GPUDevice;
-    const context = canvas.getContext('webgpu') as GPUCanvasContext;
+    const adapter = await navigator.gpu?.requestAdapter() as GPUAdapter;
+    const device = await adapter?.requestDevice() as GPUDevice;
+    const context = canvas.getContext('webgpu') as unknown as GPUCanvasContext;
     const format = 'bgra8unorm';
 
     context.configure({device, format});

@@ -8,14 +8,14 @@ import Typography from "@mui/material/Typography";
 const ShaderCanvas = () => {
     useEffect(() => {
         renderTriangle().then(() => {})
-    })
-    
+    }, [])
+
     return (
-        <div style={{color: "white"}}>
-            {checkWebGPU() 
+        <div style={{color: "white", height: "90%"}}>
+            {checkWebGPU()
                 ? <div className="canvas-container">
                     <canvas id="canvas-webgpu" width="968" height="720"/>
-                </div>  
+                </div>
                 : <Typography variant="h2"> webgpu not supported!</Typography>}
         </div>
     )

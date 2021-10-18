@@ -8,6 +8,8 @@ import {
   
 import HomePage from './pages/HomePage'
 import ShaderCanvas from './components/ShaderCanvas'
+import CodeEditorPage from './pages/CodeEditorPage'
+
 import "./assets/style.css"
 
 ReactDOM.render(
@@ -20,6 +22,9 @@ ReactDOM.render(
                     </Route>
                     <Route path="/shader">
                         <ShaderCanvas />
+                    </Route>
+                    <Route path="/editor">
+                        <CodeEditorPage />
                     </Route>
                 </Switch>
             </Router>
