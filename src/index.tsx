@@ -8,9 +8,9 @@ import {
   
 import HomePage from './pages/HomePage'
 import ShaderCanvas from './components/ShaderCanvas'
+import CodeEditorPage from './pages/CodeEditorPage'
 
 import "./assets/style.css"
-import CodeEditorPage from './pages/CodeEditorPage'
 
 ReactDOM.render(
     <React.StrictMode>
@@ -20,7 +20,7 @@ ReactDOM.render(
                     <Route path="/" exact>
                         <HomePage />
                     </Route>
-                    <Route path="/users">
+                    <Route path="/shader">
                         <ShaderCanvas />
                     </Route>
                     <Route path="/editor">
