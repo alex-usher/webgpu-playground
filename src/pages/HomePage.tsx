@@ -1,6 +1,7 @@
 import React from 'react'
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
+import Button from '@mui/material/Button'
 import CardActionArea from '@mui/material/CardActionArea'
 import CardContent from "@mui/material/CardContent"
 import CardMedia from "@mui/material/CardMedia"
@@ -23,7 +24,17 @@ class HomePage extends React.Component {
     render() {
         return (
             <Container> 
-                <Grid container spacing={2} style={{paddingTop: "100px"}}> 
+                <Grid container spacing={2} style={{paddingTop: "100px"}} alignItems="center" justifyContent="flex-end"> 
+                    <Grid item xs={12} md={6}>
+                        <Typography variant="h3" style={{color: "white"}}>
+                            WebGPU Playground
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <Button variant="outlined" disableElevation component={Link} to="/editor"> 
+                            New Shader Sandbox
+                        </Button>
+                    </Grid>
                     {/* this.state.shaders.map() */}
                     <ShaderCard />
                     <ShaderCard />
