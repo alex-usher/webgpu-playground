@@ -1,22 +1,18 @@
-import { useEffect } from "react";
-import "../assets/shaderCanvas.css";
+import { useEffect } from "react"
+import "../assets/shaderCanvas.css"
 import { checkWebGPU } from '../helper'
 import { renderSimpleShader, shaderTriangleVertex } from "../render"
-import Typography from "@mui/material/Typography";
-import {useState} from 'react'
+import Typography from "@mui/material/Typography"
 
 interface ShaderCanvasInput {
     editorCode?: string
 }
 
 const ShaderCanvas = ({editorCode}: ShaderCanvasInput) => {
-    console.log("rendering")
-    console.log("editor code ", editorCode)
-    const [code] = useState(editorCode || shaderTriangleVertex)
-
     useEffect(() => {
-        renderSimpleShader(code).then(() => {})
-    }, [code, editorCode])
+        console.log("rendering")
+        renderSimpleShader(editorCode || shaderTriangleVertex)
+    }, [editorCode])
 
     return (
         <div style={{color: "white", height: "90%"}}>

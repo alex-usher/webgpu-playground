@@ -2,7 +2,6 @@ import Button from "@mui/material/Button";
 import Editor from '../components/Editor'
 import ShaderCanvas from "../components/ShaderCanvas";
 import {useState} from 'react'
-import { renderSimpleShader } from "../render";
 
 import "../assets/style.css";
 
@@ -23,7 +22,7 @@ const CodeEditorPage = () => {
                 {showCode ? <Button variant="outlined" disableElevation 
                  color="secondary" style={{margin: "0 0 0 1em"}} onClick={()=> {
                      setRenderedCode(code)
-                     renderSimpleShader(code)
+
                      }}>Compile</Button> : <></>}
             </div>
             <ShaderCanvas editorCode={renderedCode} />
