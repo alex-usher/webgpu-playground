@@ -25,6 +25,8 @@ const CodeEditorPage = () => {
                     setShowCode(!showCode)
                     changeShowCodeText()
                 }} color={"primary"}>{showCodeText}</Button>
+                {showCode ? <Button variant="outlined" disableElevation onClick={() => {
+                }} color="secondary" style={{margin: "0 0 0 1em"}}>Compile</Button> : <></>}
             </div>
             <ShaderCanvas/>
             <div>
