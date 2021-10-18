@@ -9,13 +9,8 @@ import {
 import HomePage from './pages/HomePage'
 import ShaderCanvas from './components/ShaderCanvas'
 
-// import {checkWebGPU} from './helper'
-//import {renderTriangle} from "./render"
-
 import "./assets/style.css"
-import CodeEditorPage from './pages/CodeEditorPage';
-
-// const message = checkWebGPU() ? "hello, triangle!" : "webgpu not supported!"
+import CodeEditorPage from './pages/CodeEditorPage'
 
 ReactDOM.render(
     <React.StrictMode>
@@ -38,5 +33,3 @@ ReactDOM.render(
     </React.StrictMode>,
     document.getElementById('root')
 );
-
-//renderTriangle().then(() => {})
