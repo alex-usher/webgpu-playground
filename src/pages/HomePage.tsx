@@ -3,6 +3,7 @@ import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import CardActionArea from '@mui/material/CardActionArea'
 import CardContent from "@mui/material/CardContent"
+import CardMedia from "@mui/material/CardMedia"
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import { Link } from "react-router-dom";
@@ -32,19 +33,24 @@ class HomePage extends React.Component {
         )
     }
 }
-
+ 
 
 const ShaderCard = () => {
     return (
         <Grid item xs={12} md={4}>
-            <Card>
+            <Card variant="outlined">
                 <CardActionArea 
-                    style={{height: "200px", background:"Grey"}}
+                    style={{height: "310px", background:"Grey"}}
                     component={Link} to="/editor"
                 >
+                    <CardMedia
+                        style={{height: 240, objectFit: "cover"}}
+                        component="img"
+                        src="https://i.ibb.co/M5Z06wy/triangle.png"
+                    />
                     <CardContent>
-                        <Typography variant="h4" align="center">
-                            triangle 
+                        <Typography variant="h4" align="left">
+                            Triangle 
                         </Typography>
                     </CardContent>
                 </CardActionArea>
