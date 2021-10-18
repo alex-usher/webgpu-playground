@@ -11,7 +11,7 @@ const ShaderCanvas = () => {
     })
 
     return (
-        <div style={{height: "90%"}}>
+        <div style={{color: "white", height: "90%"}}>
             {checkWebGPU()
                 ? <div className="canvas-container">
                     <canvas id="canvas-webgpu" width="968" height="720"/>
