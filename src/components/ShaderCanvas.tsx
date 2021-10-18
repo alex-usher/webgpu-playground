@@ -11,7 +11,6 @@ interface ShaderCanvasInput {
 
 const ShaderCanvas = ({vertexCode, fragmentCode}: ShaderCanvasInput) => {
     useEffect(() => {
-        console.log("rendering")
         renderSimpleShader(vertexCode, fragmentCode)
     }, [vertexCode, fragmentCode])
 
