@@ -1,9 +1,9 @@
 .editor-container {
     position: fixed;
-    top: 4%;
+    top: 10%;
     left: 5%;
     width: 90%;
-    height: 90%;
+    height: 80%;
     display: flex;
     justify-content: center;
 }
