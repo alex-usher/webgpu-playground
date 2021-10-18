@@ -4,33 +4,42 @@ import ShaderCanvas from "../components/ShaderCanvas";
 import {useState} from 'react'
 
 import "../assets/style.css";
+import "../assets/codeEditorPage.css"
 
-const CodeEditorPage = () => {
-    const [code, setCode] = useState("")
+interface CodeEditorPageProps {
+    defaultVertexCode: string
+    defaultFragmentCode: string
+}
+
+const CodeEditorPage = ({defaultVertexCode, defaultFragmentCode}: CodeEditorPageProps) => {
+    const [vertexCode, setVertexCode] = useState("")
+    const [fragmentCode, setFragmentCode] = useState("")
     const [showCode, setShowCode] = useState(false)
-    const [showCodeText, setShowCodeText] = useState("View Code")
-
-    function changeShowCodeText() {
-        showCode ? setShowCodeText("View Code") : setShowCodeText("Hide Code")
-    }
-
-    function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-        setCode(e.target.value)
-    }
+    const [viewCodeText, setViewCodeText] = useState("View Code")
+    const [renderedVertexCode, setRenderedVertexCode] = useState("")
+    const [renderedFragmentCode, setRenderedFragmentCode] = useState("")
 
     return (
         <div id="body">
             <div className="paddedDiv">
                 <Button variant="outlined" disableElevation onClick={() => {
                     setShowCode(!showCode)
-                    changeShowCodeText()
-                }} color={"primary"}>{showCodeText}</Button>
-                {showCode ? <Button variant="outlined" disableElevation onClick={() => {
-                }} color="secondary" style={{margin: "0 0 0 1em"}}>Compile</Button> : <></>}
+                    setViewCodeText(showCode ? "View Code" : "Hide Code")
+                }} color={"primary"}>{viewCodeText}</Button>
+                {showCode ? <Button variant="outlined" disableElevation 
+                 color="secondary" style={{margin: "0 0 0 1em"}} onClick={()=> {
+                     setRenderedVertexCode(vertexCode)
+                     setRenderedFragmentCode(fragmentCode)
+                     }}>Compile</Button> : <></>}
             </div>
-            <ShaderCanvas/>
-            <div>
-                {showCode ? <Editor value={code} onChange={handleChange}/> : <></>}
+            <ShaderCanvas vertexCode={renderedVertexCode || defaultVertexCode} fragmentCode={renderedFragmentCode || defaultFragmentCode} />
+            <div className="editors">
+                <div className="vertex-editor">
+                    {showCode ? <Editor value={vertexCode || defaultVertexCode} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {setVertexCode(e.target.value)}}/> : <></>}
+                </div>
+                <div className="fragment-editor">
+                    {showCode ? <Editor value={fragmentCode || defaultFragmentCode} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setFragmentCode(e.target.value) }} /> : <></>}
+                </div>
             </div>
         </div>
     )

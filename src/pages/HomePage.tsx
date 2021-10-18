@@ -40,7 +40,7 @@ const ShaderCard = () => {
             <Card>
                 <CardActionArea 
                     style={{height: "200px", background:"Grey"}}
-                    component={Link} to="/shader"
+                    component={Link} to="/editor"
                 >
                     <CardContent>
                         <Typography variant="h4" align="center">

@@ -7,10 +7,10 @@ import {
 } from "react-router-dom";
   
 import HomePage from './pages/HomePage'
-import ShaderCanvas from './components/ShaderCanvas'
 import CodeEditorPage from './pages/CodeEditorPage'
 
 import "./assets/style.css"
+import { shaderTriangleFragment, shaderTriangleVertex } from './render';
 
 ReactDOM.render(
     <React.StrictMode>
@@ -20,11 +20,8 @@ ReactDOM.render(
                     <Route path="/" exact>
                         <HomePage />
                     </Route>
-                    <Route path="/shader">
-                        <ShaderCanvas />
-                    </Route>
                     <Route path="/editor">
-                        <CodeEditorPage />
+                        <CodeEditorPage defaultVertexCode={shaderTriangleVertex} defaultFragmentCode={shaderTriangleFragment} />
                     </Route>
                 </Switch>
             </Router>

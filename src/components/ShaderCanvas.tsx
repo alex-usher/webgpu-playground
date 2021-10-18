@@ -1,14 +1,18 @@
-import { useEffect } from "react";
-import "../assets/shaderCanvas.css";
+import { useEffect } from "react"
+import "../assets/shaderCanvas.css"
 import { checkWebGPU } from '../helper'
-import { renderTriangle } from "../render"
-import Typography from "@mui/material/Typography";
+import { renderSimpleShader } from "../render"
+import Typography from "@mui/material/Typography"
 
+interface ShaderCanvasInput {
+    vertexCode: string
+    fragmentCode: string
+}
 
-const ShaderCanvas = () => {
+const ShaderCanvas = ({vertexCode, fragmentCode}: ShaderCanvasInput) => {
     useEffect(() => {
-        renderTriangle().then(() => {})
-    }, [])
+        renderSimpleShader(vertexCode, fragmentCode)
+    }, [vertexCode, fragmentCode])
 
     return (
         <div style={{color: "white", height: "90%"}}>
