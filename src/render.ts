@@ -1,8 +1,7 @@
 import {checkWebGPU} from "./helper";
 
 
-// TODO once we know more about wgpu change this accordingly 
-const simpleFragment = `
+export const shaderTriangleFragment = `
     [[stage(fragment)]]
     fn main([[location(0)]] vColor: vec4<f32>) -> [[location(0)]] vec4<f32> {
         return vColor;
@@ -37,10 +36,8 @@ export const shaderTriangleVertex = `
     }
 `
 
-export const renderSimpleShader = async (vertex: string) => {
-    // TODO make the fragment configurable once we learn what they are
-    console.log("In render simple shader");
-    const shader = {vertex, simpleFragment}
+export const renderSimpleShader = async (vertex: string, fragment: string) => {
+    const shader = {vertex, fragment}
     
     if (!checkWebGPU()) {
         return
@@ -60,7 +57,7 @@ export const renderSimpleShader = async (vertex: string) => {
             entryPoint: "main"
         },
         fragment: {
-            module: device.createShaderModule({code: shader.simpleFragment}),
+            module: device.createShaderModule({code: shader.fragment}),
             entryPoint: "main",
             targets: [{format: format as GPUTextureFormat}]
         },
@@ -87,6 +84,5 @@ export const renderSimpleShader = async (vertex: string) => {
 }
 
 export const renderTriangle = async () => {
-    console.log("in render triangle")
-    renderSimpleShader(shaderTriangleVertex)
+    renderSimpleShader(shaderTriangleVertex, shaderTriangleFragment)
 }

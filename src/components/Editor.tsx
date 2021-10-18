@@ -1,14 +1,14 @@
-import { TextareaAutosize } from '@mui/material';
 import '../assets/editor.css'
 
 interface EditorProps {
+    placeholder?: string
     value: string
     onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
 }
 
-const Editor = ({value, onChange} : EditorProps) => (
+const Editor = ({placeholder, value, onChange} : EditorProps) => (
     <div className="editor-container"> 
-        <TextareaAutosize className="editor" value={value} onChange={onChange} style={{width: "100%", height: "100%"}} />
+        <textarea className="editor" value={value} placeholder={placeholder} onChange={onChange}  />
     </div>
 )
 
