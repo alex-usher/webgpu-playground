@@ -8,7 +8,7 @@ import Typography from "@mui/material/Typography";
 const ShaderCanvas = () => {
     useEffect(() => {
         renderTriangle().then(() => {})
-    })
+    }, [])
 
     return (
         <div style={{color: "white", height: "90%"}}>
