@@ -8,7 +8,7 @@ interface EditorProps {
 
 const Editor = ({value, onChange} : EditorProps) => (
     <div className="editor-container"> 
-        <TextareaAutosize className="editor" value={value} onChange={onChange} style={{width: 500, height: 500}} />
+        <TextareaAutosize className="editor" value={value} onChange={onChange} style={{width: "100%", height: "100%"}} />
     </div>
 )
 
