@@ -22,6 +22,7 @@ ReactDOM.render(
                     </Route>
                     <Route path="/shader">
                         <ShaderCanvas />
+
                     </Route>
                     <Route path="/editor">
                         <CodeEditorPage />
