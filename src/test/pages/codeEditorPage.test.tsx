@@ -1,8 +1,10 @@
 const helper = require("../../helper")
 const shaders = require("../../render")
 import {render} from "@testing-library/react"
+import {screen} from "@testing-library/dom"
 import CodeEditorPage from "../../pages/CodeEditorPage"
 import {shaderTriangleFragment, shaderTriangleVertex} from "../../render"
+import '@testing-library/jest-dom/extend-expect';
 
 const renderCodeEditorPage = () => render(<CodeEditorPage defaultVertexCode={shaderTriangleVertex}
                                                           defaultFragmentCode={shaderTriangleFragment}/>)
@@ -75,18 +77,19 @@ describe("Show Code Button Click Tests", () => {
 
     test("Clicking the show code button displays the compile button", () => {
         showCodeButton!.click()
-        expect(document.getElementById(COMPILE_ID)).not.toBeNull()
+        expect(document.getElementById(COMPILE_ID)).toBeInTheDocument()
     })
 
-    test("Clicking the show code button displays the vertex editor", () => {
-        showCodeButton!.click()
-        const vertexEditorDiv = document.querySelector(`.${VERTEX_EDITOR_CLASS}`)
-        expect(vertexEditorDiv?.hasChildNodes()).toBeTruthy()
-    })
-
-    test("Clicking the show code button displays the fragment editor", () => {
+    test("Clicking the show code button displays the vertex and fragment editor", () => {
         showCodeButton!.click()
         const fragmentEditorDiv = document.querySelector(`.${FRAGMENT_EDITOR_CLASS}`)
         expect(fragmentEditorDiv?.hasChildNodes()).toBeTruthy()
+        const vertexEditorDiv = document.querySelector(`.${VERTEX_EDITOR_CLASS}`)
+        expect(vertexEditorDiv?.hasChildNodes()).toBeTruthy()
+
+        const textAreas: HTMLElement[] = screen.getAllByRole("textbox")
+        expect(textAreas.length).toBe(2)
+        expect(textAreas[0]).toBeInTheDocument()
+        expect(textAreas[1]).toBeInTheDocument()
     })
 })
