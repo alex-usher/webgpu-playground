@@ -1,14 +1,22 @@
 import Button from "@mui/material/Button";
-import Editor from '../components/Editor'
+import Editor from '../components/Editor';
 import ShaderCanvas from "../components/ShaderCanvas";
-import {useState} from 'react'
+import {useState} from 'react';
+import fs from 'fs';
 
 import "../assets/style.css";
-import "../assets/codeEditorPage.css"
+import "../assets/codeEditorPage.css";
 
 interface CodeEditorPageProps {
     defaultVertexCode: string
     defaultFragmentCode: string
+}
+
+const saveShaderCode = (vertexCode: string, fragmentCode: string) => {
+    
+    let data = "garbage";
+    fs.writeFileSync("smthn.txt", data);
+
 }
 
 const CodeEditorPage = ({defaultVertexCode, defaultFragmentCode}: CodeEditorPageProps) => {
@@ -27,10 +35,14 @@ const CodeEditorPage = ({defaultVertexCode, defaultFragmentCode}: CodeEditorPage
                     setViewCodeText(showCode ? "View Code" : "Hide Code")
                 }} color={"primary"}>{viewCodeText}</Button>
                 {showCode ? <Button variant="outlined" disableElevation 
-                 color="secondary" style={{margin: "0 0 0 1em"}} onClick={()=> {
-                     setRenderedVertexCode(vertexCode)
-                     setRenderedFragmentCode(fragmentCode)
-                     }}>Compile</Button> : <></>}
+                color="secondary" style={{margin: "0 0 0 1em"}} onClick={()=> {
+                    setRenderedVertexCode(vertexCode)
+                    setRenderedFragmentCode(fragmentCode)
+                    }}>Compile</Button> : <></>}
+                {showCode ? <Button variant="outlined" disableElevation 
+                color="success" style={{margin: "0 0 0 1em"}} onClick={()=> {
+                    
+                    }}>Save</Button> : <></>}
             </div>
             <ShaderCanvas vertexCode={renderedVertexCode || defaultVertexCode} fragmentCode={renderedFragmentCode || defaultFragmentCode} />
             <div className="editors">
