@@ -1,17 +1,8 @@
 import { useEffect } from "react"
 import "../assets/shaderCanvas.css"
 import { checkWebGPU } from '../helper'
-import Typography from "@mui/material/Typography";
-import { collection, addDoc } from "firebase/firestore"
-import { firedb } from "../firebase";
-
-const submitShader = () => {
-    addDoc(collection(firedb, "public-shaders"), {
-        shader_name: "unknown name",
-        shader_code: "LINK TO CODE",
-      });
-} 
 import { renderSimpleShader } from "../render"
+import Typography from "@mui/material/Typography";
 
 interface ShaderCanvasInput {
     vertexCode: string
@@ -20,7 +11,7 @@ interface ShaderCanvasInput {
 
 const ShaderCanvas = ({vertexCode, fragmentCode}: ShaderCanvasInput) => {
     useEffect(() => {
-        renderSimpleShader(vertexCode, fragmentCode).then(() => {submitShader()})
+        renderSimpleShader(vertexCode, fragmentCode)
     }, [vertexCode, fragmentCode])
 
     return (
