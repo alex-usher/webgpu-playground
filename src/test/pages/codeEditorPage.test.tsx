@@ -1,9 +1,11 @@
 const helper = require("../../helper")
 const shaders = require("../../render")
+import userEvent from "@testing-library/user-event"
 import {render} from "@testing-library/react"
 import {screen} from "@testing-library/dom"
 import CodeEditorPage from "../../pages/CodeEditorPage"
 import {shaderTriangleFragment, shaderTriangleVertex} from "../../render"
+
 import '@testing-library/jest-dom/extend-expect';
 
 const renderCodeEditorPage = () => render(<CodeEditorPage defaultVertexCode={shaderTriangleVertex}
@@ -22,10 +24,9 @@ const HIDE_CODE_TEXT = "Hide Code"
 
 const doMocks = () => {
     checkWebGPUMock = jest.spyOn(helper, "checkWebGPU")
-    checkWebGPUMock.mockReturnValue(true)
+    checkWebGPUMock.mockImplementation(() => true)
     simpleShaderMock = jest.spyOn(shaders, "renderSimpleShader")
-    simpleShaderMock.mockImplementation(() => {
-    })
+    simpleShaderMock.mockImplementation(() => {})
 }
 
 describe("Default render tests", () => {
@@ -48,7 +49,7 @@ describe("Default render tests", () => {
     })
 })
 
-describe("Show Code Button Click Tests", () => {
+describe("Button Click Tests", () => {
     let showCodeButton: HTMLElement | null
 
     beforeEach(() => {
@@ -91,5 +92,50 @@ describe("Show Code Button Click Tests", () => {
         expect(textAreas.length).toBe(2)
         expect(textAreas[0]).toBeInTheDocument()
         expect(textAreas[1]).toBeInTheDocument()
+    })
+
+    test("Clicking the compile code button results in calling the WebGPU render function", () => {
+        expect(simpleShaderMock).toHaveBeenCalled()
+        showCodeButton!.click()
+        const compileCodeButton = document.getElementById(COMPILE_ID)
+
+        compileCodeButton!.click()
+
+        expect(checkWebGPUMock).toHaveBeenCalled()
+        expect(simpleShaderMock).toHaveBeenCalled()
+    })
+})
+
+describe("Code editor tests", () => {
+    let vertexEditor: HTMLElement | null
+    let fragmentEditor: HTMLElement | null
+
+    beforeEach(() => {
+        doMocks()
+        renderCodeEditorPage()
+
+        document.getElementById(SHOW_CODE_ID)!.click()
+        const textAreas: HTMLElement[] = screen.getAllByRole("textbox")
+        vertexEditor = textAreas[0]
+        fragmentEditor = textAreas[1]
+    })
+
+    afterEach(() => {
+        jest.resetAllMocks()
+
+        vertexEditor = null
+        fragmentEditor = null
+    })
+
+    test("Typing into the vertex code editor updates its text content", () => {
+        expect(vertexEditor!.textContent).toEqual(shaderTriangleVertex)
+        userEvent.type(vertexEditor!, "a")
+        expect(vertexEditor!.textContent).toEqual(`${shaderTriangleVertex}a`)
+    })
+
+    test("Typing into the fragment code editor updates its text content", () => {
+        expect(fragmentEditor!.textContent).toEqual(shaderTriangleFragment)
+        userEvent.type(fragmentEditor!, "a")
+        expect(fragmentEditor!.textContent).toEqual(`${shaderTriangleFragment}a`)
     })
 })
