@@ -22,11 +22,11 @@ const CodeEditorPage = ({defaultVertexCode, defaultFragmentCode}: CodeEditorPage
     return (
         <div id="body">
             <div className="paddedDiv">
-                <Button variant="outlined" disableElevation onClick={() => {
+                <Button id="show-code-button" variant="outlined" disableElevation onClick={() => {
                     setShowCode(!showCode)
                     setViewCodeText(showCode ? "View Code" : "Hide Code")
                 }} color={"primary"}>{viewCodeText}</Button>
-                {showCode ? <Button variant="outlined" disableElevation 
+                {showCode ? <Button id="compile-button" variant="outlined" disableElevation
                  color="secondary" style={{margin: "0 0 0 1em"}} onClick={()=> {
                      setRenderedVertexCode(vertexCode)
                      setRenderedFragmentCode(fragmentCode)

@@ -13,8 +13,7 @@ describe("Shader Canvas component tests", () => {
     beforeEach(() => {
         checkWebGPUMock = jest.spyOn(helper, "checkWebGPU")
         simpleShaderMock = jest.spyOn(shaders, "renderSimpleShader")
-        simpleShaderMock.mockImplementation(() => {
-        })
+        simpleShaderMock.mockImplementation(() => {})
     })
 
     afterEach(() => {
