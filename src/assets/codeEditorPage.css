@@ -1,0 +1,20 @@
+.editors {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.vertex-editor {
+    position: fixed;
+    left: 3%;
+    top: 10%;
+    width: 62%;
+    height: 85%;
+}
+.fragment-editor {
+    position: fixed;
+    right: 3%;
+    top: 10%;
+    width: 30%;
+    height: 85%;
+}
