@@ -25,15 +25,26 @@ class HomePage extends React.Component {
         return (
             <Container> 
                 <Grid container spacing={2} style={{paddingTop: "100px"}} alignItems="center" justifyContent="flex-end"> 
-                    <Grid item xs={12} md={6}>
-                        <Typography variant="h3" style={{color: "white"}}>
-                            WebGPU Playground
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        <Button variant="outlined" disableElevation component={Link} to="/editor"> 
-                            New Shader Sandbox
-                        </Button>
+                    
+                    <Grid 
+                        item 
+                        container 
+                        justifyContent="space-between" 
+                        alignItems="center" 
+                        spacing={2} 
+                        style={{color: "white", paddingBottom: "20px"}}
+                    >
+                    
+                        <Grid item>
+                            <Typography variant="h3">
+                                WebGPU Playground
+                            </Typography>
+                        </Grid>
+                        <Grid item >
+                                <Button variant="outlined" disableElevation component={Link} to="/editor"> 
+                                    New Shader Sandbox
+                                </Button>
+                        </Grid>
                     </Grid>
                     {/* this.state.shaders.map() */}
                     <ShaderCard />
@@ -48,10 +59,10 @@ class HomePage extends React.Component {
 
 const ShaderCard = () => {
     return (
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} sm={6} md={4}>
             <Card variant="outlined">
                 <CardActionArea 
-                    style={{height: "310px", background:"Grey"}}
+                    style={{height: "310px", background:"#4F5358", color:"white"}}
                     component={Link} to="/editor"
                 >
                     <CardMedia
