@@ -63,7 +63,7 @@ const ShaderCard = () => {
     return (
         <Grid item xs={12} sm={6} md={4}>
             <Card variant="outlined">
-                <CardActionArea component={Link} to="/editor" className="shader-card" style={{height:"320px", background:"#4F5358",color:"white"}}>
+                <CardActionArea component={Link} to="/editor" className="shader-card" style={{height:"20%", background:"#4F5358",color:"white"}}>
                     <CardMedia
                         className="shader-card-image"
                         component="img"

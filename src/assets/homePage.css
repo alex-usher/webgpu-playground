@@ -1,15 +1,15 @@
 .title-header {
     color: white;
-    padding-bottom: 20px;
+    padding-bottom: 2%;
 }
 
 .shader-card {
-    height: 310px;
+    height: 15%;
     background-color: #4F5358;
     color: white;
 }
 
 .shader-card-image {
-    height: 240;
+    height: 70%;
     object-fit: cover;
 }
