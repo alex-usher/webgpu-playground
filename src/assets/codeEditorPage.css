@@ -6,13 +6,15 @@
 
 .vertex-editor {
     position: fixed;
-    left: 5%;
+    left: 3%;
     top: 10%;
-    width: 65%;
+    width: 62%;
+    height: 85%;
 }
 .fragment-editor {
     position: fixed;
-    right: 5%;
+    right: 3%;
     top: 10%;
     width: 30%;
+    height: 85%;
 }
