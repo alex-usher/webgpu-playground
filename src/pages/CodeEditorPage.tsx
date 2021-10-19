@@ -12,12 +12,12 @@ interface CodeEditorPageProps {
 }
 
 const CodeEditorPage = ({defaultVertexCode, defaultFragmentCode}: CodeEditorPageProps) => {
-    const [vertexCode, setVertexCode] = useState("")
-    const [fragmentCode, setFragmentCode] = useState("")
+    const [vertexCode, setVertexCode] = useState(defaultVertexCode)
+    const [fragmentCode, setFragmentCode] = useState(defaultFragmentCode)
     const [showCode, setShowCode] = useState(false)
     const [viewCodeText, setViewCodeText] = useState("View Code")
-    const [renderedVertexCode, setRenderedVertexCode] = useState("")
-    const [renderedFragmentCode, setRenderedFragmentCode] = useState("")
+    const [renderedVertexCode, setRenderedVertexCode] = useState(defaultVertexCode)
+    const [renderedFragmentCode, setRenderedFragmentCode] = useState(defaultFragmentCode)
 
     return (
         <div id="body">
@@ -32,13 +32,13 @@ const CodeEditorPage = ({defaultVertexCode, defaultFragmentCode}: CodeEditorPage
                      setRenderedFragmentCode(fragmentCode)
                      }}>Compile</Button> : <></>}
             </div>
-            <ShaderCanvas vertexCode={renderedVertexCode || defaultVertexCode} fragmentCode={renderedFragmentCode || defaultFragmentCode} />
+            <ShaderCanvas vertexCode={renderedVertexCode} fragmentCode={renderedFragmentCode} />
             <div className="editors">
                 <div className="vertex-editor">
-                    {showCode ? <Editor value={vertexCode || defaultVertexCode} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {setVertexCode(e.target.value)}}/> : <></>}
+                    {showCode ? <Editor value={vertexCode} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {setVertexCode(e.target.value)}}/> : <></>}
                 </div>
                 <div className="fragment-editor">
-                    {showCode ? <Editor value={fragmentCode || defaultFragmentCode} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setFragmentCode(e.target.value) }} /> : <></>}
+                    {showCode ? <Editor value={fragmentCode} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setFragmentCode(e.target.value) }} /> : <></>}
                 </div>
             </div>
         </div>
