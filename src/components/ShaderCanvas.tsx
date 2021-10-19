@@ -3,15 +3,6 @@ import "../assets/shaderCanvas.css"
 import { checkWebGPU } from '../helper'
 import { renderSimpleShader } from "../render"
 import Typography from "@mui/material/Typography";
-import { collection, addDoc } from "firebase/firestore"
-import { firedb } from "../firebase";
-
-const submitShader = () => {
-    addDoc(collection(firedb, "public-shaders"), {
-        shader_name: "unknown name",
-        shader_code: "LINK TO CODE",
-    });
-}
 
 interface ShaderCanvasInput {
     vertexCode: string

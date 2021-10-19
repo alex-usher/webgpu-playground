@@ -2,7 +2,10 @@ import Button from "@mui/material/Button";
 import Editor from '../components/Editor';
 import ShaderCanvas from "../components/ShaderCanvas";
 import { useState } from 'react';
-import fs from 'fs';
+import { ref, uploadString } from "firebase/storage";
+import { firestorage, firedb } from "../firebase"
+import { collection, addDoc } from "firebase/firestore"
+import { v4 as uuidv4 } from "uuid";
 
 import "../assets/style.css";
 import "../assets/codeEditorPage.css";
@@ -12,11 +15,21 @@ interface CodeEditorPageProps {
     defaultFragmentCode: string
 }
 
-const saveShaderCode = (vertexCode: string, fragmentCode: string) => {
+const saveShaderCode = (vertexCode: string, fragmentCode: string, shaderName: string) => {
+    const vertexFile = uuidv4() + shaderName + "_vertex.txt"
+    const fragmentFile = uuidv4() + shaderName + "_fragment.txt"
 
-    let data = "garbage";
-    fs.writeFileSync("smthn.txt", data);
+    const vertexRef = ref(firestorage, vertexFile);
+    const fragmentRef = ref(firestorage, fragmentFile);
 
+    uploadString(vertexRef, vertexCode)
+    uploadString(fragmentRef, fragmentCode)
+
+    addDoc(collection(firedb, "public-shaders"), {
+        shader_name: shaderName,
+        vertex_code: vertexFile,
+        fragment_code: fragmentFile,
+    });
 }
 
 const CodeEditorPage = ({ defaultVertexCode, defaultFragmentCode }: CodeEditorPageProps) => {
@@ -41,7 +54,7 @@ const CodeEditorPage = ({ defaultVertexCode, defaultFragmentCode }: CodeEditorPa
                     }}>Compile</Button> : <></>}
                 {showCode ? <Button variant="outlined" disableElevation
                     color="success" style={{ margin: "0 0 0 1em" }} onClick={() => {
-
+                        saveShaderCode(vertexCode, fragmentCode, "shader name")
                     }}>Save</Button> : <></>}
             </div>
             <ShaderCanvas vertexCode={renderedVertexCode} fragmentCode={renderedFragmentCode} />
@@ -53,7 +66,7 @@ const CodeEditorPage = ({ defaultVertexCode, defaultFragmentCode }: CodeEditorPa
                     {showCode ? <Editor value={fragmentCode} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setFragmentCode(e.target.value) }} /> : <></>}
                 </div>
             </div>
-        </div>
+        </div >
     )
 }
 
