@@ -1,0 +1,15 @@
+.title-header {
+    color: white;
+    padding-bottom: 20px;
+}
+
+.shader-card {
+    height: 310px;
+    background-color: #4F5358;
+    color: white;
+}
+
+.shader-card-image {
+    height: 240;
+    object-fit: cover;
+}

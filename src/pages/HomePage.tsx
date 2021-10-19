@@ -9,6 +9,8 @@ import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import { Link } from "react-router-dom";
 
+import "../assets/homePage.css"
+
 class HomePage extends React.Component {
     // constructor(props) {
     //     super(props)
@@ -32,7 +34,7 @@ class HomePage extends React.Component {
                         justifyContent="space-between" 
                         alignItems="center" 
                         spacing={2} 
-                        style={{color: "white", paddingBottom: "20px"}}
+                        className="title-header"
                     >
                     
                         <Grid item>
@@ -61,12 +63,9 @@ const ShaderCard = () => {
     return (
         <Grid item xs={12} sm={6} md={4}>
             <Card variant="outlined">
-                <CardActionArea 
-                    style={{height: "310px", background:"#4F5358", color:"white"}}
-                    component={Link} to="/editor"
-                >
+                <CardActionArea component={Link} to="/editor" className="shader-card" style={{height:"320px", background:"#4F5358",color:"white"}}>
                     <CardMedia
-                        style={{height: 240, objectFit: "cover"}}
+                        className="shader-card-image"
                         component="img"
                         src="https://i.ibb.co/M5Z06wy/triangle.png"
                     />
