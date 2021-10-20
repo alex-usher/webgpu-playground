@@ -52,7 +52,7 @@ const CodeEditorPage = ({ defaultVertexCode, defaultFragmentCode }: CodeEditorPa
                         setRenderedVertexCode(vertexCode)
                         setRenderedFragmentCode(fragmentCode)
                     }}>Compile</Button> : <></>}
-                {showCode ? <Button variant="outlined" disableElevation
+                {showCode ? <Button id="save-button" variant="outlined" disableElevation
                     color="success" style={{ margin: "0 0 0 1em" }} onClick={() => {
                         saveShaderCode(vertexCode, fragmentCode, "shader name")
                     }}>Save</Button> : <></>}
