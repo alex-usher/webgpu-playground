@@ -18,55 +18,55 @@ interface CodeEditorPageProps {
 const saveShaderCode = (vertexCode: string, fragmentCode: string, shaderName: string) => {
     const vertexFile = uuidv4() + shaderName + "_vertex.txt"
     const fragmentFile = uuidv4() + shaderName + "_fragment.txt"
-    
+
     const vertexRef = ref(firestorage, vertexFile);
     const fragmentRef = ref(firestorage, fragmentFile);
 
     uploadString(vertexRef, vertexCode)
     uploadString(fragmentRef, fragmentCode)
-    
+
     addDoc(collection(firedb, "public-shaders"), {
         shader_name: shaderName,
         vertex_code: vertexFile,
         fragment_code: fragmentFile,
-      });
+    });
 }
 
-const CodeEditorPage = ({defaultVertexCode, defaultFragmentCode}: CodeEditorPageProps) => {
-    const [vertexCode, setVertexCode] = useState("")
-    const [fragmentCode, setFragmentCode] = useState("")
+const CodeEditorPage = ({ defaultVertexCode, defaultFragmentCode }: CodeEditorPageProps) => {
+    const [vertexCode, setVertexCode] = useState(defaultVertexCode)
+    const [fragmentCode, setFragmentCode] = useState(defaultFragmentCode)
     const [showCode, setShowCode] = useState(false)
     const [viewCodeText, setViewCodeText] = useState("View Code")
-    const [renderedVertexCode, setRenderedVertexCode] = useState("")
-    const [renderedFragmentCode, setRenderedFragmentCode] = useState("")
+    const [renderedVertexCode, setRenderedVertexCode] = useState(defaultVertexCode)
+    const [renderedFragmentCode, setRenderedFragmentCode] = useState(defaultFragmentCode)
 
     return (
         <div id="body">
             <div className="paddedDiv">
-                <Button variant="outlined" disableElevation onClick={() => {
+                <Button id="show-code-button" variant="outlined" disableElevation onClick={() => {
                     setShowCode(!showCode)
                     setViewCodeText(showCode ? "View Code" : "Hide Code")
                 }} color={"primary"}>{viewCodeText}</Button>
-                {showCode ? <Button variant="outlined" disableElevation 
-                color="secondary" style={{margin: "0 0 0 1em"}} onClick={()=> {
-                    setRenderedVertexCode(vertexCode)
-                    setRenderedFragmentCode(fragmentCode)
+                {showCode ? <Button id="compile-button" variant="outlined" disableElevation
+                    color="secondary" style={{ margin: "0 0 0 1em" }} onClick={() => {
+                        setRenderedVertexCode(vertexCode)
+                        setRenderedFragmentCode(fragmentCode)
                     }}>Compile</Button> : <></>}
-                {showCode ? <Button variant="outlined" disableElevation 
-                color="success" style={{margin: "0 0 0 1em"}} onClick={()=> {
-                    saveShaderCode(vertexCode, fragmentCode, "shader name")
+                {showCode ? <Button id="save-button" variant="outlined" disableElevation
+                    color="success" style={{ margin: "0 0 0 1em" }} onClick={() => {
+                        saveShaderCode(vertexCode, fragmentCode, "shader name")
                     }}>Save</Button> : <></>}
             </div>
-            <ShaderCanvas vertexCode={renderedVertexCode || defaultVertexCode} fragmentCode={renderedFragmentCode || defaultFragmentCode} />
+            <ShaderCanvas vertexCode={renderedVertexCode} fragmentCode={renderedFragmentCode} />
             <div className="editors">
                 <div className="vertex-editor">
-                    {showCode ? <Editor value={vertexCode || defaultVertexCode} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {setVertexCode(e.target.value)}}/> : <></>}
+                    {showCode ? <Editor value={vertexCode} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setVertexCode(e.target.value) }} /> : <></>}
                 </div>
                 <div className="fragment-editor">
-                    {showCode ? <Editor value={fragmentCode || defaultFragmentCode} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setFragmentCode(e.target.value) }} /> : <></>}
+                    {showCode ? <Editor value={fragmentCode} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setFragmentCode(e.target.value) }} /> : <></>}
                 </div>
             </div>
-        </div>
+        </div >
     )
 }
 
