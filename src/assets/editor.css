@@ -1,6 +1,6 @@
 .editor-container {
     overflow:auto;
-    border-radius: 0.5em;
+    border-radius: 0.35em;
     width: 100%;    
     display: flex;
     height: 100%;
@@ -16,6 +16,7 @@
 }
 
 .editor { 
+    white-space: pre;
     overflow:auto;
     z-index: 0;
     display: flex;
@@ -59,15 +60,25 @@
 
 ::-webkit-scrollbar {
     z-index: 1;
-    width: 1em;
+    width: 0.7em;
+    height: 0.7em;
 }
  
 ::-webkit-scrollbar-track {
+    width: 100%;
+    height: 100%;
     background-color: rgba(15, 15, 15, 0.5);
-    border-radius: 0.5em;
+    /* border-radius: 0.2em; */
+    margin: 10% 10%;
+    background-clip: padding-box;
 }
  
 ::-webkit-scrollbar-thumb {
-    border-radius: 0.5em;
+    border-radius: 0.4em;
+    background-clip: padding-box;
     background-color: rgba(70, 70, 70, 0.45);
+}
+
+::-webkit-scrollbar-corner {
+    background-color: rgba(15, 15, 15, 0.5);
 }
