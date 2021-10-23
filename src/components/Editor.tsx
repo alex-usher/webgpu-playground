@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ScrollSync, ScrollSyncPane } from 'react-scroll-sync';
 import '../assets/editor.css'
+import '../assets/prism.css'
 import Prism from "prismjs"
 
 interface EditorProps {
@@ -10,13 +11,13 @@ interface EditorProps {
 
 
 const Editor = ({value, onChange} : EditorProps) => {
-    
+
     const lines = (value.split(/\r\n|\r|\n/)||[]).length
 
         
     const gutterRef = React.useRef<HTMLDivElement>(null)
     const editorRef = React.useRef<HTMLTextAreaElement>(null)
-
+    const codeBlockRef = React.useRef<HTMLTextAreaElement>(null)
 
     const lineNumbers = [...Array(lines)].map(
         (_, i) => (
@@ -25,6 +26,12 @@ const Editor = ({value, onChange} : EditorProps) => {
             </div>
         )
     )
+
+    useEffect(() => {
+        if (editorRef!.current) {
+            Prism.highlightAll()
+        }
+    })
 
     // Set the gutter scroll position to the editor position
     const textAreaScroll = (e: React.UIEvent<HTMLElement>): void => {
@@ -36,9 +43,10 @@ const Editor = ({value, onChange} : EditorProps) => {
     }
 
     const update = (text: string): void => {
-        if (editorRef.current) {
+        if (editorRef.current && codeBlockRef.current) {
             editorRef.current.focus()
             editorRef.current.innerText = text
+            codeBlockRef.current.innerText = text
 
             window.Prism = window.Prism || {};
             console.log("highlighting")
@@ -53,7 +61,7 @@ const Editor = ({value, onChange} : EditorProps) => {
         <div className="editor-container"> 
             
                 <ScrollSyncPane>
-                    <div className="editor-gutter-container">
+                    <div className="editor-gutter-container padding">
                         <div 
                             className="editor-gutter scroll-text-style"
                             ref={gutterRef as React.RefObject<HTMLDivElement>}
@@ -63,16 +71,27 @@ const Editor = ({value, onChange} : EditorProps) => {
                     </div>
                 </ScrollSyncPane>
                 <ScrollSyncPane>
-                    <script src="prism.js" data-manual></script>
-                    <textarea
-                        className="editor scroll-text-style" 
-                        onChange={onChange}
-                        onInput={() => update(value)}
-                        onScroll={textAreaScroll}
-                        spellCheck="false"
-                        ref={editorRef as React.RefObject<HTMLTextAreaElement>}
-                        value={value}
-                    />
+                    
+                    <div className="editor scroll-text-style padding">
+                    <ScrollSyncPane>
+                        <textarea
+                            onChange={onChange}
+                            onInput={() => update(value)}
+                            onScroll={textAreaScroll}
+                            spellCheck="false"
+                            ref={editorRef as React.RefObject<HTMLTextAreaElement>}
+                            value={value}
+                        />
+                        </ScrollSyncPane>
+                        <ScrollSyncPane>
+                        <pre className="language-javascript scroll-text-style">
+                            <code 
+                                
+                                ref={codeBlockRef as React.RefObject<HTMLTextAreaElement>}
+                            >{value}</code>
+                        </pre>
+                        </ScrollSyncPane>
+                    </div>
                 </ScrollSyncPane>
            
         </div>
