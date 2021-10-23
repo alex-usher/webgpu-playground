@@ -1,18 +1,13 @@
 .editor-container {
     overflow:auto;
-    /* overflow:auto; */
-
-    border-radius: 0.6em;
+    border-radius: 0.5em;
     width: 100%;    
     display: flex;
     height: 100%;
-
-    /* display: flex; */
-
     justify-content: center;
 }
 
-
+/* keeps editor and line number formatting consistent */
 .scroll-text-style {
     line-height: 1.8em;
     padding-top: 0.7vh;
@@ -21,23 +16,16 @@
 }
 
 .editor { 
-    /* display:flex; */
+    overflow:auto;
+    z-index: 0;
     display: flex;
-    
-    
-    /* height: inherit; */
     width: inherit;
 
     border: none;
     outline: none;
-
     resize: none;
- 
-    overflow:auto;
-    /* overflow:hidden;  */
 
-
-    background-color: rgba(90, 90, 90, 0.3);
+    background-color: rgba(90, 90, 90, 0.25);
     color: rgba(200, 200, 200, 0.9);
 }
 
@@ -46,22 +34,40 @@
     display:flex;
 
     justify-content: right;
-    background-color: rgba(40, 40, 40, 0.6);
+    background-color: rgba(25, 25, 25, 0.6);
     color: rgba(150, 150, 150, 0.7);
 }
 
 
 .editor-gutter {
     overflow-y:scroll;
-    
     padding-right: 0.5em;
     width: inherit;
     justify-content: right;
     text-align: right;
 }
 
-
+/* Hide the gutter scrollbar but allow scrolling */
 .editor-gutter::-webkit-scrollbar { 
     display: none;  /* Safari and Chrome */
+}
 
+
+/* 
+    CUSTOM SCROLLBAR STYLING
+*/
+
+::-webkit-scrollbar {
+    z-index: 1;
+    width: 1em;
+}
+ 
+::-webkit-scrollbar-track {
+    background-color: rgba(15, 15, 15, 0.5);
+    border-radius: 0.5em;
+}
+ 
+::-webkit-scrollbar-thumb {
+    border-radius: 0.5em;
+    background-color: rgba(70, 70, 70, 0.45);
 }

@@ -8,7 +8,6 @@ interface EditorProps {
 }
 
 
-
 const Editor = ({value, onChange} : EditorProps) => {
     
     const lines = (value.split(/\r\n|\r|\n/)||[]).length + 1
@@ -16,7 +15,6 @@ const Editor = ({value, onChange} : EditorProps) => {
         
     const gutterRef = React.useRef<HTMLDivElement>(null)
     const editorRef = React.useRef<HTMLTextAreaElement>(null)
-
 
 
     const lineNumbers = [...Array(lines)].map(
