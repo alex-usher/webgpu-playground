@@ -10,7 +10,7 @@ interface EditorProps {
 
 const Editor = ({value, onChange} : EditorProps) => {
     
-    const lines = (value.split(/\r\n|\r|\n/)||[]).length + 1
+    const lines = (value.split(/\r\n|\r|\n/)||[]).length
 
         
     const gutterRef = React.useRef<HTMLDivElement>(null)
@@ -34,8 +34,7 @@ const Editor = ({value, onChange} : EditorProps) => {
         }
     }
 
-
-
+    
     return (
         <ScrollSync>
         <div className="editor-container"> 
@@ -56,6 +55,7 @@ const Editor = ({value, onChange} : EditorProps) => {
                         value={value} 
                         onChange={onChange}  
                         onScroll={textAreaScroll}
+                        spellCheck="false"
                         ref={editorRef as React.RefObject<HTMLTextAreaElement>}
                     />
                 </ScrollSyncPane>
