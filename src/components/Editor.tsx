@@ -1,6 +1,7 @@
 import React from "react";
 import { ScrollSync, ScrollSyncPane } from 'react-scroll-sync';
 import '../assets/editor.css'
+import Prism from "prismjs"
 
 interface EditorProps {
     value: string
@@ -34,6 +35,18 @@ const Editor = ({value, onChange} : EditorProps) => {
         }
     }
 
+    const update = (text: string): void => {
+        if (editorRef.current) {
+            editorRef.current.focus()
+            editorRef.current.innerText = text
+
+            window.Prism = window.Prism || {};
+            console.log("highlighting")
+            console.log(editorRef.current.value)
+            Prism.highlight(editorRef.current.value, Prism.languages.javascript, "javascript")
+        }
+    }
+
     
     return (
         <ScrollSync>
@@ -50,13 +63,15 @@ const Editor = ({value, onChange} : EditorProps) => {
                     </div>
                 </ScrollSyncPane>
                 <ScrollSyncPane>
-                    <textarea 
+                    <script src="prism.js" data-manual></script>
+                    <textarea
                         className="editor scroll-text-style" 
-                        value={value} 
-                        onChange={onChange}  
+                        onChange={onChange}
+                        onInput={() => update(value)}
                         onScroll={textAreaScroll}
                         spellCheck="false"
                         ref={editorRef as React.RefObject<HTMLTextAreaElement>}
+                        value={value}
                     />
                 </ScrollSyncPane>
            

@@ -8,6 +8,6 @@ describe("Editor Component Tests", () => {
     it("Should initialise the text area with the given value", () => {
         const container = renderEditor().container.firstChild;
 
-        expect(container?.firstChild).toHaveProperty("value", testValue)
+        expect(container?.lastChild).toHaveProperty("value", testValue)
     })
 })
