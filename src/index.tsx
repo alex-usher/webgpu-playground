@@ -10,7 +10,7 @@ import HomePage from './pages/HomePage'
 import CodeEditorPage from './pages/CodeEditorPage'
 
 import "./assets/style.css"
-import { shaderTriangleFragment, shaderTriangleVertex } from './render';
+import { rectangleFragment, rectangleVertex/*, shaderTriangleFragment, shaderTriangleVertex*/ } from './render';
 
 ReactDOM.render(
     <React.StrictMode>
@@ -21,7 +21,7 @@ ReactDOM.render(
                         <HomePage />
                     </Route>
                     <Route path="/editor">
-                        <CodeEditorPage defaultVertexCode={shaderTriangleVertex} defaultFragmentCode={shaderTriangleFragment} />
+                        <CodeEditorPage defaultVertexCode={rectangleVertex} defaultFragmentCode={rectangleFragment} />
                     </Route>
                 </Switch>
             </Router>
