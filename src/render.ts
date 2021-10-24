@@ -1,16 +1,29 @@
 import {checkWebGPU} from "./helper";
 
+const DATA_BUFFER = [
+    1, 1, 1,
+    0, 0, 1,
+    1, -1, 0,
+    1, 0, 1,
+    -1, 1, 0,
+    0, 1, 1,
+    -1, -1, 1,
+    0, 0, 1,
+    1, -1, 0,
+    1, 0, 1,
+    -1, 1, 0,
+    0, 1, 1
+]
+
 export const rectangleVertex = `
-type float2 = vec2<f32>;
-type float4 = vec4<f32>;
 struct VertexInput {
-    [[location(0)]] position: float2;
-    [[location(1)]] color: float4;
+    [[location(0)]] position: vec2<f32>;
+    [[location(1)]] color: vec4<f32>;
 };
 
 struct VertexOutput {
-    [[builtin(position)]] position: float4;
-    [[location(0)]] color: float4;
+    [[builtin(position)]] position: vec4<f32>;
+    [[location(0)]] color: vec4<f32>;
 };
 
 [[block]]
@@ -22,17 +35,17 @@ struct ViewParams {
 var<uniform> view_params: ViewParams;
 
 [[stage(vertex)]]
-fn vertex_main(vert: VertexInput) -> VertexOutput {
+fn main(vert: VertexInput) -> VertexOutput {
     var out: VertexOutput;
-    out.position = float4(vert.position, 0.0, 1.0);
-    out.color = out.position + float4(sin(view_params.time * 0.01), sin(view_params.time * 0.01), sin(view_params.time * 0.01),0.0) ;
+    out.position = vec4<f32>(vert.position, 0.0, 1.0);
+    out.color = out.position + vec4<f32>(sin(view_params.time * 0.01), sin(view_params.time * 0.01), sin(view_params.time * 0.01),0.0) ;
     return out;
 };`
 
 export const rectangleFragment = `
 [[stage(fragment)]]
-fn fragment_main(in: VertexOutput) -> [[location(0)]] float4 {
-    return in.color;
+fn main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
+    return color;
 };`
 
 export const shaderTriangleFragment = `[[stage(fragment)]]
@@ -66,6 +79,26 @@ fn main([[builtin(vertex_index)]] index: u32) -> Output {
     return output;
 }`
 
+const outputMessages = async (shaderModule: GPUShaderModule) => {
+    if (shaderModule.compilationInfo) {
+        const messages = (await shaderModule.compilationInfo()).messages
+        if (messages.length > 0) {
+            let error = false
+            for (let i = 0; i < messages.length; i++) {
+                const message = messages[i]
+                console.log(`(${message.lineNum}, ${message.linePos}): ${message.message}`)
+                error = error || message.type === "error"
+            }
+
+            return !error
+        }
+
+        return true
+    }
+
+    return false
+}
+
 export const renderRectangularShader = async (vertex: string, fragment: string) => {
     if (!checkWebGPU()) {
         return
@@ -75,23 +108,14 @@ export const renderRectangularShader = async (vertex: string, fragment: string) 
     const adapter = await navigator.gpu!.requestAdapter()
     const device = await adapter!.requestDevice()
     const context = canvas.getContext('webgpu') as unknown as GPUCanvasContext
+    const stateFormat = 'bgra8unorm'
 
-    const shaderModule = device.createShaderModule({code: `${vertex}\n${fragment}`})
-    if (shaderModule.compilationInfo) {
-        const compileMessages = (await shaderModule.compilationInfo()).messages
-        if (compileMessages.length > 0) {
-            // compilation messages
-            let error = false
-            for(let i = 0; i < compileMessages.length; i++) {
-                console.log(`(${compileMessages[i].lineNum},${compileMessages[i].linePos}): ${compileMessages[i].message}`)
-                error = error || compileMessages[i].type === "error"
-            }
+    const vertexShaderModule = device.createShaderModule({code: vertex})
+    const fragmentShaderModule = device.createShaderModule({code: fragment})
 
-            if(error) {
-                console.log("Compilation failed")
-                return
-            }
-        }
+    if(!(await outputMessages(vertexShaderModule) && await outputMessages(fragmentShaderModule))) {
+        console.log("Compilation failed")
+        return
     }
 
     const dataBuffer = device.createBuffer({
@@ -100,23 +124,13 @@ export const renderRectangularShader = async (vertex: string, fragment: string) 
         mappedAtCreation: true
     })
 
-    new Float32Array(dataBuffer.getMappedRange()).set([
-        1, 1, 1, 0,
-        0, 1, 1, -1,
-        0, 1, 0, 1,
-        -1, 1, 0, 0,
-        1, 1, -1, -1,
-        1, 0, 0, 1,
-        1, -1, 0, 1,
-        0, 1, -1, 1,
-        0, 0, 1, 1
-    ])
+    new Float32Array(dataBuffer.getMappedRange()).set(DATA_BUFFER)
 
     dataBuffer.unmap()
 
     const vertexState: GPUVertexState = {
-        module: shaderModule,
-        entryPoint: "vertex_main",
+        module: vertexShaderModule,
+        entryPoint: "main",
         buffers: [{
             arrayStride: 6 * 4,
             stepMode: "vertex",
@@ -127,7 +141,7 @@ export const renderRectangularShader = async (vertex: string, fragment: string) 
         }]
     }
 
-    context.configure({device: device, format: 'bgra8unorm', usage: GPUTextureUsage.RENDER_ATTACHMENT})
+    context.configure({device: device, format: stateFormat, usage: GPUTextureUsage.RENDER_ATTACHMENT})
 
     const depthTexture = device.createTexture({
         size: {width: canvas.width, height: canvas.height},
@@ -136,13 +150,17 @@ export const renderRectangularShader = async (vertex: string, fragment: string) 
     })
 
     const fragmentState: GPUFragmentState = {
-        module: shaderModule,
-        entryPoint: "fragment_main",
-        targets: [{format: 'bgra8unorm'}]
+        module: fragmentShaderModule,
+        entryPoint: "main",
+        targets: [{format: stateFormat}]
     }
 
     const bindGroupLayout = device.createBindGroupLayout({
-        entries: [{binding: 0, visibility: GPUShaderStage.VERTEX, buffer: [{type: "uniform"}]} as GPUBindGroupLayoutEntry]
+        entries: [{
+            binding: 0,
+            visibility: GPUShaderStage.VERTEX,
+            buffer: [{type: "uniform"}]
+        } as GPUBindGroupLayoutEntry]
     })
 
     const layout = device.createPipelineLayout({bindGroupLayouts: [bindGroupLayout]})
@@ -173,7 +191,7 @@ export const renderRectangularShader = async (vertex: string, fragment: string) 
 
     let time = 0;
     const frame = () => {
-        if(canvasVisible) {
+        if (canvasVisible) {
             const upload = device.createBuffer({
                 size: 4,
                 usage: GPUBufferUsage.COPY_SRC,
