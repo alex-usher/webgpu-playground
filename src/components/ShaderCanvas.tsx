@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import "../assets/shaderCanvas.css"
 import { checkWebGPU } from '../helper'
-import {renderRectangularShader} from "../render"
+import {renderShader} from "../render"
 import Typography from "@mui/material/Typography";
 
 const WIDTH_ASPECT = 968
@@ -14,7 +14,7 @@ interface ShaderCanvasInput {
 
 const ShaderCanvas = ({ vertexCode, fragmentCode }: ShaderCanvasInput) => {
     useEffect(() => {
-        renderRectangularShader(vertexCode, fragmentCode)
+        renderShader(vertexCode, fragmentCode)
     }, [vertexCode, fragmentCode])
 
     const aspectMultiple = Math.min(window.innerWidth / WIDTH_ASPECT, window.innerHeight / HEIGHT_ASPECT)

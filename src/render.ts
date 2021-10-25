@@ -1,22 +1,6 @@
 import {checkWebGPU} from "./helper";
 
-const DATA_BUFFER = [
-    1, 1, 1,
-    0, 0, 1,
-    1, -1, 0,
-    1, 0, 1,
-    -1, 1, 0,
-    0, 1, 1,
-    -1, -1, 1,
-    0, 0, 1,
-    1, -1, 0,
-    1, 0, 1,
-    -1, 1, 0,
-    0, 1, 1
-]
-
-export const rectangleVertex = `
-struct VertexInput {
+export const rectangleVertex = `struct VertexInput {
     [[location(0)]] position: vec2<f32>;
     [[location(1)]] color: vec4<f32>;
 };
@@ -35,15 +19,32 @@ struct ViewParams {
 var<uniform> view_params: ViewParams;
 
 [[stage(vertex)]]
-fn main(vert: VertexInput) -> VertexOutput {
+fn main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput {
+    var pos = array<vec2<f32>, 6>(
+        vec2<f32>(1.0, 1.0),
+        vec2<f32>(1.0, -1.0),
+        vec2<f32>(-1.0, -1.0),
+        vec2<f32>(1.0, 1.0),
+        vec2<f32>(-1.0, 1.0),
+        vec2<f32>(-1.0, -1.0)
+    );
+    
+    var color = array<vec3<f32>, 6>(
+        vec3<f32>(1.0, 0.0, 0.0),
+        vec3<f32>(0.0, 1.0, 0.0),
+        vec3<f32>(0.0, 0.0, 1.0),
+        vec3<f32>(1.0, 0.0, 0.0),
+        vec3<f32>(0.0, 1.0, 0.0),
+        vec3<f32>(0.0, 0.0, 1.0)
+    );
+
     var out: VertexOutput;
-    out.position = vec4<f32>(vert.position, 0.0, 1.0);
-    out.color = out.position + vec4<f32>(sin(view_params.time * 0.01), sin(view_params.time * 0.01), sin(view_params.time * 0.01),0.0) ;
+    out.position = vec4<f32>(pos[index], 0.0, 1.0) + vec4<f32>(sin(view_params.time * 0.01), cos(view_params.time * 0.01), 0.0, 0.0);
+    out.color = vert.color + vec4<f32>(color[index], 1.0);
     return out;
 };`
 
-export const rectangleFragment = `
-[[stage(fragment)]]
+export const rectangleFragment = `[[stage(fragment)]]
 fn main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
     return color;
 };`
@@ -99,7 +100,7 @@ const outputMessages = async (shaderModule: GPUShaderModule) => {
     return false
 }
 
-export const renderRectangularShader = async (vertex: string, fragment: string) => {
+export const renderShader = async (vertex: string, fragment: string) => {
     if (!checkWebGPU()) {
         return
     }
@@ -108,52 +109,54 @@ export const renderRectangularShader = async (vertex: string, fragment: string) 
     const adapter = await navigator.gpu!.requestAdapter()
     const device = await adapter!.requestDevice()
     const context = canvas.getContext('webgpu') as unknown as GPUCanvasContext
+
     const stateFormat = 'bgra8unorm'
+    const depthFormat = 'depth24plus-stencil8'
 
     const vertexShaderModule = device.createShaderModule({code: vertex})
     const fragmentShaderModule = device.createShaderModule({code: fragment})
 
-    if(!(await outputMessages(vertexShaderModule) && await outputMessages(fragmentShaderModule))) {
+    // check for compilation failures and output any compile messages
+    if (!(await outputMessages(vertexShaderModule) && await outputMessages(fragmentShaderModule))) {
         console.log("Compilation failed")
         return
     }
 
+    // allocate a buffer for up to 6 vertices
     const dataBuffer = device.createBuffer({
         size: 6 * 6 * 4,
         usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
         mappedAtCreation: true
     })
 
-    new Float32Array(dataBuffer.getMappedRange()).set(DATA_BUFFER)
+
+    // this float 32 array is not necessary,
+    // but with it you can do some cool things using the
+    // VertexInput in the shader
+    new Float32Array(dataBuffer.getMappedRange()).set([
+        0, 0,
+        1, 0, 1, 1,
+        0, 0,
+        0, 1, 0, 1,
+        0, 0,
+        1, 1, 1, 1,
+        0, 0,
+        1, 0, 1, 1,
+        0, 0,
+        0, 1, 0, 1,
+        0, 0,
+        1, 1, 1, 1,
+    ])
 
     dataBuffer.unmap()
-
-    const vertexState: GPUVertexState = {
-        module: vertexShaderModule,
-        entryPoint: "main",
-        buffers: [{
-            arrayStride: 6 * 4,
-            stepMode: "vertex",
-            attributes: [
-                {format: "float32x4", offset: 0, shaderLocation: 0},
-                {format: "float32x4", offset: 2 * 4, shaderLocation: 1}
-            ]
-        }]
-    }
 
     context.configure({device: device, format: stateFormat, usage: GPUTextureUsage.RENDER_ATTACHMENT})
 
     const depthTexture = device.createTexture({
         size: {width: canvas.width, height: canvas.height},
-        format: 'depth24plus-stencil8',
+        format: depthFormat,
         usage: GPUTextureUsage.RENDER_ATTACHMENT
     })
-
-    const fragmentState: GPUFragmentState = {
-        module: fragmentShaderModule,
-        entryPoint: "main",
-        targets: [{format: stateFormat}]
-    }
 
     const bindGroupLayout = device.createBindGroupLayout({
         entries: [{
@@ -167,9 +170,24 @@ export const renderRectangularShader = async (vertex: string, fragment: string) 
 
     const renderPipeline = device.createRenderPipeline({
         layout: layout,
-        vertex: vertexState,
-        fragment: fragmentState,
-        depthStencil: {format: "depth24plus-stencil8", depthWriteEnabled: true, depthCompare: "less"}
+        vertex: {
+            module: vertexShaderModule,
+            entryPoint: "main",
+            buffers: [{
+                arrayStride: 6 * 4,
+                stepMode: "vertex",
+                attributes: [
+                    {format: "float32x4", offset: 0, shaderLocation: 0},
+                    {format: "float32x4", offset: 2 * 4, shaderLocation: 1}
+                ]
+            }]
+        },
+        fragment: {
+            module: fragmentShaderModule,
+            entryPoint: "main",
+            targets: [{format: stateFormat}]
+        },
+        depthStencil: {format: depthFormat, depthWriteEnabled: true, depthCompare: "less"}
     })
 
     const viewParamsBuffer = device.createBuffer({
@@ -202,7 +220,7 @@ export const renderRectangularShader = async (vertex: string, fragment: string) 
             upload.unmap()
 
             const renderPassDescription = {
-                colorAttachments: [{view: context.getCurrentTexture().createView(), loadValue: [0.3, 0.3, 0.3, 1]}],
+                colorAttachments: [{view: context.getCurrentTexture().createView(), loadValue: [0.0, 0.0, 0.0, 0.0]}],
                 depthStencilAttachment: {
                     view: depthTexture.createView(),
                     depthLoadValue: 1.0,
@@ -232,53 +250,6 @@ export const renderRectangularShader = async (vertex: string, fragment: string) 
     requestAnimationFrame(frame)
 }
 
-export const renderSimpleShader = async (vertex: string, fragment: string) => {
-    const shader = {vertex, fragment}
-
-    if (!checkWebGPU()) {
-        return
-    }
-
-    const canvas = document.getElementById('canvas-webgpu') as HTMLCanvasElement
-    const adapter = await navigator.gpu?.requestAdapter() as GPUAdapter
-    const device = await adapter?.requestDevice() as GPUDevice
-    const context = canvas.getContext('webgpu') as unknown as GPUCanvasContext
-    const format = 'bgra8unorm'
-
-    context.configure({device, format})
-
-    const pipeline = device.createRenderPipeline({
-        vertex: {
-            module: device.createShaderModule({code: shader.vertex}),
-            entryPoint: "main"
-        },
-        fragment: {
-            module: device.createShaderModule({code: shader.fragment}),
-            entryPoint: "main",
-            targets: [{format: format as GPUTextureFormat}]
-        },
-        primitive: {
-            topology: "triangle-list"
-        }
-    })
-
-    const commandEncoder = device.createCommandEncoder()
-    const textureView = context.getCurrentTexture().createView()
-    const renderPass = commandEncoder.beginRenderPass({
-        colorAttachments: [{
-            view: textureView,
-            loadValue: {r: 0.0, g: 0.0, b: 0.0, a: 1.0},
-            storeOp: "store"
-        }]
-    });
-
-    renderPass.setPipeline(pipeline)
-    renderPass.draw(3, 1, 0, 0)
-    renderPass.endPass()
-
-    device.queue.submit([commandEncoder.finish()])
-}
-
-export const renderTriangle = async () => {
-    renderSimpleShader(shaderTriangleVertex, shaderTriangleFragment)
+export const renderTriangle = () => {
+    renderShader(shaderTriangleVertex, shaderTriangleFragment)
 }
