@@ -25,7 +25,7 @@ const HIDE_CODE_TEXT = "Hide Code"
 const doMocks = () => {
     checkWebGPUMock = jest.spyOn(helper, "checkWebGPU")
     checkWebGPUMock.mockImplementation(() => true)
-    simpleShaderMock = jest.spyOn(shaders, "renderSimpleShader")
+    simpleShaderMock = jest.spyOn(shaders, "renderShader")
     simpleShaderMock.mockImplementation(() => {})
 }
 
