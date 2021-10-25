@@ -100,7 +100,8 @@ const outputMessages = async (shaderModule: GPUShaderModule) => {
     return false
 }
 
-export const renderShader = async (vertex: string, fragment: string) => {
+export const renderShader = async (vertex: string, fragment: string, position: {x: number, y:number}) => {
+
     if (!checkWebGPU()) {
         return
     }
