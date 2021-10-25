@@ -20,7 +20,7 @@ const ShaderCanvas = ({ vertexCode, fragmentCode }: ShaderCanvasInput) => {
   }, [vertexCode, fragmentCode, position]);
 
   useEffect(() => {
-    const setFromEvent = (e) => setPosition({ x: e.clientX, y: e.clientY });
+    const setFromEvent = (e: MouseEvent) => setPosition({ x: e.clientX, y: e.clientY });
     window.addEventListener("mousemove", setFromEvent);
   }, []);
 

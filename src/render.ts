@@ -252,5 +252,5 @@ export const renderShader = async (vertex: string, fragment: string, position: {
 }
 
 export const renderTriangle = () => {
-    renderShader(shaderTriangleVertex, shaderTriangleFragment)
+    renderShader(shaderTriangleVertex, shaderTriangleFragment, {x:0,y:0} )
 }
