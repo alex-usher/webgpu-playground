@@ -25,7 +25,7 @@ const ShaderCanvas = ({ vertexCode, fragmentCode }: ShaderCanvasInput) => {
       updateCoordinates(position);
     };
     window.addEventListener("mousemove", setFromEvent);
-  }, []);
+  }, [position]);
 
   const aspectMultiple = Math.min(
     window.innerWidth / WIDTH_ASPECT,

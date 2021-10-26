@@ -24,7 +24,7 @@ var<uniform> view_params: ViewParams;
 fn main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput {
     var pos = array<vec2<f32>, 6>(
         vec2<f32>(1.0, 1.0),
-        vec2<f32>(1.0, -1.0),
+        vec2<f32>(view_params.x, view_params.y),
         vec2<f32>(-1.0, -1.0),
         vec2<f32>(1.0, 1.0),
         vec2<f32>(-1.0, 1.0),
@@ -41,7 +41,7 @@ fn main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput
     );
 
     var out: VertexOutput;
-    out.position = vec4<f32>(pos[index], 0.0, 1.0) + vec4<f32>(sin(view_params.time * 0.01), cos(view_params.time * 0.01), 0.0, 0.0);
+    out.position = vec4<f32>(pos[index], 0.0, 1.0);
     out.color = vert.color + vec4<f32>(color[index], 1.0);
     return out;
 };`
@@ -108,6 +108,10 @@ let y = 0;
 export const updateCoordinates = (position: {x: number, y: number}) => {
     x = position.x;
     y = position.y;
+}
+
+let getCoordinates = () => {
+    return {x: x, y: y}
 }
 
 export const renderShader = async (vertex: string, fragment: string) => {
@@ -219,6 +223,8 @@ export const renderShader = async (vertex: string, fragment: string) => {
 
     let time = 0;
     const frame = () => {
+
+
         if (canvasVisible) {
             const upload = device.createBuffer({
                 size: 4,
@@ -237,14 +243,14 @@ export const renderShader = async (vertex: string, fragment: string) => {
                 usage: GPUBufferUsage.COPY_SRC,
                 mappedAtCreation: true
             })
-
+            const position = getCoordinates();
             new Float32Array(upload.getMappedRange()).set([time])
             upload.unmap()
 
-            new Float32Array(xBuffer.getMappedRange()).set([x])
+            new Float32Array(xBuffer.getMappedRange()).set([position.x])
             xBuffer.unmap()
 
-            new Float32Array(yBuffer.getMappedRange()).set([y])
+            new Float32Array(yBuffer.getMappedRange()).set([position.y])
             yBuffer.unmap()
 
             const renderPassDescription = {
