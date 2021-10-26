@@ -13,6 +13,8 @@ struct VertexOutput {
 [[block]]
 struct ViewParams {
     time: f32;
+    x: f32;
+    y: f32;
 };
 
 [[group(0), binding(0)]]
@@ -100,8 +102,15 @@ const outputMessages = async (shaderModule: GPUShaderModule) => {
     return false
 }
 
-export const renderShader = async (vertex: string, fragment: string, position: {x: number, y:number}) => {
+let x = 0;
+let y = 0;
 
+export const updateCoordinates = (position: {x: number, y: number}) => {
+    x = position.x;
+    y = position.y;
+}
+
+export const renderShader = async (vertex: string, fragment: string) => {
     if (!checkWebGPU()) {
         return
     }
@@ -192,7 +201,7 @@ export const renderShader = async (vertex: string, fragment: string, position: {
     })
 
     const viewParamsBuffer = device.createBuffer({
-        size: 4,
+        size: 4 * 3,
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
     })
 
@@ -217,8 +226,26 @@ export const renderShader = async (vertex: string, fragment: string, position: {
                 mappedAtCreation: true
             })
 
+            const xBuffer = device.createBuffer({
+                size: 4,
+                usage: GPUBufferUsage.COPY_SRC,
+                mappedAtCreation: true
+            })
+
+            const yBuffer = device.createBuffer({
+                size: 4,
+                usage: GPUBufferUsage.COPY_SRC,
+                mappedAtCreation: true
+            })
+
             new Float32Array(upload.getMappedRange()).set([time])
             upload.unmap()
+
+            new Float32Array(xBuffer.getMappedRange()).set([x])
+            xBuffer.unmap()
+
+            new Float32Array(yBuffer.getMappedRange()).set([y])
+            yBuffer.unmap()
 
             const renderPassDescription = {
                 colorAttachments: [{view: context.getCurrentTexture().createView(), loadValue: [0.0, 0.0, 0.0, 0.0]}],
@@ -233,6 +260,8 @@ export const renderShader = async (vertex: string, fragment: string, position: {
 
             const commandEncoder = device.createCommandEncoder()
             commandEncoder.copyBufferToBuffer(upload, 0, viewParamsBuffer, 0, 4)
+            commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4)
+            commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4)
 
             const renderPass = commandEncoder.beginRenderPass(renderPassDescription as GPURenderPassDescriptor)
             renderPass.setPipeline(renderPipeline)
@@ -243,14 +272,14 @@ export const renderShader = async (vertex: string, fragment: string, position: {
             renderPass.endPass()
             device.queue.submit([commandEncoder.finish()])
             time++
-        }
 
+        }
         requestAnimationFrame(frame)
     }
-
+    
     requestAnimationFrame(frame)
 }
 
 export const renderTriangle = () => {
-    renderShader(shaderTriangleVertex, shaderTriangleFragment, {x:0,y:0} )
+    renderShader(shaderTriangleVertex, shaderTriangleFragment)
 }

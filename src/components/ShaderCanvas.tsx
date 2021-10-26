@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "../assets/shaderCanvas.css";
 import { checkWebGPU } from "../helper";
-import { renderShader } from "../render";
+import { renderShader, updateCoordinates } from "../render";
 import Typography from "@mui/material/Typography";
 
 const WIDTH_ASPECT = 968;
@@ -16,11 +16,14 @@ const ShaderCanvas = ({ vertexCode, fragmentCode }: ShaderCanvasInput) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    renderShader(vertexCode, fragmentCode, position);
-  }, [vertexCode, fragmentCode, position]);
+    renderShader(vertexCode, fragmentCode);
+  }, [vertexCode, fragmentCode]);
 
   useEffect(() => {
-    const setFromEvent = (e: MouseEvent) => setPosition({ x: e.clientX, y: e.clientY });
+    const setFromEvent = (e: MouseEvent) => {
+      setPosition({ x: e.clientX, y: e.clientY });
+      updateCoordinates(position);
+    };
     window.addEventListener("mousemove", setFromEvent);
   }, []);
 
