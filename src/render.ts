@@ -110,9 +110,6 @@ export const updateCoordinates = (position: {x: number, y: number}) => {
     y = position.y;
 }
 
-let getCoordinates = () => {
-    return {x: x, y: y}
-}
 
 export const renderShader = async (vertex: string, fragment: string) => {
     if (!checkWebGPU()) {
@@ -243,16 +240,17 @@ export const renderShader = async (vertex: string, fragment: string) => {
                 usage: GPUBufferUsage.COPY_SRC,
                 mappedAtCreation: true
             })
-            const position = getCoordinates();
+            
             new Float32Array(upload.getMappedRange()).set([time])
             upload.unmap()
 
-            new Float32Array(xBuffer.getMappedRange()).set([position.x])
+            new Float32Array(xBuffer.getMappedRange()).set([x])
             xBuffer.unmap()
 
-            new Float32Array(yBuffer.getMappedRange()).set([position.y])
+            new Float32Array(yBuffer.getMappedRange()).set([y])
             yBuffer.unmap()
 
+            console.log(x + ", " + y)
             const renderPassDescription = {
                 colorAttachments: [{view: context.getCurrentTexture().createView(), loadValue: [0.0, 0.0, 0.0, 0.0]}],
                 depthStencilAttachment: {

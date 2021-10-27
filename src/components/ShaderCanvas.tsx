@@ -15,22 +15,34 @@ interface ShaderCanvasInput {
 const ShaderCanvas = ({ vertexCode, fragmentCode }: ShaderCanvasInput) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
+  const aspectMultiple = Math.min(
+    window.innerWidth / WIDTH_ASPECT,
+    window.innerHeight / HEIGHT_ASPECT
+  );
+
   useEffect(() => {
     renderShader(vertexCode, fragmentCode);
   }, [vertexCode, fragmentCode]);
 
   useEffect(() => {
     const setFromEvent = (e: MouseEvent) => {
-      setPosition({ x: e.clientX, y: e.clientY });
+      /*let offsetLeft = 0;
+      let offsetTop = 0;
+      if (e.target instanceof Element) {
+        offsetLeft = e.target.getBoundingClientRect().left;
+        offsetTop = e.target.getBoundingClientRect().top;
+      }*/
+      setPosition({ x: (e.offsetX) / (aspectMultiple * WIDTH_ASPECT) * 2 - 1, y: -((e.offsetY) / (aspectMultiple * HEIGHT_ASPECT) * 2 - 1 )});
       updateCoordinates(position);
     };
     window.addEventListener("mousemove", setFromEvent);
+
+    return () => {
+      window.removeEventListener("mousemove", setFromEvent);
+    };
   }, [position]);
 
-  const aspectMultiple = Math.min(
-    window.innerWidth / WIDTH_ASPECT,
-    window.innerHeight / HEIGHT_ASPECT
-  );
+
 
   return (
     <div style={{ color: "white", height: "90%" }}>
