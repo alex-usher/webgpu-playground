@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {ScrollSync, ScrollSyncPane} from 'react-scroll-sync';
 import '../assets/editor.css'
 import Prism from "prismjs"
