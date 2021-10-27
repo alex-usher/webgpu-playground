@@ -5,11 +5,14 @@ import {render} from "@testing-library/react"
 import {screen} from "@testing-library/dom"
 import CodeEditorPage from "../../pages/CodeEditorPage"
 import {shaderTriangleFragment, shaderTriangleVertex} from "../../render"
+import {SnackbarProvider} from "notistack"
 
 import '@testing-library/jest-dom/extend-expect';
 
-const renderCodeEditorPage = () => render(<CodeEditorPage defaultVertexCode={shaderTriangleVertex}
-                                                          defaultFragmentCode={shaderTriangleFragment}/>)
+const renderCodeEditorPage = () => render(
+    <SnackbarProvider>
+    <CodeEditorPage defaultVertexCode={shaderTriangleVertex} defaultFragmentCode={shaderTriangleFragment}/>
+    </SnackbarProvider>)
 
 let checkWebGPUMock: jest.SpyInstance
 let simpleShaderMock: jest.SpyInstance
