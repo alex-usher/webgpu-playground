@@ -1,5 +1,6 @@
+/* div for alll elements of the editor */
 .editor-container {
-    overflow:auto;
+    overflow: auto;
     border-radius: 0.35em;
     width: 100%;    
     display: flex;
@@ -9,7 +10,6 @@
     border: none;
     outline: none;
     z-index: 0;
-    
 }
 
 .padding {  
@@ -25,8 +25,8 @@
     font-family: monospace;
 }
 
+/* div for the text components of the editor */
 .editor { 
-
     box-sizing: border-box;
     overflow: hidden;
     z-index: 0;
@@ -59,18 +59,18 @@
     line-height: inherit;
     
     width: inherit;
-    height:inherit;
+    height: inherit;
     max-width: inherit;
-    max-height:inherit;
+    max-height: inherit;
 
     margin:0;
     padding-bottom: -2em;
-    padding-right:0.5em;
-    padding-left:1em;
+    padding-right: 0.5em;
+    padding-left: 1em;
     border: none;
     outline: none;
     width: 100%;
-    height:100%;
+    height: 100%;
 
     z-index: 2000;
 }
@@ -78,7 +78,7 @@
 .editor pre {
     box-sizing: border-box;
     display: flex;
-    position:relative;
+    position: relative;
 
     white-space: pre;
     word-wrap: normal;
@@ -93,102 +93,83 @@
     background-color: transparent;
 
     margin:0;
-    padding-right:0.5em;
-    padding-left:1em;
+    padding-right: 0.5em;
+    padding-left: 1em;
     border: none;
     outline: none;
     width: 100%;
-    height:100%;
+    height: 100%;
 }
 
 .editor code {
     box-sizing: border-box;
     word-wrap: normal;
-
     overflow: hidden;
     pointer-events: none;
-    padding:0;
-
-
-    position:sticky;
-
+    padding: 0;
+    position: sticky;
     font-size: inherit;
     font-family: inherit;
     line-height: inherit;
     background-color: transparent;
-
     border: none;
     outline: none;
     width: 100%;
-    height:96%;
+    height: 96%;
 }
-
 
 .editor-gutter-container {
     z-index: 100;
     overflow: hidden;
     width: 2.5em;
-    display:flex;
-    height:100%;
+    display: flex;
+    height: 100%;
     justify-content: right;
     background-color: rgba(25, 25, 25, 0.6);
     color: rgba(150, 150, 150, 0.7);
-
 }
 
-
 .editor-gutter {
-    /* margin-top: 0.7vh; */
     box-sizing: border-box;
-
-    overflow-y:auto;
+    overflow-y: auto;
     padding-right: 0.5em;
     width: 100%;
-    height:96%;
+    height: 96%;
     justify-content: right;
     text-align: right;
 }
 
-
-/* Hide the gutter scrollbar but allow scrolling */
+/* Hide scrollbars but allow scrolling */
 .editor-container::-webkit-scrollbar { 
     display: none;  /* Safari and Chrome */
 }
 
 
-/* Hide the gutter scrollbar but allow scrolling */
 .editor-gutter-container::-webkit-scrollbar { 
     display: none;  /* Safari and Chrome */
 }
 
 
-/* Hide the gutter scrollbar but allow scrolling */
 .editor-gutter::-webkit-scrollbar { 
     display: none;  /* Safari and Chrome */
 }
 
 
-/* Hide the gutter scrollbar but allow scrolling */
 .textarea::-webkit-scrollbar { 
     display: none;  /* Safari and Chrome */
 }
 
 
-/* Hide the gutter scrollbar but allow scrolling */
 .pre::-webkit-scrollbar { 
     display: none;  /* Safari and Chrome */
 }
 
-/* Hide the gutter scrollbar but allow scrolling */
 .code::-webkit-scrollbar { 
     display: none;  /* Safari and Chrome */
 }
 
 
-
-/* 
-    CUSTOM SCROLLBAR STYLING
-*/
+/* SCROLLBAR STYLING */
 
 ::-webkit-scrollbar {
     z-index: 2;
@@ -209,6 +190,6 @@
     background-color: rgba(70, 70, 70, 0.45);
 }
 
-/* ::-webkit-scrollbar-corner {
+::-webkit-scrollbar-corner {
     background-color: rgba(15, 15, 15, 0.5);
-} */
+} 
