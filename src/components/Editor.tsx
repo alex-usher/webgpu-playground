@@ -16,9 +16,6 @@ const Editor = ({value, onChange} : EditorProps) => {
     const lines = (value.split(/\r\n|\r|\n/)||[]).length
     
                 
-    // if (value.slice(-1) !== "\n") {
-    //     value += "\n"
-    // }
 
 
     const gutterRef = React.useRef<HTMLDivElement>(null)
@@ -128,15 +125,17 @@ const Editor = ({value, onChange} : EditorProps) => {
             <div
                 className="editor scroll-text-style"
             >
-                <textarea
-                    className="code-text-editor padding"
-                    onChange={onChange}
-                    onInput={() => update(value)}
-                    onScroll={textAreaScroll}
-                    spellCheck="false"
-                    ref={editorRef as React.RefObject<HTMLTextAreaElement>}
-                    value={value}
-                />
+                <div className="heightDiv">
+                    <textarea
+                        className="code-text-editor padding"
+                        onChange={onChange}
+                        onInput={() => update(value)}
+                        onScroll={textAreaScroll}
+                        spellCheck="false"
+                        ref={editorRef as React.RefObject<HTMLTextAreaElement>}
+                        value={value}
+                    />
+                </div>
                 <pre 
                     className="language-javascript scroll-text-style padding"
                 >
