@@ -8,10 +8,10 @@ import {
 
 import HomePage from './pages/HomePage'
 import CodeEditorPage from './pages/CodeEditorPage'
-import { SnackbarProvider } from 'notistack'
+import {SnackbarProvider} from 'notistack'
 
 import "./assets/style.css"
-import { rectangleFragment, rectangleVertex/*, shaderTriangleFragment, shaderTriangleVertex*/ } from './render';
+import {defaultShader} from "./objects/Shader";
 
 ReactDOM.render(
     <React.StrictMode>
@@ -20,10 +20,10 @@ ReactDOM.render(
                 <Router>
                     <Switch>
                         <Route path="/" exact>
-                            <HomePage />
+                            <HomePage/>
                         </Route>
                         <Route path="/editor">
-                            <CodeEditorPage defaultVertexCode={rectangleVertex} defaultFragmentCode={rectangleFragment} />
+                            <CodeEditorPage shader={defaultShader}/>
                         </Route>
                     </Switch>
                 </Router>
