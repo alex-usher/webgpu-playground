@@ -8,21 +8,19 @@ import { collection, addDoc } from "firebase/firestore"
 import { v4 as uuidv4 } from "uuid"
 import { useSnackbar } from 'notistack'
 
+import {ShaderProps} from "../objects/Shader";
+
 import "../assets/style.css";
 import "../assets/codeEditorPage.css";
 
-interface CodeEditorPageProps {
-    defaultVertexCode: string
-    defaultFragmentCode: string
-}
 
-const CodeEditorPage = ({ defaultVertexCode, defaultFragmentCode }: CodeEditorPageProps) => {
-    const [vertexCode, setVertexCode] = useState(defaultVertexCode)
-    const [fragmentCode, setFragmentCode] = useState(defaultFragmentCode)
+const CodeEditorPage = ({shader}: ShaderProps) => {
+    const [vertexCode, setVertexCode] = useState(shader.vertexCode)
+    const [fragmentCode, setFragmentCode] = useState(shader.fragmentCode)
     const [showCode, setShowCode] = useState(false)
     const [viewCodeText, setViewCodeText] = useState("View Code")
-    const [renderedVertexCode, setRenderedVertexCode] = useState(defaultVertexCode)
-    const [renderedFragmentCode, setRenderedFragmentCode] = useState(defaultFragmentCode)
+    const [renderedVertexCode, setRenderedVertexCode] = useState(shader.vertexCode)
+    const [renderedFragmentCode, setRenderedFragmentCode] = useState(shader.fragmentCode)
     const {enqueueSnackbar} = useSnackbar()
 
     const saveShaderCode = (vertexCode: string, fragmentCode: string, shaderName: string) => {
