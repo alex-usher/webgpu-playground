@@ -5,11 +5,15 @@ import {render} from "@testing-library/react"
 import {screen} from "@testing-library/dom"
 import CodeEditorPage from "../../pages/CodeEditorPage"
 import {shaderTriangleFragment, shaderTriangleVertex} from "../../render"
+import {SnackbarProvider} from "notistack"
+import {Shader} from "../../objects/Shader"
 
 import '@testing-library/jest-dom/extend-expect';
 
-const renderCodeEditorPage = () => render(<CodeEditorPage defaultVertexCode={shaderTriangleVertex}
-                                                          defaultFragmentCode={shaderTriangleFragment}/>)
+const renderCodeEditorPage = () => render(
+    <SnackbarProvider>
+    <CodeEditorPage shader={new Shader("test", "http://www.test.com", shaderTriangleVertex, shaderTriangleFragment)}/>
+    </SnackbarProvider>)
 
 let checkWebGPUMock: jest.SpyInstance
 let simpleShaderMock: jest.SpyInstance
@@ -25,7 +29,7 @@ const HIDE_CODE_TEXT = "Hide Code"
 const doMocks = () => {
     checkWebGPUMock = jest.spyOn(helper, "checkWebGPU")
     checkWebGPUMock.mockImplementation(() => true)
-    simpleShaderMock = jest.spyOn(shaders, "renderSimpleShader")
+    simpleShaderMock = jest.spyOn(shaders, "renderShader")
     simpleShaderMock.mockImplementation(() => {})
 }
 
