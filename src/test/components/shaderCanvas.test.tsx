@@ -12,7 +12,7 @@ let simpleShaderMock: jest.SpyInstance
 describe("Shader Canvas component tests", () => {
     beforeEach(() => {
         checkWebGPUMock = jest.spyOn(helper, "checkWebGPU")
-        simpleShaderMock = jest.spyOn(shaders, "renderSimpleShader")
+        simpleShaderMock = jest.spyOn(shaders, "renderShader")
         simpleShaderMock.mockImplementation(() => {})
     })
 
@@ -36,7 +36,7 @@ describe("Shader Canvas component tests", () => {
         expect(document.getElementById('canvas-webgpu')).not.toBeNull()
     })
 
-    it("Should make calls to renderSimpleShader to render onto the canvas", () => {
+    it("Should make calls to renderShader to render onto the canvas", () => {
         checkWebGPUMock.mockReturnValue(true)
 
         renderShaderCanvas()

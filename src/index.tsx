@@ -5,28 +5,30 @@ import {
     Switch,
     Route
 } from "react-router-dom";
-  
+
 import HomePage from './pages/HomePage'
 import CodeEditorPage from './pages/CodeEditorPage'
+import {SnackbarProvider} from 'notistack'
 
 import "./assets/style.css"
-import { shaderTriangleFragment, shaderTriangleVertex } from './render';
+import {defaultShader} from "./objects/Shader";
 
 ReactDOM.render(
     <React.StrictMode>
-        <div id="body">
-            <Router>
-                <Switch>
-                    <Route path="/" exact>
-                        <HomePage />
-                    </Route>
-                    <Route path="/editor">
-                        <CodeEditorPage defaultVertexCode={shaderTriangleVertex} defaultFragmentCode={shaderTriangleFragment} />
-                    </Route>
-                </Switch>
-            </Router>
-            
-        </div>
+        <SnackbarProvider maxSnack={1}>
+            <div id="body">
+                <Router>
+                    <Switch>
+                        <Route path="/" exact>
+                            <HomePage/>
+                        </Route>
+                        <Route path="/editor">
+                            <CodeEditorPage shader={defaultShader}/>
+                        </Route>
+                    </Switch>
+                </Router>
+            </div>
+        </SnackbarProvider>
     </React.StrictMode>,
     document.getElementById('root')
 );
