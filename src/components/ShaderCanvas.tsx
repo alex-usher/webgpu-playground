@@ -31,7 +31,9 @@ const ShaderCanvas = ({ vertexCode, fragmentCode }: ShaderCanvasInput) => {
       const canvas = document.getElementById('canvas-webgpu') as HTMLCanvasElement
       let offsetLeft = canvas.getBoundingClientRect().left;
       let offsetTop = canvas.getBoundingClientRect().top;
-      setPosition({ x: (e.pageX - offsetLeft) / (ASPECT_RATIO * aspectMultiple * WIDTH_ASPECT) * 2 - 1, y: -((e.pageY - offsetTop) / (ASPECT_RATIO * aspectMultiple * HEIGHT_ASPECT) * 2 - 1) });
+      let xCoord = (e.pageX - offsetLeft) / (ASPECT_RATIO * aspectMultiple * WIDTH_ASPECT) * 2 - 1;
+      let yCoord = -((e.pageY - offsetTop) / (ASPECT_RATIO * aspectMultiple * HEIGHT_ASPECT) * 2 - 1);
+      setPosition({ x: xCoord, y: yCoord});
       updateCoordinates(position);
     };
     window.addEventListener("mousemove", setFromEvent);
@@ -39,7 +41,7 @@ const ShaderCanvas = ({ vertexCode, fragmentCode }: ShaderCanvasInput) => {
     return () => {
       window.removeEventListener("mousemove", setFromEvent);
     };
-  }, [position]);
+  }, [position, aspectMultiple]);
 
 
 
