@@ -9,7 +9,7 @@ interface EditorProps {
     opacity?: number
 }
 
-const Editor = ({value, onChange, opacity=0.25} : EditorProps) => {
+const Editor = ({value, onChange, opacity=0.5} : EditorProps) => {
 
     const lines = (value.split(/\r\n|\r|\n/)||[]).length
     

@@ -23,7 +23,7 @@ const CodeEditorPage = ({shader}: ShaderProps) => {
     const [viewCodeText, setViewCodeText] = useState("View Code")
     const [renderedVertexCode, setRenderedVertexCode] = useState(shader.vertexCode)
     const [renderedFragmentCode, setRenderedFragmentCode] = useState(shader.fragmentCode)
-    const [editorOpacity, setEditorOpacity] = useState(0.25)
+    const [editorOpacity, setEditorOpacity] = useState(0.5)
     const {enqueueSnackbar} = useSnackbar()
 
     const saveShaderCode = (vertexCode: string, fragmentCode: string, shaderName: string) => {
