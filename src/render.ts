@@ -54,7 +54,8 @@ fn main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
 export const shaderTriangleFragment = `[[stage(fragment)]]
 fn main([[location(0)]] vColor: vec4<f32>) -> [[location(0)]] vec4<f32> {
     return vColor;
-}`
+}
+`
 
 export const shaderTriangleVertex = `struct Output {
     [[builtin(position)]] Position : vec4<f32>;
@@ -80,7 +81,8 @@ fn main([[builtin(vertex_index)]] index: u32) -> Output {
     output.vColor = vec4<f32>(color[index], 1.0);
     
     return output;
-}`
+}
+`
 
 const outputMessages = async (shaderModule: GPUShaderModule) => {
     if (shaderModule.compilationInfo) {
