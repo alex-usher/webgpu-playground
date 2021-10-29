@@ -1,0 +1,15 @@
+.row {
+    overflow: auto; 
+    white-space: nowrap;
+    display: inline-block;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.row li {
+    display: inline-block;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+

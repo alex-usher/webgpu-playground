@@ -4,7 +4,7 @@ import Container from '@mui/material/Container'
 import Typography from '@mui/material/Typography'
 import {defaultShader} from "../objects/Shader";
 import {Link} from "react-router-dom"
-import {ShaderCard} from "../components/ShaderCard"
+import {CardCarousel} from "../components/CardCarousel"
 
 import "../assets/homePage.css"
 
@@ -30,10 +30,7 @@ const HomePage = () => (
                     </Button>
                 </Grid>
             </Grid>
-            {/* this.state.shaders.map() */}
-            <ShaderCard shader={defaultShader}/>
-            <ShaderCard shader={defaultShader}/>
-            <ShaderCard shader={defaultShader}/>
+            <CardCarousel sectionName="examples" shaderList={[defaultShader, defaultShader, defaultShader]}/>
         </Grid>
     </Container>
 )
