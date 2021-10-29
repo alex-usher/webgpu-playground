@@ -31,9 +31,7 @@ const ShaderCanvas = ({ vertexCode, fragmentCode }: ShaderCanvasInput) => {
       const canvas = document.getElementById('canvas-webgpu') as HTMLCanvasElement
       let offsetLeft = canvas.getBoundingClientRect().left;
       let offsetTop = canvas.getBoundingClientRect().top;
-      console.log("canvas: ", aspectMultiple * WIDTH_ASPECT, aspectMultiple * HEIGHT_ASPECT)
-      console.log("mouse coordinate: ", e.pageX - offsetLeft, e.pageY - offsetTop);
-      setPosition({ x:  (e.pageX - offsetLeft) / ( ASPECT_RATIO * aspectMultiple * WIDTH_ASPECT) * 2 - 1, y:  -((e.pageY - offsetTop) / (ASPECT_RATIO * aspectMultiple * HEIGHT_ASPECT) * 2 - 1 )});
+      setPosition({ x: (e.pageX - offsetLeft) / (ASPECT_RATIO * aspectMultiple * WIDTH_ASPECT) * 2 - 1, y: -((e.pageY - offsetTop) / (ASPECT_RATIO * aspectMultiple * HEIGHT_ASPECT) * 2 - 1) });
       updateCoordinates(position);
     };
     window.addEventListener("mousemove", setFromEvent);
