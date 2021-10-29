@@ -1,4 +1,4 @@
-import { checkWebGPU } from "./helper";
+import { checkWebGPU } from "./helper"
 
 export const rectangleVertex = `struct VertexInput {
     [[location(0)]] position: vec2<f32>;
@@ -104,12 +104,12 @@ const outputMessages = async (shaderModule: GPUShaderModule) => {
     return false
 }
 
-let x = 0;
-let y = 0;
+let x = 0
+let y = 0
 
 export const updateCoordinates = (position: { x: number, y: number }) => {
-    x = position.x;
-    y = position.y;
+    x = position.x
+    y = position.y
 }
 
 
@@ -216,11 +216,11 @@ export const renderShader = async (vertex: string, fragment: string) => {
     // track when canvas is visible and only render when true
     let canvasVisible = false
     const observer = new IntersectionObserver(e => {
-        canvasVisible = e[0].isIntersecting;
+        canvasVisible = e[0].isIntersecting
     }, { threshold: [0] })
     observer.observe(canvas)
 
-    let time = 0;
+    let time = 0
     const frame = () => {
 
 
