@@ -1,9 +1,9 @@
-import * as React from "react";
-import Button from "@mui/material/Button";
-import Editor from "../components/Editor";
-import ShaderCanvas from "../components/ShaderCanvas";
-import { useState } from "react";
-import FormDialog from "../components/FormDialog";
+import React from "react"
+import Button from "@mui/material/Button"
+import Editor from "../components/Editor"
+import ShaderCanvas from "../components/ShaderCanvas"
+import { useState } from "react"
+import FormDialog from "../components/FormDialog"
 
 import "../assets/style.css";
 import "../assets/codeEditorPage.css";

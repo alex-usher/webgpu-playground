@@ -58,12 +58,12 @@ const saveShaderCode = (
   }
 };
 
-export default function FormDialog({
+const FormDialog = ({
   open,
   handleClose,
   vertexCode,
   fragmentCode,
-}: FormDialogProps) {
+}: FormDialogProps) => {
   const [fileName, setFileName] = useState("no name provided");
   const [isPublic, setIsPublic] = useState(false);
 
@@ -115,3 +115,5 @@ export default function FormDialog({
     </Dialog>
   );
 }
+
+export default FormDialog
