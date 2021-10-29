@@ -67,8 +67,7 @@ const SignInButton = () => {
                     alt="Profile Picture"
                     src={auth.currentUser.photoURL?.toString()}
                   />
-                )}
-            >
+                )}>
               Sign Out
             </Button>
           )}

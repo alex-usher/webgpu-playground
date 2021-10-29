@@ -1,8 +1,10 @@
-import React from "react"
 import Button from "@mui/material/Button"
-import Editor from "../components/Editor"
+import Grid from "@mui/material/Grid"
+import Slider from "@mui/material/Slider"
+import Editor from '../components/Editor'
 import ShaderCanvas from "../components/ShaderCanvas"
-import {useState} from "react"
+import { useState } from 'react'
+import React from "react"
 import FormDialog from "../components/FormDialog"
 
 import {ShaderProps} from "../objects/Shader"
@@ -17,6 +19,7 @@ const CodeEditorPage = ({shader}: ShaderProps) => {
     const [viewCodeText, setViewCodeText] = useState("View Code")
     const [renderedVertexCode, setRenderedVertexCode] = useState(shader.vertexCode)
     const [renderedFragmentCode, setRenderedFragmentCode] = useState(shader.fragmentCode)
+    const [editorOpacity, setEditorOpacity] = useState(0.5)
     const [formOpen, setFormOpen] = React.useState(false)
 
     const handleFormOpen = () => {
@@ -27,63 +30,76 @@ const CodeEditorPage = ({shader}: ShaderProps) => {
         setFormOpen(false)
     }
 
+    const handleOpacitySlider = (e: Event, newValue: number | number[]) => {
+        // the slider value could be a number of a list of numbers - we need to accomodate for this to pass typescipt checks
+        if (!Array.isArray(newValue)) {
+            setEditorOpacity(newValue)
+        }
+    }
+
     return (
         <div id="body">
             <div className="paddedDiv">
-                <Button id="show-code-button" variant="outlined" disableElevation
-                        onClick={() => {
-                            setShowCode(!showCode);
-                            setViewCodeText(showCode ? "View Code" : "Hide Code");
-                        }}
-                        color={"primary"}>
-                    {viewCodeText}
-                </Button>
-                {showCode ? (
-                    <Button id="compile-button" variant="outlined" disableElevation
-                            color="secondary" style={{margin: "0 0 0 1em"}}
-                            onClick={() => {
-                                setRenderedVertexCode(vertexCode);
-                                setRenderedFragmentCode(fragmentCode);
-                            }}>
-                        Compile
-                    </Button>
-                ) : (
-                    <></>
-                )}
-                {showCode ? (
-                    <Button id="save-button" variant="outlined" disableElevation color="success"
-                            style={{margin: "0 0 0 1em"}} onClick={handleFormOpen}>
-                        Save
-                    </Button>
-                ) : (
-                    <></>
-                )}
-                <FormDialog open={formOpen} handleClose={handleFormClose} vertexCode={vertexCode}
-                            fragmentCode={fragmentCode}/>
+                <Grid container direction="row" justifyContent="flex-start">
+                    <Grid item container direction="row" spacing={2} xs={12} md={6}>
+                        {/* Show/hide code button */}
+                        <Grid item>
+                            <Button id="show-code-button" variant="outlined" disableElevation onClick={() => {
+                                setShowCode(!showCode)
+                                setViewCodeText(showCode ? "View Code" : "Hide Code") 
+                            }} color={"primary"}>{viewCodeText}</Button>
+                        </Grid>
+                        {/* Actions in showCode mode */}
+                        {showCode ? 
+                            <> <Grid item>
+                                <Button id="compile-button" variant="outlined" disableElevation
+                                    color="secondary" onClick={() => {
+                                        setRenderedVertexCode(vertexCode)
+                                        setRenderedFragmentCode(fragmentCode)
+                                    }}>Compile</Button> 
+                            </Grid>
+                            <Grid item>
+                                {showCode ? (
+                                    <Button id="save-button" variant="outlined" disableElevation color="success"
+                                            style={{margin: "0 0 0 1em"}} onClick={handleFormOpen}>
+                                        Save
+                                    </Button>
+                                ) : (
+                                    <></>
+                                )}
+                                <FormDialog open={formOpen} handleClose={handleFormClose} vertexCode={vertexCode}
+                                            fragmentCode={fragmentCode}/>
+                            </Grid> </>: <></>}
+                    </Grid>
+                    
+                    {showCode ? 
+                        <Grid item container direction="row" justifyContent="flex-end" spacing={2} xs={12} md={6}>
+                            <Grid item>
+                                <Button variant="text" disableElevation
+                                    color="primary"
+                                >Editor Opacity</Button> 
+                            </Grid>
+                            <Grid item style={{minWidth: "250px", paddingRight:"1.5em"}}>
+                                <Slider
+                                    color="primary"
+                                    value={editorOpacity}
+                                    onChange={handleOpacitySlider}
+                                    min={0.3}
+                                    step={0.001}
+                                    max={1}
+                                />
+                            </Grid>
+                        </Grid> : <></>}
+                </Grid>
             </div>
-            <ShaderCanvas vertexCode={renderedVertexCode} fragmentCode={renderedFragmentCode}/>
+
+            <ShaderCanvas vertexCode={renderedVertexCode} fragmentCode={renderedFragmentCode} />
             <div className="editors">
                 <div className="vertex-editor">
-                    {showCode ? (
-                        <Editor value={vertexCode}
-                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                                    setVertexCode(e.target.value);
-                                }}
-                        />
-                    ) : (
-                        <></>
-                    )}
+                    {showCode ? <Editor value={vertexCode} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setVertexCode(e.target.value)}} opacity={editorOpacity} /> : <></>}
                 </div>
                 <div className="fragment-editor">
-                    {showCode ? (
-                        <Editor value={fragmentCode}
-                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                                setFragmentCode(e.target.value);
-                            }}
-                        />
-                    ) : (
-                        <></>
-                    )}
+                    {showCode ? <Editor value={fragmentCode} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setFragmentCode(e.target.value)}} opacity={editorOpacity} /> : <></>}
                 </div>
             </div>
         </div>
