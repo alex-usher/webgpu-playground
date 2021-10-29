@@ -1,8 +1,9 @@
+import SignInButton from "../components/SignInButton"
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 import Typography from '@mui/material/Typography'
-import {defaultShader} from "../objects/Shader";
+import {defaultShader} from "../objects/Shader"
 import {Link} from "react-router-dom"
 import {ShaderCard} from "../components/ShaderCard"
 
@@ -29,6 +30,7 @@ const HomePage = () => (
                         New Shader Sandbox
                     </Button>
                 </Grid>
+                <SignInButton />
             </Grid>
             {/* this.state.shaders.map() */}
             <ShaderCard shader={defaultShader}/>
@@ -37,5 +39,4 @@ const HomePage = () => (
         </Grid>
     </Container>
 )
-
 export default HomePage

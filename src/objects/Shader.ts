@@ -5,10 +5,10 @@ export class Shader {
     // image: image src (http link)
     // vertexCode: ideally a string
     // fragmentCode: ideally a string
-    readonly image: string;
-    fragmentCode: string;
-    readonly title: string;
-    vertexCode: string;
+    readonly image: string
+    fragmentCode: string
+    readonly title: string
+    vertexCode: string
 
     constructor(title: string, image: string, vertexCode: string, fragmentCode: string) {
         this.title = title

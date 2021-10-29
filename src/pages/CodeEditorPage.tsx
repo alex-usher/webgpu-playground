@@ -2,19 +2,15 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Slider from "@mui/material/Slider";
 import Editor from '../components/Editor';
-import ShaderCanvas from "../components/ShaderCanvas";
+import ShaderCanvas from "../components/ShaderCanvas"
 import { useState } from 'react';
-import { ref, uploadString } from "firebase/storage";
-import { firestorage, firedb } from "../firebase"
-import { collection, addDoc } from "firebase/firestore"
-import { v4 as uuidv4 } from "uuid"
-import { useSnackbar } from 'notistack'
+import React from "react"
+import FormDialog from "../components/FormDialog"
 
-import {ShaderProps} from "../objects/Shader";
+import {ShaderProps} from "../objects/Shader"
 
-import "../assets/style.css";
-import "../assets/codeEditorPage.css";
-
+import "../assets/style.css"
+import "../assets/codeEditorPage.css"
 
 const CodeEditorPage = ({shader}: ShaderProps) => {
     const [vertexCode, setVertexCode] = useState(shader.vertexCode)
@@ -24,27 +20,14 @@ const CodeEditorPage = ({shader}: ShaderProps) => {
     const [renderedVertexCode, setRenderedVertexCode] = useState(shader.vertexCode)
     const [renderedFragmentCode, setRenderedFragmentCode] = useState(shader.fragmentCode)
     const [editorOpacity, setEditorOpacity] = useState(0.5)
-    const {enqueueSnackbar} = useSnackbar()
+    const [formOpen, setFormOpen] = React.useState(false)
 
-    const saveShaderCode = (vertexCode: string, fragmentCode: string, shaderName: string) => {
-        const vertexFile = uuidv4() + shaderName + "_vertex.txt"
-        const fragmentFile = uuidv4() + shaderName + "_fragment.txt"
+    const handleFormOpen = () => {
+        setFormOpen(true)
+    }
 
-        const vertexRef = ref(firestorage, vertexFile);
-        const fragmentRef = ref(firestorage, fragmentFile);
-
-        uploadString(vertexRef, vertexCode)
-        uploadString(fragmentRef, fragmentCode)
-
-        addDoc(collection(firedb, "public-shaders"), {
-            shader_name: shaderName,
-            vertex_code: vertexFile,
-            fragment_code: fragmentFile,
-        }).then(res => {
-            enqueueSnackbar('Successfully saved!', {variant: 'success', autoHideDuration: 1000})
-        }).catch(err => {
-            enqueueSnackbar('Failed to save', {variant: 'error', autoHideDuration: 1000})
-        })
+    const handleFormClose = () => {
+        setFormOpen(false)
     }
 
     const handleOpacitySlider = (e: Event, newValue: number | number[]) => {
@@ -76,10 +59,16 @@ const CodeEditorPage = ({shader}: ShaderProps) => {
                                     }}>Compile</Button> 
                             </Grid>
                             <Grid item>
-                                <Button id="save-button" variant="outlined" disableElevation
-                                    color="success" onClick={() => {
-                                        saveShaderCode(vertexCode, fragmentCode, "shader name")
-                                    }}>Save</Button>
+                                {showCode ? (
+                                    <Button id="save-button" variant="outlined" disableElevation color="success"
+                                            style={{margin: "0 0 0 1em"}} onClick={handleFormOpen}>
+                                        Save
+                                    </Button>
+                                ) : (
+                                    <></>
+                                )}
+                                <FormDialog open={formOpen} handleClose={handleFormClose} vertexCode={vertexCode}
+                                            fragmentCode={fragmentCode}/>
                             </Grid> </>: <></>}
                     </Grid>
                     
@@ -113,9 +102,8 @@ const CodeEditorPage = ({shader}: ShaderProps) => {
                     {showCode ? <Editor value={fragmentCode} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setFragmentCode(e.target.value)}} opacity={editorOpacity} /> : <></>}
                 </div>
             </div>
-        </div >
+        </div>
     )
 }
-
 
 export default CodeEditorPage
