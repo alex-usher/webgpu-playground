@@ -1,10 +1,10 @@
-import Card from "@mui/material/Card";
-import CardActionArea from "@mui/material/CardActionArea";
-import {Link} from "react-router-dom";
-import CardMedia from "@mui/material/CardMedia";
-import CardContent from "@mui/material/CardContent";
-import Typography from "@mui/material/Typography";
-import Grid from "@mui/material/Grid";
+import Card from "@mui/material/Card"
+import CardActionArea from "@mui/material/CardActionArea"
+import {Link} from "react-router-dom"
+import CardMedia from "@mui/material/CardMedia"
+import CardContent from "@mui/material/CardContent"
+import Typography from "@mui/material/Typography"
+import Grid from "@mui/material/Grid"
 
 import {ShaderProps} from "../objects/Shader"
 
