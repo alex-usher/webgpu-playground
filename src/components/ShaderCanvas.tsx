@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 
 const WIDTH_ASPECT = 968;
 const HEIGHT_ASPECT = 720;
+const ASPECT_RATIO = 0.9;
 
 interface ShaderCanvasInput {
   vertexCode: string;
@@ -13,6 +14,7 @@ interface ShaderCanvasInput {
 }
 
 const ShaderCanvas = ({ vertexCode, fragmentCode }: ShaderCanvasInput) => {
+
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
   const aspectMultiple = Math.min(
@@ -26,13 +28,12 @@ const ShaderCanvas = ({ vertexCode, fragmentCode }: ShaderCanvasInput) => {
 
   useEffect(() => {
     const setFromEvent = (e: MouseEvent) => {
-      /*let offsetLeft = 0;
-      let offsetTop = 0;
-      if (e.target instanceof Element) {
-        offsetLeft = e.target.getBoundingClientRect().left;
-        offsetTop = e.target.getBoundingClientRect().top;
-      }*/
-      setPosition({ x: (e.offsetX) / (aspectMultiple * WIDTH_ASPECT) * 2 - 1, y: -((e.offsetY) / (aspectMultiple * HEIGHT_ASPECT) * 2 - 1 )});
+      const canvas = document.getElementById('canvas-webgpu') as HTMLCanvasElement
+      let offsetLeft = canvas.getBoundingClientRect().left;
+      let offsetTop = canvas.getBoundingClientRect().top;
+      console.log("canvas: ", aspectMultiple * WIDTH_ASPECT, aspectMultiple * HEIGHT_ASPECT)
+      console.log("mouse coordinate: ", e.pageX - offsetLeft, e.pageY - offsetTop);
+      setPosition({ x:  (e.pageX - offsetLeft) / ( ASPECT_RATIO * aspectMultiple * WIDTH_ASPECT) * 2 - 1, y:  -((e.pageY - offsetTop) / (ASPECT_RATIO * aspectMultiple * HEIGHT_ASPECT) * 2 - 1 )});
       updateCoordinates(position);
     };
     window.addEventListener("mousemove", setFromEvent);

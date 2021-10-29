@@ -250,7 +250,7 @@ export const renderShader = async (vertex: string, fragment: string) => {
             new Float32Array(yBuffer.getMappedRange()).set([y])
             yBuffer.unmap()
 
-            console.log(x + ", " + y)
+            //console.log(x + ", " + y)
             const renderPassDescription = {
                 colorAttachments: [{view: context.getCurrentTexture().createView(), loadValue: [0.0, 0.0, 0.0, 0.0]}],
                 depthStencilAttachment: {
