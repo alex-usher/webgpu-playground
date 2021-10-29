@@ -1,9 +1,9 @@
-import Button from "@mui/material/Button";
-import Grid from "@mui/material/Grid";
-import Slider from "@mui/material/Slider";
-import Editor from '../components/Editor';
+import Button from "@mui/material/Button"
+import Grid from "@mui/material/Grid"
+import Slider from "@mui/material/Slider"
+import Editor from '../components/Editor'
 import ShaderCanvas from "../components/ShaderCanvas"
-import { useState } from 'react';
+import { useState } from 'react'
 import React from "react"
 import FormDialog from "../components/FormDialog"
 
