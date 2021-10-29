@@ -6,8 +6,8 @@ const renderEditor = () => render(<Editor value={testValue} onChange={() => {}}/
 
 describe("Editor Component Tests", () => {
     it("Should initialise the text area with the given value", () => {
-        const container = renderEditor().container.firstChild;
+        const textarea = renderEditor().container.getElementsByTagName("textarea")[0];
 
-        expect(container?.lastChild).toHaveProperty("value", testValue)
+        expect(textarea).toHaveProperty("value", testValue)
     })
 })
