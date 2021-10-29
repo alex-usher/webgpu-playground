@@ -6,9 +6,10 @@ import Prism from "prismjs"
 interface EditorProps {
     value: string
     onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+    opacity?: number
 }
 
-const Editor = ({value, onChange} : EditorProps) => {
+const Editor = ({value, onChange, opacity=0.25} : EditorProps) => {
 
     const lines = (value.split(/\r\n|\r|\n/)||[]).length
     
@@ -79,7 +80,7 @@ const Editor = ({value, onChange} : EditorProps) => {
 
     
     return (
-        <div className="editor-container"> 
+        <div className="editor-container" style={{backgroundColor: `rgb(50, 50, 50, ${opacity})`}}> 
             {/* line numbers */}
             <div className="editor-gutter-container padding" onScroll={gutterScroll}>
                 <div 

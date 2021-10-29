@@ -81,8 +81,6 @@ fn main([[builtin(vertex_index)]] index: u32) -> Output {
     return output;
 }
 `
-<<<<<<< HEAD
-=======
 
 const outputMessages = async (shaderModule: GPUShaderModule) => {
     if (shaderModule.compilationInfo) {
@@ -94,7 +92,6 @@ const outputMessages = async (shaderModule: GPUShaderModule) => {
                 console.log(`(${message.lineNum}, ${message.linePos}): ${message.message}`)
                 error = error || message.type === "error"
             }
->>>>>>> main
 
             return !error
         }
