@@ -26,6 +26,8 @@ const renderCodeEditorPage = () =>
 let checkWebGPUMock: jest.SpyInstance;
 let simpleShaderMock: jest.SpyInstance;
 
+awawawaw
+
 // helper constants defining the button texts and ids
 const SHOW_CODE_ID = "show-code-button";
 const COMPILE_ID = "compile-button";
