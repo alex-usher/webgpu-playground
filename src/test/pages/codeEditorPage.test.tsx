@@ -26,8 +26,6 @@ const renderCodeEditorPage = () =>
 let checkWebGPUMock: jest.SpyInstance;
 let simpleShaderMock: jest.SpyInstance;
 
-awawawaw
-
 // helper constants defining the button texts and ids
 const SHOW_CODE_ID = "show-code-button";
 const COMPILE_ID = "compile-button";
@@ -162,7 +160,9 @@ describe("Code editor tests", () => {
     if (vertexEditor) {
       expect(vertexEditor.textContent).toEqual(shaders.shaderTriangleVertex);
       userEvent.type(vertexEditor, "a");
-      expect(vertexEditor.textContent).toEqual(`${shaders.shaderTriangleVertex}a`);
+      expect(vertexEditor.textContent).toEqual(
+        `${shaders.shaderTriangleVertex}a`
+      );
     } else {
       fail("Vertex editor null");
     }
@@ -170,9 +170,13 @@ describe("Code editor tests", () => {
 
   test("Typing into the fragment code editor updates its text content", () => {
     if (fragmentEditor) {
-      expect(fragmentEditor.textContent).toEqual(shaders.shaderTriangleFragment);
+      expect(fragmentEditor.textContent).toEqual(
+        shaders.shaderTriangleFragment
+      );
       userEvent.type(fragmentEditor, "a");
-      expect(fragmentEditor.textContent).toEqual(`${shaders.shaderTriangleFragment}a`);
+      expect(fragmentEditor.textContent).toEqual(
+        `${shaders.shaderTriangleFragment}a`
+      );
     } else {
       fail("Fragment editor null");
     }

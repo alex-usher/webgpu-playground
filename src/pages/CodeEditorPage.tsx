@@ -40,7 +40,7 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
       setEditorOpacity(newValue);
     }
   };
-QWAAAAasdsadasd
+
   return (
     <div id="body">
       <div className="paddedDiv">
