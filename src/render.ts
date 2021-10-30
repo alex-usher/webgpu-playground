@@ -1,4 +1,6 @@
-import { checkWebGPU } from "./helper";
+import assert from "assert";
+
+export const checkWebGPU = () => navigator.gpu != null;
 
 export const rectangleVertex = `struct VertexInput {
     [[location(0)]] position: vec2<f32>;
@@ -120,8 +122,12 @@ export const renderShader = async (vertex: string, fragment: string) => {
   }
 
   const canvas = document.getElementById("canvas-webgpu") as HTMLCanvasElement;
-  const adapter = await navigator.gpu!.requestAdapter();
-  const device = await adapter!.requestDevice();
+
+  assert(navigator.gpu);
+  const adapter = await navigator.gpu.requestAdapter();
+
+  assert(adapter);
+  const device = await adapter.requestDevice();
   const context = canvas.getContext("webgpu") as unknown as GPUCanvasContext;
 
   const stateFormat = "bgra8unorm";

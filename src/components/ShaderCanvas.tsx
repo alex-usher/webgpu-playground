@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "../assets/shaderCanvas.css";
-import { checkWebGPU } from "../helper";
+import { checkWebGPU } from "../render";
 import { renderShader, updateCoordinates } from "../render";
 import Typography from "@mui/material/Typography";
 
