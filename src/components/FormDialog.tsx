@@ -67,7 +67,7 @@ const saveShaderCode = (
           autoHideDuration: 1000,
         });
       })
-      .catch((err) => {
+      .catch((_err) => {
         enqueueSnackbar("Failed to save", {
           variant: "error",
           autoHideDuration: 1000,
@@ -85,7 +85,7 @@ const saveShaderCode = (
           autoHideDuration: 1000,
         });
       })
-      .catch((err) => {
+      .catch((_err) => {
         enqueueSnackbar("Failed to save", {
           variant: "error",
           autoHideDuration: 1000,

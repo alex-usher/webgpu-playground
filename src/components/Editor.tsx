@@ -24,13 +24,13 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
   ));
 
   useEffect(() => {
-    if (editorRef!.current) {
+    if (editorRef?.current) {
       Prism.highlightAll();
     }
   });
 
   // Ensure editor scroll positions are the same, set gutter scroll to the editor scroll
-  const textAreaScroll = (e: React.UIEvent<HTMLElement>): void => {
+  const textAreaScroll = (_e: React.UIEvent<HTMLElement>): void => {
     if (gutterRef.current && editorRef.current && codeBlockRef.current) {
       codeBlockRef.current.focus();
       editorRef.current.focus();
@@ -42,7 +42,7 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
   };
 
   // Ensure editor scroll positions are the same, set gutter scroll to the editor scroll
-  const codeBlockScroll = (e: React.UIEvent<HTMLElement>): void => {
+  const codeBlockScroll = (_e: React.UIEvent<HTMLElement>): void => {
     if (gutterRef.current && editorRef.current && codeBlockRef.current) {
       codeBlockRef.current.focus();
       editorRef.current.focus();
@@ -54,7 +54,7 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
   };
 
   // Set the editor scroll positions to the gutter positions
-  const gutterScroll = (e: React.UIEvent<HTMLElement>): void => {
+  const gutterScroll = (_e: React.UIEvent<HTMLElement>): void => {
     if (gutterRef.current && editorRef.current && codeBlockRef.current) {
       codeBlockRef.current.focus();
       editorRef.current.focus();

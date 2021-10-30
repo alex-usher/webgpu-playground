@@ -22,21 +22,19 @@ const SignInButton = () => {
 
   const signInWithGoogle = () => {
     const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        const user = result.user;
-        const userUid = user.uid;
+    signInWithPopup(auth, provider).then((result) => {
+      const user = result.user;
+      const userUid = user.uid;
 
-        if (user !== null) {
-          setDoc(doc(firedb, "users", userUid), {
-            uid: userUid,
-            name: user.displayName,
-            email: user.email,
-            photoUrl: user.photoURL,
-          });
-        }
-      })
-      .catch((error) => {});
+      if (user !== null) {
+        setDoc(doc(firedb, "users", userUid), {
+          uid: userUid,
+          name: user.displayName,
+          email: user.email,
+          photoUrl: user.photoURL,
+        });
+      }
+    });
   };
 
   return (
@@ -58,7 +56,7 @@ const SignInButton = () => {
                 .then(() => {
                   // Sign-out successful.
                 })
-                .catch((error) => {
+                .catch((_error) => {
                   // An error happened.
                 });
             }}

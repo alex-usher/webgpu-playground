@@ -3,7 +3,14 @@ import Editor from "../../components/Editor";
 
 const testValue = "Test Value";
 const renderEditor = () =>
-  render(<Editor value={testValue} onChange={() => {}} />);
+  render(
+    <Editor
+      value={testValue}
+      onChange={() => {
+        undefined;
+      }}
+    />
+  );
 
 describe("Editor Component Tests", () => {
   it("Should initialise the text area with the given value", () => {

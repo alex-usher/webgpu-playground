@@ -24,4 +24,7 @@ module.exports = {
         //'airbnb-typescript',
         //'prettier',
     ],
+    rules: {
+        "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+    }
 };
