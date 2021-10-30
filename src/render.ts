@@ -1,6 +1,6 @@
 import assert from "assert";
 
-export const checkWebGPU = () => navigator.gpu != null;
+export const checkWebGPU = (): boolean => navigator.gpu != null;
 
 export const rectangleVertex = `struct VertexInput {
     [[location(0)]] position: vec2<f32>;
@@ -111,12 +111,15 @@ const outputMessages = async (shaderModule: GPUShaderModule) => {
 let x = 0;
 let y = 0;
 
-export const updateCoordinates = (position: { x: number; y: number }) => {
+export const updateCoordinates = (position: { x: number; y: number }): void => {
   x = position.x;
   y = position.y;
 };
 
-export const renderShader = async (vertex: string, fragment: string) => {
+export const renderShader = async (
+  vertex: string,
+  fragment: string
+): Promise<void> => {
   if (!checkWebGPU()) {
     return;
   }
@@ -307,6 +310,6 @@ export const renderShader = async (vertex: string, fragment: string) => {
   requestAnimationFrame(frame);
 };
 
-export const renderTriangle = () => {
+export const renderTriangle = (): void => {
   renderShader(shaderTriangleVertex, shaderTriangleFragment);
 };
