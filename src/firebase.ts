@@ -1,8 +1,8 @@
- import { initializeApp } from "firebase/app"
-import { getAnalytics } from "firebase/analytics"
-import { getAuth } from "firebase/auth"
-import { getFirestore } from "firebase/firestore"
-import { getStorage } from "firebase/storage"
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const config = {
   apiKey: "AIzaSyBwlKoYwQ35FRWt8yriHVoGq8lZYS00A6k",
@@ -14,11 +14,11 @@ const config = {
   measurementId: "G-81MQK3F4DH",
 };
 
-const fire = initializeApp(config)
-const firestorage = getStorage()
-const analytics = getAnalytics(fire)
-const auth = getAuth(fire)
-const firedb = getFirestore(fire)
+const fire = initializeApp(config);
+const firestorage = getStorage();
+const analytics = getAnalytics(fire);
+const auth = getAuth(fire);
+const firedb = getFirestore(fire);
 
-export default fire
-export { auth, firedb, analytics, firestorage }
+export default fire;
+export { auth, firedb, analytics, firestorage };
