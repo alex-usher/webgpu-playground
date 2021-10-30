@@ -1,14 +1,11 @@
 import userEvent from "@testing-library/user-event";
-import { render } from "@testing-library/react";
-import { screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import CodeEditorPage from "../../pages/CodeEditorPage";
-import { shaderTriangleFragment, shaderTriangleVertex } from "../../render";
 import { SnackbarProvider } from "notistack";
 import { Shader } from "../../objects/Shader";
+import * as shaders from "../../render";
 
 import "@testing-library/jest-dom/extend-expect";
-const helper = require("../../helper");
-const shaders = require("../../render");
 
 const renderCodeEditorPage = () =>
   render(
@@ -18,8 +15,8 @@ const renderCodeEditorPage = () =>
           new Shader(
             "test",
             "http://www.test.com",
-            shaderTriangleVertex,
-            shaderTriangleFragment
+            shaders.shaderTriangleVertex,
+            shaders.shaderTriangleFragment
           )
         }
       />
@@ -38,10 +35,12 @@ const SHOW_CODE_TEXT = "View Code";
 const HIDE_CODE_TEXT = "Hide Code";
 
 const doMocks = () => {
-  checkWebGPUMock = jest.spyOn(helper, "checkWebGPU");
+  checkWebGPUMock = jest.spyOn(shaders, "checkWebGPU");
   checkWebGPUMock.mockImplementation(() => true);
   simpleShaderMock = jest.spyOn(shaders, "renderShader");
-  simpleShaderMock.mockImplementation(() => {});
+  simpleShaderMock.mockImplementation(() => {
+    return;
+  });
 };
 
 describe("Default render tests", () => {
@@ -80,25 +79,37 @@ describe("Button Click Tests", () => {
   });
 
   test("Clicking the show code button changes its text", () => {
-    expect(showCodeButton!.textContent).toEqual(SHOW_CODE_TEXT);
-    showCodeButton!.click();
-    expect(showCodeButton!.textContent).toEqual(HIDE_CODE_TEXT);
+    if (showCodeButton) {
+      expect(showCodeButton.textContent).toEqual(SHOW_CODE_TEXT);
+      showCodeButton.click();
+      expect(showCodeButton.textContent).toEqual(HIDE_CODE_TEXT);
+    } else {
+      fail("Show code button null");
+    }
   });
 
   test("Clicking the show code button alternates its text", () => {
-    expect(showCodeButton!.textContent).toEqual(SHOW_CODE_TEXT);
-    showCodeButton!.click();
-    showCodeButton!.click();
-    expect(showCodeButton!.textContent).toEqual(SHOW_CODE_TEXT);
+    if (showCodeButton) {
+      expect(showCodeButton.textContent).toEqual(SHOW_CODE_TEXT);
+      showCodeButton.click();
+      showCodeButton.click();
+      expect(showCodeButton.textContent).toEqual(SHOW_CODE_TEXT);
+    } else {
+      fail("Show code button null");
+    }
   });
 
   test("Clicking the show code button displays the compile button", () => {
-    showCodeButton!.click();
-    expect(document.getElementById(COMPILE_ID)).toBeInTheDocument();
+    if (showCodeButton) {
+      showCodeButton.click();
+      expect(document.getElementById(COMPILE_ID)).toBeInTheDocument();
+    } else {
+      fail("Show code button null");
+    }
   });
 
   test("Clicking the show code button displays the vertex and fragment editor", () => {
-    showCodeButton!.click();
+    showCodeButton?.click();
     const fragmentEditorDiv = document.querySelector(
       `.${FRAGMENT_EDITOR_CLASS}`
     );
@@ -114,10 +125,10 @@ describe("Button Click Tests", () => {
 
   test("Clicking the compile code button results in calling the WebGPU render function", () => {
     expect(simpleShaderMock).toHaveBeenCalled();
-    showCodeButton!.click();
+    showCodeButton?.click();
     const compileCodeButton = document.getElementById(COMPILE_ID);
 
-    compileCodeButton!.click();
+    compileCodeButton?.click();
 
     expect(checkWebGPUMock).toHaveBeenCalled();
     expect(simpleShaderMock).toHaveBeenCalled();
@@ -132,7 +143,7 @@ describe("Code editor tests", () => {
     doMocks();
     renderCodeEditorPage();
 
-    document.getElementById(SHOW_CODE_ID)!.click();
+    document.getElementById(SHOW_CODE_ID)?.click();
     const textAreas: HTMLElement[] = screen.getAllByRole("textbox");
     vertexEditor = textAreas[0];
     fragmentEditor = textAreas[1];
@@ -146,14 +157,22 @@ describe("Code editor tests", () => {
   });
 
   test("Typing into the vertex code editor updates its text content", () => {
-    expect(vertexEditor!.textContent).toEqual(shaderTriangleVertex);
-    userEvent.type(vertexEditor!, "a");
-    expect(vertexEditor!.textContent).toEqual(`${shaderTriangleVertex}a`);
+    if (vertexEditor) {
+      expect(vertexEditor.textContent).toEqual(shaders.shaderTriangleVertex);
+      userEvent.type(vertexEditor, "a");
+      expect(vertexEditor.textContent).toEqual(`${shaders.shaderTriangleVertex}a`);
+    } else {
+      fail("Vertex editor null");
+    }
   });
 
   test("Typing into the fragment code editor updates its text content", () => {
-    expect(fragmentEditor!.textContent).toEqual(shaderTriangleFragment);
-    userEvent.type(fragmentEditor!, "a");
-    expect(fragmentEditor!.textContent).toEqual(`${shaderTriangleFragment}a`);
+    if (fragmentEditor) {
+      expect(fragmentEditor.textContent).toEqual(shaders.shaderTriangleFragment);
+      userEvent.type(fragmentEditor, "a");
+      expect(fragmentEditor.textContent).toEqual(`${shaders.shaderTriangleFragment}a`);
+    } else {
+      fail("Fragment editor null");
+    }
   });
 });

@@ -4,8 +4,8 @@ import {
   shaderTriangleFragment,
   shaderTriangleVertex,
 } from "../sample_shaders/triangle";
-const helper = require("../../helper");
-const shaders = require("../../render");
+
+import * as shaders from "../../render";
 
 const renderShaderCanvas = () =>
   render(
@@ -19,9 +19,11 @@ let checkWebGPUMock: jest.SpyInstance;
 let simpleShaderMock: jest.SpyInstance;
 describe("Shader Canvas component tests", () => {
   beforeEach(() => {
-    checkWebGPUMock = jest.spyOn(helper, "checkWebGPU");
+    checkWebGPUMock = jest.spyOn(shaders, "checkWebGPU");
     simpleShaderMock = jest.spyOn(shaders, "renderShader");
-    simpleShaderMock.mockImplementation(() => {undefined});
+    simpleShaderMock.mockImplementation(() => {
+      undefined;
+    });
   });
 
   afterEach(() => {
