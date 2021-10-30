@@ -6,10 +6,10 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 
-import { ref, uploadString } from "firebase/storage";
+import { ref, uploadString } from "@firebase/storage";
+import { getAuth } from "@firebase/auth";
+import { collection, addDoc } from "@firebase/firestore/lite";
 import { firestorage, firedb } from "../firebase";
-import { getAuth } from "firebase/auth";
-import { collection, addDoc } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
 
 import FormGroup from "@mui/material/FormGroup";

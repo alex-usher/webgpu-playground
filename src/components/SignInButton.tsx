@@ -8,9 +8,9 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   signOut,
-} from "firebase/auth";
+} from "@firebase/auth";
 import { firedb } from "../firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc } from "@firebase/firestore/lite";
 import Avatar from "@mui/material/Avatar";
 
 const SignInButton = () => {
