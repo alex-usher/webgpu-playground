@@ -26,28 +26,7 @@ var<uniform> view_params_vertex: ViewParams;
 var<uniform> view_params_fragment: ViewParams;
 `;
 
-export const rectangleVertex = `/*struct VertexInput {
-    [[location(0)]] position: vec2<f32>;
-    [[location(1)]] color: vec4<f32>;
-};
-
-struct VertexOutput {
-    [[builtin(position)]] position: vec4<f32>;
-    [[location(0)]] color: vec4<f32>;
-};
-
-[[block]]
-struct ViewParams {
-    time: f32;
-    x: f32;
-    y: f32;
-};
-
-[[group(0), binding(0)]]
-var<uniform> view_params_vertex: ViewParams;
-
-[[group(0), binding(1)]]
-var<uniform> view_params_fragment: ViewParams;*/
+export const rectangleVertex = `/*${structs}*/
 
 [[stage(vertex)]]
 fn vertex_main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput {
