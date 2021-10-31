@@ -2,7 +2,7 @@ import assert from "assert";
 
 export const checkWebGPU = (): boolean => navigator.gpu != null;
 
-export const rectangleVertex = `struct VertexInput {
+const structs = `struct VertexInput {
     [[location(0)]] position: vec2<f32>;
     [[location(1)]] color: vec4<f32>;
 };
@@ -20,13 +20,40 @@ struct ViewParams {
 };
 
 [[group(0), binding(0)]]
-var<uniform> view_params: ViewParams;
+var<uniform> view_params_vertex: ViewParams;
+
+[[group(0), binding(1)]]
+var<uniform> view_params_fragment: ViewParams;
+`;
+
+export const rectangleVertex = `/*struct VertexInput {
+    [[location(0)]] position: vec2<f32>;
+    [[location(1)]] color: vec4<f32>;
+};
+
+struct VertexOutput {
+    [[builtin(position)]] position: vec4<f32>;
+    [[location(0)]] color: vec4<f32>;
+};
+
+[[block]]
+struct ViewParams {
+    time: f32;
+    x: f32;
+    y: f32;
+};
+
+[[group(0), binding(0)]]
+var<uniform> view_params_vertex: ViewParams;
+
+[[group(0), binding(1)]]
+var<uniform> view_params_fragment: ViewParams;*/
 
 [[stage(vertex)]]
-fn main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput {
+fn vertex_main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput {
     var pos = array<vec2<f32>, 6>(
         vec2<f32>(1.0, 1.0),
-        vec2<f32>(view_params.x, view_params.y),
+        vec2<f32>(view_params_vertex.x, view_params_vertex.y),
         vec2<f32>(-1.0, -1.0),
         vec2<f32>(1.0, 1.0),
         vec2<f32>(-1.0, 1.0),
@@ -49,8 +76,8 @@ fn main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput
 };`;
 
 export const rectangleFragment = `[[stage(fragment)]]
-fn main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
-    return color;
+fn fragment_main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
+    return sin(view_params_fragment.time * 0.01) * color;
 };`;
 
 export const shaderTriangleFragment = `[[stage(fragment)]]
@@ -136,16 +163,14 @@ export const renderShader = async (
   const stateFormat = "bgra8unorm";
   const depthFormat = "depth24plus-stencil8";
 
-  const vertexShaderModule = device.createShaderModule({ code: vertex });
-  const fragmentShaderModule = device.createShaderModule({ code: fragment });
+  const shaderModule = device.createShaderModule({
+    code: `${structs}\n${vertex}\n${fragment}`,
+  });
+  // const vertexShaderModule = device.createShaderModule({ code: vertex });
+  // const fragmentShaderModule = device.createShaderModule({ code: fragment });
 
   // check for compilation failures and output any compile messages
-  if (
-    !(
-      (await outputMessages(vertexShaderModule)) &&
-      (await outputMessages(fragmentShaderModule))
-    )
-  ) {
+  if (!(await outputMessages(shaderModule))) {
     console.log("Compilation failed");
     return;
   }
@@ -186,6 +211,11 @@ export const renderShader = async (
         visibility: GPUShaderStage.VERTEX,
         buffer: [{ type: "uniform" }],
       } as GPUBindGroupLayoutEntry,
+      {
+        binding: 1,
+        visibility: GPUShaderStage.FRAGMENT,
+        buffer: [{ type: "uniform" }],
+      } as GPUBindGroupLayoutEntry,
     ],
   });
 
@@ -196,8 +226,8 @@ export const renderShader = async (
   const renderPipeline = device.createRenderPipeline({
     layout: layout,
     vertex: {
-      module: vertexShaderModule,
-      entryPoint: "main",
+      module: shaderModule,
+      entryPoint: "vertex_main",
       buffers: [
         {
           arrayStride: 6 * 4,
@@ -210,8 +240,8 @@ export const renderShader = async (
       ],
     },
     fragment: {
-      module: fragmentShaderModule,
-      entryPoint: "main",
+      module: shaderModule,
+      entryPoint: "fragment_main",
       targets: [{ format: stateFormat }],
     },
     depthStencil: {
@@ -228,7 +258,10 @@ export const renderShader = async (
 
   const viewParamsBindGroup = device.createBindGroup({
     layout: bindGroupLayout,
-    entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
+    entries: [
+      { binding: 0, resource: { buffer: viewParamsBuffer } },
+      { binding: 1, resource: { buffer: viewParamsBuffer } },
+    ],
   });
 
   // track when canvas is visible and only render when true
