@@ -145,8 +145,6 @@ export const renderShader = async (
   const shaderModule = device.createShaderModule({
     code: `${structs}\n${vertex}\n${fragment}`,
   });
-  // const vertexShaderModule = device.createShaderModule({ code: vertex });
-  // const fragmentShaderModule = device.createShaderModule({ code: fragment });
 
   // check for compilation failures and output any compile messages
   if (!(await outputMessages(shaderModule))) {
