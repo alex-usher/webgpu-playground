@@ -5,7 +5,7 @@ import { getFirestore } from "@firebase/firestore/lite";
 import { getStorage } from "@firebase/storage";
 
 const config = {
-  apiKey: "AIzaSyBwlKoYwQ35FRWt8yriHVoGq8lZYS00A6k",
+  apiKey: "AIzaSyDRq0yGdgEV81Y2ZvKlpn50_qQuJls5vDA",
   authDomain: "web-gpu-playground.firebaseapp.com",
   projectId: "web-gpu-playground",
   storageBucket: "web-gpu-playground.appspot.com",
