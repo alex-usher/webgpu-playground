@@ -30,7 +30,7 @@ const HomePage = () => (
                     </Button>
                 </Grid>
             </Grid>
-            <CardCarousel sectionName="examples" shaderList={[defaultShader, defaultShader, defaultShader, defaultShader, defaultShader, defaultShader, defaultShader]}/>
+            <CardCarousel sectionName="examples" shaderList={[defaultShader, defaultShader, defaultShader, defaultShader, defaultShader, defaultShader, defaultShader, defaultShader, defaultShader, defaultShader, defaultShader, defaultShader, defaultShader, defaultShader]}/>
         </Grid>
     </Container>
 )
