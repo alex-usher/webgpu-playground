@@ -1,16 +1,15 @@
-import Grid from '@mui/material/Grid'
-import Button from '@mui/material/Button'
-import Container from '@mui/material/Container'
-import Typography from '@mui/material/Typography'
-import {defaultShader} from "../objects/Shader";
-import {Link} from "react-router-dom"
-import {CardCarousel} from "../components/CardCarousel"
+import Grid from "@mui/material/Grid";
+import Button from "@mui/material/Button";
+import Container from "@mui/material/Container";
+import Typography from "@mui/material/Typography";
+import { defaultShader } from "../objects/Shader";
+import { Link } from "react-router-dom";
+import { CardCarousel } from "../components/CardCarousel";
 import SignInButton from "../components/SignInButton";
 
 import "../assets/homePage.css";
 
 const HomePage = () => (
-
   <Container>
     <Grid
       container
@@ -42,7 +41,18 @@ const HomePage = () => (
         </Grid>
         <SignInButton />
       </Grid>
-    <CardCarousel sectionName="Examples" shaderList={[defaultShader, defaultShader, defaultShader, defaultShader, defaultShader, defaultShader, defaultShader]}/>
+      <CardCarousel
+        sectionName="Examples"
+        shaderList={[
+          defaultShader,
+          defaultShader,
+          defaultShader,
+          defaultShader,
+          defaultShader,
+          defaultShader,
+          defaultShader,
+        ]}
+      />
     </Grid>
   </Container>
 );

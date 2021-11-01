@@ -8,7 +8,6 @@ import Grid from "@mui/material/Grid";
 
 import { ShaderProps } from "../objects/Shader";
 
-
 export const ShaderCard = ({ shader }: ShaderProps) => {
   return (
     <Grid item xs={12}>
@@ -34,4 +33,3 @@ export const ShaderCard = ({ shader }: ShaderProps) => {
     </Grid>
   );
 };
-
