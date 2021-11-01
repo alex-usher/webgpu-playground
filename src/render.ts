@@ -2,7 +2,12 @@ import assert from "assert";
 
 export const checkWebGPU = (): boolean => navigator.gpu != null;
 
-const structs = `struct VertexInput {
+/*
+ * Creates the global structs needed for the fragment + vertex shaders
+ * ARG binding: this should be 0 for the vertex shader and 1 for the
+ * fragment shader
+ */
+const structs = (binding: number): string => `struct VertexInput {
     [[location(0)]] position: vec2<f32>;
     [[location(1)]] color: vec4<f32>;
 };
@@ -19,20 +24,17 @@ struct ViewParams {
     y: f32;
 };
 
-[[group(0), binding(0)]]
-var<uniform> view_params_vertex: ViewParams;
-
-[[group(0), binding(1)]]
-var<uniform> view_params_fragment: ViewParams;
+[[group(0), binding(${binding})]]
+var<uniform> view_params: ViewParams;
 `;
 
 export const rectangleVertex = `/*${structs}*/
 
 [[stage(vertex)]]
-fn vertex_main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput {
+fn main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput {
     var pos = array<vec2<f32>, 6>(
         vec2<f32>(1.0, 1.0),
-        vec2<f32>(view_params_vertex.x, view_params_vertex.y),
+        vec2<f32>(view_params.x, view_params.y),
         vec2<f32>(-1.0, -1.0),
         vec2<f32>(1.0, 1.0),
         vec2<f32>(-1.0, 1.0),
@@ -142,13 +144,22 @@ export const renderShader = async (
   const stateFormat = "bgra8unorm";
   const depthFormat = "depth24plus-stencil8";
 
-  const shaderModule = device.createShaderModule({
-    code: `${structs}\n${vertex}\n${fragment}`,
+  const vertexShaderModule = device.createShaderModule({
+    code: `${structs(0)}\n${vertex}`,
+  });
+
+  const fragmentShaderModule = device.createShaderModule({
+    code: `${structs(1)}\n${fragment}`,
   });
 
   // check for compilation failures and output any compile messages
-  if (!(await outputMessages(shaderModule))) {
-    console.log("Compilation failed");
+  if (!(await outputMessages(vertexShaderModule))) {
+    console.log("Vertex Shader Compilation failed");
+    return;
+  }
+
+  if (!(await outputMessages(fragmentShaderModule))) {
+    console.log("Fragment Shader Compilation failed");
     return;
   }
 
@@ -203,8 +214,8 @@ export const renderShader = async (
   const renderPipeline = device.createRenderPipeline({
     layout: layout,
     vertex: {
-      module: shaderModule,
-      entryPoint: "vertex_main",
+      module: vertexShaderModule,
+      entryPoint: "main",
       buffers: [
         {
           arrayStride: 6 * 4,
@@ -217,8 +228,8 @@ export const renderShader = async (
       ],
     },
     fragment: {
-      module: shaderModule,
-      entryPoint: "fragment_main",
+      module: fragmentShaderModule,
+      entryPoint: "main",
       targets: [{ format: stateFormat }],
     },
     depthStencil: {
