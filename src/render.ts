@@ -7,6 +7,15 @@ export const checkWebGPU = (): boolean => navigator.gpu != null;
  * ARG binding: this should be 0 for the vertex shader and 1 for the
  * fragment shader
  */
+
+const ass = `[[group(0), binding(2)]] var mySampler: sampler;
+[[group(0), binding(3)]] var myTexture: texture_2d<f32>;
+
+[[stage(fragment)]]
+fn main([[location(0)]] fragPosition: vec4<f32>) -> [[location(0)]] vec4<f32> {
+  return textureSample(myTexture, mySampler, vec2<f32>(1.0, 1.0)) * fragPosition;
+}`;
+
 const structs = (binding: number): string => `struct VertexInput {
     [[location(0)]] position: vec2<f32>;
     [[location(1)]] color: vec4<f32>;
@@ -126,7 +135,7 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
 
 export const renderShader = async (
   vertex: string,
-  fragment: string
+  _fragment: string
 ): Promise<void> => {
   if (!checkWebGPU()) {
     return;
@@ -149,7 +158,7 @@ export const renderShader = async (
   });
 
   const fragmentShaderModule = device.createShaderModule({
-    code: `${structs(1)}\n${fragment}`,
+    code: `${structs(1)}\n${ass}`,
   });
 
   // check for compilation failures and output any compile messages
@@ -177,6 +186,41 @@ export const renderShader = async (
     0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0,
     0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1,
   ]);
+
+  async function loadTexture(path: string): Promise<GPUTexture> {
+    const image = new Image();
+    image.src = path;
+    console.log(image.src);
+    image
+      .decode()
+      .then(() => {
+        return;
+      })
+      .catch((err) => console.log(err));
+    const imageBitmap = await createImageBitmap(image);
+
+    const texture = device.createTexture({
+      size: [imageBitmap.width, imageBitmap.height, 1],
+      dimension: "2d",
+      format: "rgba8unorm",
+      usage:
+        GPUTextureUsage.COPY_DST |
+        GPUTextureUsage.RENDER_ATTACHMENT |
+        GPUTextureUsage.SAMPLED,
+    });
+    device.queue.copyExternalImageToTexture(
+      { source: imageBitmap },
+      { texture: texture },
+      [imageBitmap.width, imageBitmap.height]
+    );
+
+    return texture;
+  }
+
+  const sampler = device.createSampler({
+    magFilter: "linear",
+    minFilter: "linear",
+  });
 
   dataBuffer.unmap();
 
@@ -249,6 +293,14 @@ export const renderShader = async (
     entries: [
       { binding: 0, resource: { buffer: viewParamsBuffer } },
       { binding: 1, resource: { buffer: viewParamsBuffer } },
+      {
+        binding: 2,
+        resource: sampler,
+      },
+      {
+        binding: 3,
+        resource: (await loadTexture("sad.jpeg")).createView(),
+      },
     ],
   });
 
