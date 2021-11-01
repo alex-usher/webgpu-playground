@@ -8,7 +8,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 
 import { ref, uploadString } from "@firebase/storage";
 import { getAuth } from "@firebase/auth";
-import { collection, addDoc } from "@firebase/firestore/lite";
+import { collection, addDoc, doc, setDoc } from "@firebase/firestore/lite";
 import { firestorage, firedb } from "../firebase";
 import { v4 as uuidv4 } from "uuid";
 
@@ -31,7 +31,7 @@ interface FormDialogProps {
   fragmentCode: string;
 }
 
-const saveShaderCode = (
+const saveShaderCode = async (
   vertexCode: string,
   fragmentCode: string,
   shaderName: string,
@@ -59,38 +59,39 @@ const saveShaderCode = (
     isPublic: isPublic,
   };
 
-  if (isPublic) {
-    addDoc(collection(firedb, "public-shaders"), shaderDoc)
-      .then(() => {
-        enqueueSnackbar("Successfully saved!", {
-          variant: "success",
-          autoHideDuration: 1000,
-        });
-      })
-      .catch((_err) => {
-        enqueueSnackbar("Failed to save", {
-          variant: "error",
-          autoHideDuration: 1000,
-        });
-      });
-  }
-
-  const user = getAuth().currentUser;
-  if (user) {
-    const usersShadersRef = collection(firedb, "users", user.uid, "shaders");
-    addDoc(usersShadersRef, shaderDoc)
-      .then(() => {
-        enqueueSnackbar("Successfully saved!", {
-          variant: "success",
-          autoHideDuration: 1000,
-        });
-      })
-      .catch((_err) => {
-        enqueueSnackbar("Failed to save", {
-          variant: "error",
-          autoHideDuration: 1000,
-        });
-      });
+  try {
+    let shaderId = null;
+    if (isPublic) {
+      shaderId = (await addDoc(collection(firedb, "public-shaders"), shaderDoc))
+        .id;
+    }
+    const user = getAuth().currentUser;
+    if (user) {
+      if (shaderId) {
+        await setDoc(
+          doc(firedb, "users", user.uid, "shaders", shaderId),
+          shaderDoc
+        );
+      } else {
+        const usersShadersRef = collection(
+          firedb,
+          "users",
+          user.uid,
+          "shaders"
+        );
+        await addDoc(usersShadersRef, shaderDoc);
+      }
+    }
+  } catch (err) {
+    enqueueSnackbar("Failed to save", {
+      variant: "error",
+      autoHideDuration: 1000,
+    });
+  } finally {
+    enqueueSnackbar("Successfully saved!", {
+      variant: "success",
+      autoHideDuration: 1000,
+    });
   }
 };
 
