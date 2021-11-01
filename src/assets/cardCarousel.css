@@ -1,47 +1,29 @@
 .row {
-    margin-left: 20px;
+    margin-left: 30px;
     color: white;
     width: 100%;
   }
+
+.title {
+    margin-left: 20px !important;
+  }
   
   .row__blocks {
-    /* background-color: #333;
-    overflow: auto;
-    white-space: nowrap;
-} */
-
     display: flex;
     overflow-x: scroll;
     overflow-y: hidden;
+  }
+  
+  
+  .row__tile {
+    display: inline-block;
+    color: white;
     padding: 20px;
   }
   
   
-  .row__poster {
-      
-    /* max-width: 100%;
-    width: 100%;
-    object-fit: contain;
-    max-height: 100px;
-    margin-right: 10px;
-    transition: transform 450ms;  */
-    display: inline-block;
-    color: white;
-    text-align: center;
-    padding: 14px;
-    text-decoration: none;
-  }
-  
-  .row__posterLarge {
-    max-height: 250px;
-  }
-  
-  .row__posterLarge:hover {
-    transform: scale(1.09);
-  }
-  
-  .row__poster:hover {
-    transform: scale(1.08);
+  .row__tile:hover {
+    transform: scale(1.1);
   }
 
 
