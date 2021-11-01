@@ -1,6 +1,5 @@
 import { Shader } from "../objects/Shader"
 import { ShaderCard } from "../components/ShaderCard"
-import Grid from "@mui/material/Grid";
 import Typography from '@mui/material/Typography'
 import "../assets/cardCarousel.css"
 

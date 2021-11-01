@@ -1,6 +1,7 @@
 .row {
-    margin-left: 0px;
+    margin-left: 20px;
     color: white;
+    width: 100%;
   }
   
   .row__blocks {
@@ -13,17 +14,17 @@
     overflow-x: scroll;
     overflow-y: hidden;
     padding: 20px;
-    width: 50%;
   }
   
   
   .row__poster {
+      
     /* max-width: 100%;
     width: 100%;
     object-fit: contain;
     max-height: 100px;
-    margin-right: 0px;
-    transition: transform 450ms; */
+    margin-right: 10px;
+    transition: transform 450ms;  */
     display: inline-block;
     color: white;
     text-align: center;
