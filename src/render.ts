@@ -2,7 +2,12 @@ import assert from "assert";
 
 export const checkWebGPU = (): boolean => navigator.gpu != null;
 
-export const rectangleVertex = `struct VertexInput {
+/*
+ * Creates the global structs needed for the fragment + vertex shaders
+ * ARG binding: this should be 0 for the vertex shader and 1 for the
+ * fragment shader
+ */
+const structs = (binding: number): string => `struct VertexInput {
     [[location(0)]] position: vec2<f32>;
     [[location(1)]] color: vec4<f32>;
 };
@@ -19,8 +24,11 @@ struct ViewParams {
     y: f32;
 };
 
-[[group(0), binding(0)]]
+[[group(0), binding(${binding})]]
 var<uniform> view_params: ViewParams;
+`;
+
+export const rectangleVertex = `/*${structs}*/
 
 [[stage(vertex)]]
 fn main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput {
@@ -49,8 +57,8 @@ fn main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput
 };`;
 
 export const rectangleFragment = `[[stage(fragment)]]
-fn main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
-    return color;
+fn fragment_main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
+    return sin(view_params_fragment.time * 0.01) * color;
 };`;
 
 export const shaderTriangleFragment = `[[stage(fragment)]]
@@ -136,17 +144,22 @@ export const renderShader = async (
   const stateFormat = "bgra8unorm";
   const depthFormat = "depth24plus-stencil8";
 
-  const vertexShaderModule = device.createShaderModule({ code: vertex });
-  const fragmentShaderModule = device.createShaderModule({ code: fragment });
+  const vertexShaderModule = device.createShaderModule({
+    code: `${structs(0)}\n${vertex}`,
+  });
+
+  const fragmentShaderModule = device.createShaderModule({
+    code: `${structs(1)}\n${fragment}`,
+  });
 
   // check for compilation failures and output any compile messages
-  if (
-    !(
-      (await outputMessages(vertexShaderModule)) &&
-      (await outputMessages(fragmentShaderModule))
-    )
-  ) {
-    console.log("Compilation failed");
+  if (!(await outputMessages(vertexShaderModule))) {
+    console.log("Vertex Shader Compilation failed");
+    return;
+  }
+
+  if (!(await outputMessages(fragmentShaderModule))) {
+    console.log("Fragment Shader Compilation failed");
     return;
   }
 
@@ -184,6 +197,11 @@ export const renderShader = async (
       {
         binding: 0,
         visibility: GPUShaderStage.VERTEX,
+        buffer: [{ type: "uniform" }],
+      } as GPUBindGroupLayoutEntry,
+      {
+        binding: 1,
+        visibility: GPUShaderStage.FRAGMENT,
         buffer: [{ type: "uniform" }],
       } as GPUBindGroupLayoutEntry,
     ],
@@ -228,7 +246,10 @@ export const renderShader = async (
 
   const viewParamsBindGroup = device.createBindGroup({
     layout: bindGroupLayout,
-    entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
+    entries: [
+      { binding: 0, resource: { buffer: viewParamsBuffer } },
+      { binding: 1, resource: { buffer: viewParamsBuffer } },
+    ],
   });
 
   // track when canvas is visible and only render when true
