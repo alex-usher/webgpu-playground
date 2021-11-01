@@ -1,15 +1,35 @@
 .row {
-    overflow: auto; 
-    white-space: nowrap;
-    display: inline-block;
-    padding-left: 0;
-    padding-right: 0;
-}
-
-.row li {
-    display: inline-block;
-    padding-left: 0;
-    padding-right: 0;
-}
+    margin-left: 20px;
+    color: white;
+  }
+  
+  .row__blocks {
+    display: flex;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    padding: 20px;
+    width: 600px;
+  }
+  
+  
+  .row__poster {
+    width: 100%;
+    object-fit: contain;
+    max-height: 100px;
+    margin-right: 10px;
+    transition: transform 450ms;
+  }
+  
+  .row__posterLarge {
+    max-height: 250px;
+  }
+  
+  .row__posterLarge:hover {
+    transform: scale(1.09);
+  }
+  
+  .row__poster:hover {
+    transform: scale(1.08);
+  }
 
 

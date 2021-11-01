@@ -45,7 +45,7 @@ export const CardCarousel = ({ sectionName, shaderList }: CarouselProps) => {
             <div className="row__blocks">
                 {/* several row posters */}
                 {shaderList.map((shader) => (
-                   <li><ShaderCard shader={shader}/> </li>
+                   <li className="row__poster row__posterLarge"><ShaderCard shader={shader}/> </li>
                 ))}
             </div>
             <Button variant="outlined" onClick={() => handleNav(Direction.Right)} >
