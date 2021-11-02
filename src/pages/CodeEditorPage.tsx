@@ -3,8 +3,7 @@ import Grid from "@mui/material/Grid";
 import Slider from "@mui/material/Slider";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
-import { useState } from "react";
-import React from "react";
+import { useEffect, useState } from "react";
 import FormDialog from "../components/FormDialog";
 
 import { ShaderProps } from "../objects/Shader";
@@ -24,7 +23,8 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
     shader.fragmentCode
   );
   const [editorOpacity, setEditorOpacity] = useState(0.5);
-  const [formOpen, setFormOpen] = React.useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [imagePath, setImagePath] = useState("");
 
   const handleFormOpen = () => {
     setFormOpen(true);
@@ -40,6 +40,35 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
       setEditorOpacity(newValue);
     }
   };
+
+  useEffect(() => {
+    const fileTag = document.getElementById("filetag");
+    const preview = document.getElementById("preview");
+
+    console.log(fileTag);
+
+    fileTag?.addEventListener("change", function () {
+      changeImage(this);
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function changeImage(input: any) {
+      console.log("!!!!!!");
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        console.log("??");
+
+        reader.onload = function (e) {
+          console.log("hello", e?.target?.result);
+          const path = (e?.target?.result as string) || "";
+          preview?.setAttribute("src", path);
+          setImagePath(path);
+        };
+
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+  }, [showCode]);
 
   return (
     <div id="body">
@@ -64,7 +93,6 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
             {/* Actions in showCode mode */}
             {showCode ? (
               <>
-                {" "}
                 <Grid item>
                   <Button
                     id="compile-button"
@@ -81,16 +109,29 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
                 </Grid>
                 <Grid item>
                   {showCode ? (
-                    <Button
-                      id="save-button"
-                      variant="outlined"
-                      disableElevation
-                      color="success"
-                      style={{ margin: "0 0 0 1em" }}
-                      onClick={handleFormOpen}
-                    >
-                      Save
-                    </Button>
+                    <>
+                      <Button
+                        id="save-button"
+                        variant="outlined"
+                        disableElevation
+                        color="success"
+                        style={{ margin: "0 0 0 1em" }}
+                        onClick={handleFormOpen}
+                      >
+                        Save
+                      </Button>
+                      {/* <Button
+                        variant="outlined"
+                        disableElevation
+                        onClick={() => fileInput?.current?.click()}
+                      > */}
+                      <input
+                        id="filetag"
+                        type="file"
+                        accept="image/png, image/jpeg"
+                      />
+                      <img src="../sad.jpeg" id="preview" />
+                    </>
                   ) : (
                     <></>
                   )}
@@ -142,6 +183,7 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
       <ShaderCanvas
         vertexCode={renderedVertexCode}
         fragmentCode={renderedFragmentCode}
+        imagePath={imagePath}
       />
       <div className="editors">
         <div className="vertex-editor">

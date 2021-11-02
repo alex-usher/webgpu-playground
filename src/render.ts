@@ -1,4 +1,5 @@
 import assert from "assert";
+import { defaultShader } from "./objects/Shader";
 
 export const checkWebGPU = (): boolean => navigator.gpu != null;
 
@@ -8,15 +9,16 @@ export const checkWebGPU = (): boolean => navigator.gpu != null;
  * fragment shader
  */
 
-const ass = `[[group(0), binding(2)]] var mySampler: sampler;
-[[group(0), binding(3)]] var myTexture: texture_2d<f32>;
+const ass = `[[group(0), binding(1)]] var mySampler: sampler;
+[[group(0), binding(2)]] var myTexture: texture_2d<f32>;
 
 [[stage(fragment)]]
 fn main([[location(0)]] fragPosition: vec4<f32>) -> [[location(0)]] vec4<f32> {
   return textureSample(myTexture, mySampler, vec2<f32>(1.0, 1.0)) * fragPosition;
 }`;
 
-const structs = (binding: number): string => `struct VertexInput {
+// @ts-ignore @typescript-eslint/no-unused-vars
+const structs = (_binding: number): string => `struct VertexInput {
     [[location(0)]] position: vec2<f32>;
     [[location(1)]] color: vec4<f32>;
 };
@@ -33,7 +35,7 @@ struct ViewParams {
     y: f32;
 };
 
-[[group(0), binding(${binding})]]
+[[group(0), binding(0)]]
 var<uniform> view_params: ViewParams;
 `;
 
@@ -135,7 +137,8 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
 
 export const renderShader = async (
   vertex: string,
-  _fragment: string
+  _fragment: string,
+  imagePath?: string
 ): Promise<void> => {
   if (!checkWebGPU()) {
     return;
@@ -190,23 +193,29 @@ export const renderShader = async (
   async function loadTexture(path: string): Promise<GPUTexture> {
     const image = new Image();
     image.src = path;
-    console.log(image.src);
-    image
+    image.crossOrigin = "Anonymous";
+    // const loc = window.location.pathname;
+    // console.log(loc);
+    // console.log(image.width);
+    await image
       .decode()
       .then(() => {
+        console.log("made it");
         return;
       })
       .catch((err) => console.log(err));
+
     const imageBitmap = await createImageBitmap(image);
 
     const texture = device.createTexture({
       size: [imageBitmap.width, imageBitmap.height, 1],
+      //size: [1, 1, 1],
       dimension: "2d",
       format: "rgba8unorm",
       usage:
         GPUTextureUsage.COPY_DST |
         GPUTextureUsage.RENDER_ATTACHMENT |
-        GPUTextureUsage.SAMPLED,
+        GPUTextureUsage.TEXTURE_BINDING,
     });
     device.queue.copyExternalImageToTexture(
       { source: imageBitmap },
@@ -236,27 +245,27 @@ export const renderShader = async (
     usage: GPUTextureUsage.RENDER_ATTACHMENT,
   });
 
-  const bindGroupLayout = device.createBindGroupLayout({
-    entries: [
-      {
-        binding: 0,
-        visibility: GPUShaderStage.VERTEX,
-        buffer: [{ type: "uniform" }],
-      } as GPUBindGroupLayoutEntry,
-      {
-        binding: 1,
-        visibility: GPUShaderStage.FRAGMENT,
-        buffer: [{ type: "uniform" }],
-      } as GPUBindGroupLayoutEntry,
-    ],
-  });
+  // const bindGroupLayout = device.createBindGroupLayout({
+  //   entries: [
+  //     {
+  //       binding: 0,
+  //       visibility: GPUShaderStage.VERTEX,
+  //       buffer: [{ type: "uniform" }],
+  //     } as GPUBindGroupLayoutEntry,
+  //     {
+  //       binding: 1,
+  //       visibility: GPUShaderStage.FRAGMENT,
+  //       buffer: [{ type: "uniform" }],
+  //     } as GPUBindGroupLayoutEntry,
+  //   ],
+  // });
 
-  const layout = device.createPipelineLayout({
-    bindGroupLayouts: [bindGroupLayout],
-  });
+  // const layout = device.createPipelineLayout({
+  //   bindGroupLayouts: [bindGroupLayout],
+  // });
 
   const renderPipeline = device.createRenderPipeline({
-    layout: layout,
+    //layout: layout,
     vertex: {
       module: vertexShaderModule,
       entryPoint: "main",
@@ -288,18 +297,21 @@ export const renderShader = async (
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
+  console.log(renderPipeline.getBindGroupLayout(0));
+
   const viewParamsBindGroup = device.createBindGroup({
-    layout: bindGroupLayout,
+    layout: renderPipeline.getBindGroupLayout(0),
     entries: [
       { binding: 0, resource: { buffer: viewParamsBuffer } },
-      { binding: 1, resource: { buffer: viewParamsBuffer } },
       {
-        binding: 2,
+        binding: 1,
         resource: sampler,
       },
       {
-        binding: 3,
-        resource: (await loadTexture("sad.jpeg")).createView(),
+        binding: 2,
+        resource: (
+          await loadTexture(imagePath || defaultShader.image)
+        ).createView(),
       },
     ],
   });

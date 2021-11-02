@@ -11,9 +11,14 @@ const ASPECT_RATIO = 0.9;
 interface ShaderCanvasInput {
   vertexCode: string;
   fragmentCode: string;
+  imagePath: string;
 }
 
-const ShaderCanvas = ({ vertexCode, fragmentCode }: ShaderCanvasInput) => {
+const ShaderCanvas = ({
+  vertexCode,
+  fragmentCode,
+  imagePath,
+}: ShaderCanvasInput) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
   const aspectMultiple = Math.min(
@@ -22,8 +27,8 @@ const ShaderCanvas = ({ vertexCode, fragmentCode }: ShaderCanvasInput) => {
   );
 
   useEffect(() => {
-    renderShader(vertexCode, fragmentCode);
-  }, [vertexCode, fragmentCode]);
+    renderShader(vertexCode, fragmentCode, imagePath);
+  }, [vertexCode, fragmentCode, imagePath]);
 
   useEffect(() => {
     const setFromEvent = (e: MouseEvent) => {
