@@ -7,6 +7,7 @@ import { defaultShader } from "../objects/Shader";
 import { Link } from "react-router-dom";
 import { ShaderCard } from "../components/ShaderCard";
 
+import { getPublicShaders } from "../utils/firebaseHelper";
 import "../assets/homePage.css";
 
 const HomePage = () => (
@@ -38,6 +39,9 @@ const HomePage = () => (
           >
             New Shader Sandbox
           </Button>
+        </Grid>
+        <Grid item>
+          <Button onClick={getPublicShaders}>Test firebase</Button>
         </Grid>
         <SignInButton />
       </Grid>

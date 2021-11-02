@@ -7,9 +7,8 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 
 import { ref, uploadString } from "@firebase/storage";
-import { getAuth } from "@firebase/auth";
 import { collection, addDoc, doc, setDoc } from "@firebase/firestore/lite";
-import { firestorage, firedb } from "../firebase";
+import { auth, firestorage, firedb } from "../firebase";
 import { v4 as uuidv4 } from "uuid";
 
 import FormGroup from "@mui/material/FormGroup";
@@ -43,8 +42,8 @@ const saveShaderCode = async (
     ): SnackbarKey;
   }
 ) => {
-  const vertexFile = uuidv4() + shaderName + "_vertex.txt";
-  const fragmentFile = uuidv4() + shaderName + "_fragment.txt";
+  const vertexFile = uuidv4() + "_" + shaderName + "_vertex.txt";
+  const fragmentFile = uuidv4() + "_" + shaderName + "_fragment.txt";
 
   const vertexRef = ref(firestorage, vertexFile);
   const fragmentRef = ref(firestorage, fragmentFile);
@@ -65,7 +64,7 @@ const saveShaderCode = async (
       shaderId = (await addDoc(collection(firedb, "public-shaders"), shaderDoc))
         .id;
     }
-    const user = getAuth().currentUser;
+    const user = auth.currentUser;
     if (user) {
       if (shaderId) {
         await setDoc(
