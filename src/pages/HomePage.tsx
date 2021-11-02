@@ -1,11 +1,11 @@
-import SignInButton from "../components/SignInButton";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import { defaultShader } from "../objects/Shader";
 import { Link } from "react-router-dom";
-import { ShaderCard } from "../components/ShaderCard";
+import { CardCarousel } from "../components/CardCarousel";
+import SignInButton from "../components/SignInButton";
 
 import "../assets/homePage.css";
 
@@ -41,10 +41,18 @@ const HomePage = () => (
         </Grid>
         <SignInButton />
       </Grid>
-      {/* this.state.shaders.map() */}
-      <ShaderCard shader={defaultShader} />
-      <ShaderCard shader={defaultShader} />
-      <ShaderCard shader={defaultShader} />
+      <CardCarousel
+        sectionName="Examples"
+        shaderList={[
+          defaultShader,
+          defaultShader,
+          defaultShader,
+          defaultShader,
+          defaultShader,
+          defaultShader,
+          defaultShader,
+        ]}
+      />
     </Grid>
   </Container>
 );

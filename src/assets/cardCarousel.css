@@ -1,0 +1,29 @@
+.row {
+    margin-left: 30px;
+    color: white;
+    width: 100%;
+  }
+
+.title {
+    margin-left: 20px !important;
+  }
+  
+  .row__blocks {
+    display: flex;
+    overflow-x: scroll;
+    overflow-y: hidden;
+  }
+  
+  
+  .row__tile {
+    display: inline-block;
+    color: white;
+    padding: 20px;
+  }
+  
+  
+  .row__tile:hover {
+    transform: scale(1.1);
+  }
+
+
