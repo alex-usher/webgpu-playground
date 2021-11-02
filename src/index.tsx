@@ -22,9 +22,7 @@ ReactDOM.render(
             <Route path="/editor">
               <CodeEditorPage shader={defaultShader} />
             </Route>
-            <Route path="/user/:uid">
-              <UserPage />
-            </Route>
+            <Route path="/user/:uid" component={UserPage} />
           </Switch>
         </Router>
       </div>

@@ -4,16 +4,16 @@ import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import SignInButton from "../components/SignInButton";
-import Typography from "@mui/material/Typography";
 import { defaultShader } from "../objects/Shader";
 import { Link } from "react-router-dom";
-import { ShaderCard } from "../components/ShaderCard";
 import { getAuth, onAuthStateChanged } from "@firebase/auth";
 import "../assets/style.css";
+import { CardCarousel } from "../components/CardCarousel";
 
-//prettier-ignore
-const UserPage = () => {
-  //const { params: { uid } } = match;
+const UserPage = ({ match }: any) => {
+  // TOOD - use uid to get a user's shaders from firebase
+  const uid = match.params.uid;
+  console.log(uid);
 
   const auth = getAuth();
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
@@ -21,11 +21,9 @@ const UserPage = () => {
     setIsLoggedIn(user != null);
   });
 
-  //console.log(uid);
-
-  // Redirect to the homepage if the user logs out 
+  // Redirect to the homepage if the user logs out
   if (!isLoggedIn) {
-    return <Redirect to="/" />
+    return <Redirect to="/" />;
   }
 
   return (
@@ -46,7 +44,9 @@ const UserPage = () => {
           className="title-header"
         >
           <Grid item>
-            <Typography variant="h3">My Shaders </Typography>
+            <Button variant="outlined" disableElevation component={Link} to="/">
+              {"< Back to home"}
+            </Button>
           </Grid>
           <Grid item>
             <Button
@@ -60,8 +60,25 @@ const UserPage = () => {
           </Grid>
           <SignInButton />
         </Grid>
-        {/* this.state.shaders.map() */}
-        <ShaderCard shader={defaultShader} />
+
+        <CardCarousel
+          sectionName="My public shaders"
+          shaderList={[
+            defaultShader,
+            defaultShader,
+            defaultShader,
+            defaultShader,
+          ]}
+        />
+        <CardCarousel
+          sectionName="My private shaders"
+          shaderList={[
+            defaultShader,
+            defaultShader,
+            defaultShader,
+            defaultShader,
+          ]}
+        />
       </Grid>
     </Container>
   );

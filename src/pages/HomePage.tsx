@@ -6,12 +6,11 @@ import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import { defaultShader } from "../objects/Shader";
 import { Link } from "react-router-dom";
-import { ShaderCard } from "../components/ShaderCard";
 import { getAuth, onAuthStateChanged } from "@firebase/auth";
+import { CardCarousel } from "../components/CardCarousel";
 
 import "../assets/homePage.css";
 
-//prettier-ignore
 const HomePage = () => {
   const auth = getAuth();
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
@@ -50,7 +49,7 @@ const HomePage = () => {
             </Button>
           </Grid>
 
-          {isLoggedIn ?
+          {isLoggedIn ? (
             <Grid item>
               <Button
                 variant="outlined"
@@ -61,14 +60,25 @@ const HomePage = () => {
                 My shaders
               </Button>
             </Grid>
-            : <></>}
+          ) : (
+            <></>
+          )}
 
           <SignInButton />
         </Grid>
-        {/* this.state.shaders.map() */}
-        <ShaderCard shader={defaultShader} />
-        <ShaderCard shader={defaultShader} />
-        <ShaderCard shader={defaultShader} />
+
+        <CardCarousel
+          sectionName="Examples"
+          shaderList={[
+            defaultShader,
+            defaultShader,
+            defaultShader,
+            defaultShader,
+            defaultShader,
+            defaultShader,
+            defaultShader,
+          ]}
+        />
       </Grid>
     </Container>
   );
