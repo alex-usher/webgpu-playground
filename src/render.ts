@@ -9,7 +9,7 @@ export const checkWebGPU = (): boolean => navigator.gpu != null;
  * fragment shader
  */
 
-const ass = `[[group(0), binding(1)]] var mySampler: sampler;
+export const ass = `[[group(0), binding(1)]] var mySampler: sampler;
 [[group(0), binding(2)]] var myTexture: texture_2d<f32>;
 
 [[stage(fragment)]]
@@ -45,7 +45,7 @@ export const rectangleVertex = `/*${structs}*/
 fn main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput {
     var pos = array<vec2<f32>, 6>(
         vec2<f32>(1.0, 1.0),
-        vec2<f32>(view_params.x, view_params.y),
+        vec2<f32>(1.0, -1.0),
         vec2<f32>(-1.0, -1.0),
         vec2<f32>(1.0, 1.0),
         vec2<f32>(-1.0, 1.0),
@@ -68,8 +68,8 @@ fn main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput
 };`;
 
 export const rectangleFragment = `[[stage(fragment)]]
-fn fragment_main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
-    return sin(view_params_fragment.time * 0.01) * color;
+fn main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
+    return sin(view_params.time * 0.01) * color;
 };`;
 
 export const shaderTriangleFragment = `[[stage(fragment)]]
@@ -137,7 +137,7 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
 
 export const renderShader = async (
   vertex: string,
-  _fragment: string,
+  fragment: string,
   imagePath?: string
 ): Promise<void> => {
   if (!checkWebGPU()) {
@@ -161,7 +161,7 @@ export const renderShader = async (
   });
 
   const fragmentShaderModule = device.createShaderModule({
-    code: `${structs(1)}\n${ass}`,
+    code: `${structs(1)}\n${fragment}`,
   });
 
   // check for compilation failures and output any compile messages
@@ -185,10 +185,10 @@ export const renderShader = async (
   // this float 32 array is not necessary,
   // but with it you can do some cool things using the
   // VertexInput in the shader
-  new Float32Array(dataBuffer.getMappedRange()).set([
-    0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0,
-    0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1,
-  ]);
+  // new Float32Array(dataBuffer.getMappedRange()).set([
+  //   0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0,
+  //   0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1,
+  // ]);
 
   async function loadTexture(path: string): Promise<GPUTexture> {
     const image = new Image();
@@ -197,13 +197,7 @@ export const renderShader = async (
     // const loc = window.location.pathname;
     // console.log(loc);
     // console.log(image.width);
-    await image
-      .decode()
-      .then(() => {
-        console.log("made it");
-        return;
-      })
-      .catch((err) => console.log(err));
+    await image.decode();
 
     const imageBitmap = await createImageBitmap(image);
 
@@ -299,6 +293,9 @@ export const renderShader = async (
 
   console.log(renderPipeline.getBindGroupLayout(0));
 
+  const texture = await loadTexture(imagePath || defaultShader.image);
+  console.log(texture);
+
   const viewParamsBindGroup = device.createBindGroup({
     layout: renderPipeline.getBindGroupLayout(0),
     entries: [
@@ -309,9 +306,7 @@ export const renderShader = async (
       },
       {
         binding: 2,
-        resource: (
-          await loadTexture(imagePath || defaultShader.image)
-        ).createView(),
+        resource: texture.createView(),
       },
     ],
   });
@@ -360,7 +355,7 @@ export const renderShader = async (
         colorAttachments: [
           {
             view: context.getCurrentTexture().createView(),
-            loadValue: [0.0, 0.0, 0.0, 0.0],
+            loadValue: [1.0, 1.0, 1.0, 1.0],
           },
         ],
         depthStencilAttachment: {
