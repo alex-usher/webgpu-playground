@@ -1,23 +1,32 @@
 import { useState } from "react";
-import SignInButton from "../components/SignInButton";
+import { Redirect } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
+import SignInButton from "../components/SignInButton";
 import Typography from "@mui/material/Typography";
 import { defaultShader } from "../objects/Shader";
 import { Link } from "react-router-dom";
 import { ShaderCard } from "../components/ShaderCard";
 import { getAuth, onAuthStateChanged } from "@firebase/auth";
-
-import "../assets/homePage.css";
+import "../assets/style.css";
 
 //prettier-ignore
-const HomePage = () => {
+const UserPage = () => {
+  //const { params: { uid } } = match;
+
   const auth = getAuth();
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
   onAuthStateChanged(auth, (user) => {
     setIsLoggedIn(user != null);
   });
+
+  //console.log(uid);
+
+  // Redirect to the homepage if the user logs out 
+  if (!isLoggedIn) {
+    return <Redirect to="/" />
+  }
 
   return (
     <Container>
@@ -37,7 +46,7 @@ const HomePage = () => {
           className="title-header"
         >
           <Grid item>
-            <Typography variant="h3">WebGPU Playground</Typography>
+            <Typography variant="h3">My Shaders </Typography>
           </Grid>
           <Grid item>
             <Button
@@ -49,28 +58,13 @@ const HomePage = () => {
               New Shader Sandbox
             </Button>
           </Grid>
-
-          {isLoggedIn ?
-            <Grid item>
-              <Button
-                variant="outlined"
-                disableElevation
-                component={Link}
-                to={"/user/" + auth.currentUser?.uid}
-              >
-                My shaders
-              </Button>
-            </Grid>
-            : <></>}
-
           <SignInButton />
         </Grid>
         {/* this.state.shaders.map() */}
-        <ShaderCard shader={defaultShader} />
-        <ShaderCard shader={defaultShader} />
         <ShaderCard shader={defaultShader} />
       </Grid>
     </Container>
   );
 };
-export default HomePage;
+
+export default UserPage;

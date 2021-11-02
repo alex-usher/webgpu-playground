@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 import HomePage from "./pages/HomePage";
 import CodeEditorPage from "./pages/CodeEditorPage";
+import UserPage from "./pages/UserPage";
 import { SnackbarProvider } from "notistack";
 
 import "./assets/style.css";
@@ -20,6 +21,9 @@ ReactDOM.render(
             </Route>
             <Route path="/editor">
               <CodeEditorPage shader={defaultShader} />
+            </Route>
+            <Route path="/user/:uid">
+              <UserPage />
             </Route>
           </Switch>
         </Router>
