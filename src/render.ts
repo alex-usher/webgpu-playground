@@ -211,6 +211,7 @@ export const renderShader = async (
         GPUTextureUsage.RENDER_ATTACHMENT |
         GPUTextureUsage.TEXTURE_BINDING,
     });
+
     device.queue.copyExternalImageToTexture(
       { source: imageBitmap },
       { texture: texture },
@@ -239,27 +240,34 @@ export const renderShader = async (
     usage: GPUTextureUsage.RENDER_ATTACHMENT,
   });
 
-  // const bindGroupLayout = device.createBindGroupLayout({
-  //   entries: [
-  //     {
-  //       binding: 0,
-  //       visibility: GPUShaderStage.VERTEX,
-  //       buffer: [{ type: "uniform" }],
-  //     } as GPUBindGroupLayoutEntry,
-  //     {
-  //       binding: 1,
-  //       visibility: GPUShaderStage.FRAGMENT,
-  //       buffer: [{ type: "uniform" }],
-  //     } as GPUBindGroupLayoutEntry,
-  //   ],
-  // });
+  const texture = await loadTexture(imagePath || defaultShader.image);
 
-  // const layout = device.createPipelineLayout({
-  //   bindGroupLayouts: [bindGroupLayout],
-  // });
+  const bindGroupLayout = device.createBindGroupLayout({
+    entries: [
+      {
+        binding: 0,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        buffer: [{ type: "uniform" }],
+      } as GPUBindGroupLayoutEntry,
+      {
+        binding: 1,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        type: "shader",
+      } as GPUBindGroupLayoutEntry,
+      {
+        binding: 2,
+        visibility: GPUShaderStage.FRAGMENT,
+        type: "sampled-texture",
+      } as GPUBindGroupLayoutEntry,
+    ],
+  });
+
+  const layout = device.createPipelineLayout({
+    bindGroupLayouts: [bindGroupLayout],
+  });
 
   const renderPipeline = device.createRenderPipeline({
-    //layout: layout,
+    layout: layout,
     vertex: {
       module: vertexShaderModule,
       entryPoint: "main",
@@ -291,13 +299,8 @@ export const renderShader = async (
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
-  console.log(renderPipeline.getBindGroupLayout(0));
-
-  const texture = await loadTexture(imagePath || defaultShader.image);
-  console.log(texture);
-
   const viewParamsBindGroup = device.createBindGroup({
-    layout: renderPipeline.getBindGroupLayout(0),
+    layout: bindGroupLayout,
     entries: [
       { binding: 0, resource: { buffer: viewParamsBuffer } },
       {
