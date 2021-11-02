@@ -14,10 +14,12 @@ export const getPublicShaders = (): Shader[] => {
   return defaultReturn;
 };
 
-export const getUserPublicShaders = (): Shader[] => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getUserPublicShaders = (_uid: any): Shader[] => {
   return defaultReturn;
 };
 
-export const getUserPrivateShaders = (): Shader[] => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getUserPrivateShaders = (_uid: any): Shader[] => {
   return defaultReturn;
 };

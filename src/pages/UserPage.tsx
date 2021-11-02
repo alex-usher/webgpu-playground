@@ -1,22 +1,34 @@
 import { useState } from "react";
-import SignInButton from "../components/SignInButton";
+import { Redirect } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import { getPublicShaders } from "../utils/firebaseHelper";
+import SignInButton from "../components/SignInButton";
 import { Link } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "@firebase/auth";
+import "../assets/style.css";
 import { CardCarousel } from "../components/CardCarousel";
+import {
+  getUserPrivateShaders,
+  getUserPublicShaders,
+} from "../utils/firebaseHelper";
 
-import "../assets/homePage.css";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const UserPage = ({ match }: any) => {
+  // TOOD - use uid to get a user's shaders from firebase
+  const uid = match.params.uid;
+  console.log(uid);
 
-const HomePage = () => {
   const auth = getAuth();
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
   onAuthStateChanged(auth, (user) => {
     setIsLoggedIn(user != null);
   });
+
+  // Redirect to the homepage if the user logs out
+  if (!isLoggedIn) {
+    return <Redirect to="/" />;
+  }
 
   return (
     <Container>
@@ -36,7 +48,9 @@ const HomePage = () => {
           className="title-header"
         >
           <Grid item>
-            <Typography variant="h3">WebGPU Playground</Typography>
+            <Button variant="outlined" disableElevation component={Link} to="/">
+              {"< Back to home"}
+            </Button>
           </Grid>
           <Grid item>
             <Button
@@ -48,28 +62,20 @@ const HomePage = () => {
               New Shader Sandbox
             </Button>
           </Grid>
-
-          {isLoggedIn ? (
-            <Grid item>
-              <Button
-                variant="outlined"
-                disableElevation
-                component={Link}
-                to={"/user/" + auth.currentUser?.uid}
-              >
-                My shaders
-              </Button>
-            </Grid>
-          ) : (
-            <></>
-          )}
-
           <SignInButton />
         </Grid>
-        <CardCarousel sectionName="Examples" shaderList={getPublicShaders()} />
+
+        <CardCarousel
+          sectionName="My public shaders"
+          shaderList={getUserPublicShaders(uid)}
+        />
+        <CardCarousel
+          sectionName="My private shaders"
+          shaderList={getUserPrivateShaders(uid)}
+        />
       </Grid>
     </Container>
   );
 };
 
-export default HomePage;
+export default UserPage;
