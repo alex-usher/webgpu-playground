@@ -1,13 +1,23 @@
-import { Shader } from "../objects/Shader";
+import { defaultShader, Shader } from "../objects/Shader";
+
+const defaultReturn = [
+  defaultShader,
+  defaultShader,
+  defaultShader,
+  defaultShader,
+  defaultShader,
+  defaultShader,
+  defaultShader,
+];
 
 export const getPublicShaders = (): Shader[] => {
-  return [];
+  return defaultReturn;
 };
 
 export const getUserPublicShaders = (): Shader[] => {
-  return [];
+  return defaultReturn;
 };
 
 export const getUserPrivateShaders = (): Shader[] => {
-  return [];
+  return defaultReturn;
 };
