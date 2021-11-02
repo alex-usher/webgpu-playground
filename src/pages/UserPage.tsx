@@ -10,6 +10,7 @@ import { getAuth, onAuthStateChanged } from "@firebase/auth";
 import "../assets/style.css";
 import { CardCarousel } from "../components/CardCarousel";
 
+// eslint-disable-next-line
 const UserPage = ({ match }: any) => {
   // TOOD - use uid to get a user's shaders from firebase
   const uid = match.params.uid;
