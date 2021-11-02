@@ -61,6 +61,31 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
                 {viewCodeText}
               </Button>
             </Grid>
+            {/* Download png button */}
+            <Grid item>
+              <Button
+                id="export-button"
+                variant="outlined"
+                disableElevation
+                onClick={() => {
+                  const canvas = document.getElementById(
+                    "canvas-webgpu"
+                  ) as HTMLCanvasElement;
+                  const link = document.createElement("a");
+                  link.download = "shader.jpg";
+
+                  canvas.toBlob(function (blob) {
+                    link.href = URL.createObjectURL(blob);
+                    console.log(blob);
+                    console.log(link.href);
+                    link.click();
+                  }, "image/jpg");
+                }}
+                color={"primary"}
+              >
+                Export as png
+              </Button>
+            </Grid>
             {/* Actions in showCode mode */}
             {showCode ? (
               <>
