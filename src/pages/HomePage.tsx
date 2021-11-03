@@ -9,7 +9,6 @@ import { Link } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "@firebase/auth";
 import { CardCarousel } from "../components/CardCarousel";
 
-import { getPublicShaders } from "../utils/firebaseHelper";
 import "../assets/homePage.css";
 
 const HomePage = () => {
@@ -67,6 +66,7 @@ const HomePage = () => {
 
           <SignInButton />
         </Grid>
+        
         <CardCarousel
           sectionName="Examples"
           shaderList={[
