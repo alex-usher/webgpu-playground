@@ -60,7 +60,7 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
                 to={""}
                 color="primary"
               >
-                {"Back to Home"}
+                {"< Back to Home"}
               </Button>
             </Grid>
             <Grid item>
