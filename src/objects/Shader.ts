@@ -14,12 +14,7 @@ import {
 import { firestorage } from "../firebase";
 import { v4 as uuidv4 } from "uuid";
 export class Shader {
-  // title: title of shader
-  // image: image src (http link)
-  // vertexCode: ideally a string
-  // fragmentCode: ideally a string
-  // isPublic: boolean
-  readonly image: string;
+  readonly image: string; //http link to img src
   fragmentCode: string;
   readonly title: string;
   vertexCode: string;
@@ -64,8 +59,10 @@ export const shaderConverter = {
     if (!snapshot.data()) {
       return;
     }
-
-    const data = snapshot.data()!;
+    const data = snapshot.data();
+    if (!data) {
+      throw new Error("shader data could not be retrieved from Firebase");
+    }
 
     try {
       const vertexCode = await downloadStorageRef(
@@ -78,13 +75,15 @@ export const shaderConverter = {
       const shader = new Shader(
         data.shader_name,
         "", // image of shader
-        data.isPublic ? true : false,
+        data.isPublic,
         vertexCode,
         fragmentCode
       );
       return shader;
     } catch (err) {
-      console.log("ERROR: " + err);
+      if (err instanceof Error) {
+        console.log("ERROR: " + err.message);
+      }
       return;
     }
   },

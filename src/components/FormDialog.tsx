@@ -23,11 +23,21 @@ import {
   useSnackbar,
 } from "notistack";
 
+import { getUserShaders } from "../utils/firebaseHelper";
+
 interface FormDialogProps {
   open: boolean;
   handleClose: () => void;
   vertexCode: string;
   fragmentCode: string;
+}
+
+class nameErr extends Error {
+  dupedName: string;
+  constructor(dupedName: string) {
+    super();
+    this.dupedName = dupedName;
+  }
 }
 
 const saveShaderCode = async (
@@ -58,13 +68,25 @@ const saveShaderCode = async (
     isPublic: isPublic,
   };
 
+  let hasErred = false;
+
   try {
+    const user = auth.currentUser;
+    if (user) {
+      const existingShaders = await getUserShaders();
+      for (const existingShader of existingShaders) {
+        if (shaderName == existingShader.title) {
+          throw new nameErr(shaderName);
+        }
+      }
+    }
+
     let shaderId = null;
     if (isPublic) {
       shaderId = (await addDoc(collection(firedb, "public-shaders"), shaderDoc))
         .id;
     }
-    const user = auth.currentUser;
+
     if (user) {
       if (shaderId) {
         await setDoc(
@@ -82,15 +104,28 @@ const saveShaderCode = async (
       }
     }
   } catch (err) {
-    enqueueSnackbar("Failed to save", {
-      variant: "error",
-      autoHideDuration: 1000,
-    });
+    hasErred = true;
+    if (err instanceof nameErr) {
+      enqueueSnackbar(
+        "A shader with name " + err.dupedName + " already exists!",
+        {
+          variant: "error",
+          autoHideDuration: 1000,
+        }
+      );
+    } else {
+      enqueueSnackbar("Failed to save!", {
+        variant: "error",
+        autoHideDuration: 1000,
+      });
+    }
   } finally {
-    enqueueSnackbar("Successfully saved!", {
-      variant: "success",
-      autoHideDuration: 1000,
-    });
+    if (!hasErred) {
+      enqueueSnackbar("Successfully saved!", {
+        variant: "success",
+        autoHideDuration: 1000,
+      });
+    }
   }
 };
 

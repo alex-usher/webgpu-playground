@@ -21,47 +21,44 @@ const getShaders = async (
   return shaders;
 };
 
-const getExampleShaders = async (): Promise<Shader[]> => {
+export const getExampleShaders = async (): Promise<Shader[]> => {
   return await getShaders(collection(firedb, "example-shaders"));
 };
 
-const getPublicShaders = async (): Promise<Shader[]> => {
+export const getPublicShaders = async (): Promise<Shader[]> => {
   return await getShaders(collection(firedb, "public-shaders"));
 };
 
-const getUserShaders = async (isPublic: boolean): Promise<Shader[]> => {
+export const getUserShaders = async (): Promise<Shader[]> => {
   const user = auth.currentUser;
   if (user) {
-    const querySnapshot = await getDocs(
-      collection(firedb, "users", user.uid, "shaders")
-    );
-    const shaders: Shader[] = [];
-    for (const doc of querySnapshot.docs) {
-      const shader = await shaderConverter.fromFirestore(doc);
-      if (shader && shader.isPublic == isPublic) {
-        shaders.push(shader);
-      }
-    }
-    console.log(shaders);
-    return shaders;
+    return await getShaders(collection(firedb, "users", user.uid, "shaders"));
   } else {
-    // error - user not signed in
-    console.log("user not signed in >:^(");
+    // user is not logged in. this should never be a problem, as getUserShaders should
+    // never be invoked without the user being logged in.
+    console.log("ERROR: user is not logged in");
   }
   return [];
 };
 
-const getUserPublicShaders = async (): Promise<Shader[]> => {
-  return getUserShaders(true);
+export const getUserPublicShaders = async (): Promise<Shader[]> => {
+  const publicShaders: Shader[] = [];
+  const shaders: Shader[] = await getUserShaders();
+  for (const shader of shaders) {
+    if (shader.isPublic == true) {
+      publicShaders.push(shader);
+    }
+  }
+  return publicShaders;
 };
 
-const getUserPrivateShaders = async (): Promise<Shader[]> => {
-  return getUserShaders(false);
-};
-
-export {
-  getExampleShaders,
-  getPublicShaders,
-  getUserPublicShaders,
-  getUserPrivateShaders,
+export const getUserPrivateShaders = async (): Promise<Shader[]> => {
+  const privateShaders: Shader[] = [];
+  const shaders: Shader[] = await getUserShaders();
+  for (const shader of shaders) {
+    if (shader.isPublic == false) {
+      privateShaders.push(shader);
+    }
+  }
+  return privateShaders;
 };
