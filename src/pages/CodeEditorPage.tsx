@@ -1,10 +1,12 @@
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Slider from "@mui/material/Slider";
+import TextField from "@mui/material/TextField";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
 import { useState } from "react";
 import React from "react";
+//import { Link } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
 
 import { ShaderProps } from "../objects/Shader";
@@ -26,6 +28,8 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [formOpen, setFormOpen] = React.useState(false);
 
+  const [shaderName, setShaderName] = useState("");
+
   const handleFormOpen = () => {
     setFormOpen(true);
   };
@@ -46,6 +50,19 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
       <div className="paddedDiv">
         <Grid container direction="row" justifyContent="flex-start">
           <Grid item container direction="row" spacing={2} xs={12} md={6}>
+            {/*
+            <Grid item>
+              <Button
+                id="home-button"
+                variant="outlined"
+                disableElevation
+                component={Link}
+                to={"/"}
+                color="primary"
+              >
+                {"< Back to Home"}
+              </Button>
+            </Grid>*/}
             {/* Show/hide code button */}
             <Grid item>
               <Button
@@ -86,7 +103,6 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
                       variant="outlined"
                       disableElevation
                       color="success"
-                      style={{ margin: "0 0 0 1em" }}
                       onClick={handleFormOpen}
                     >
                       Save
@@ -100,7 +116,49 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
                     vertexCode={vertexCode}
                     fragmentCode={fragmentCode}
                   />
-                </Grid>{" "}
+                </Grid>
+                <Grid item>
+                  {showCode ? (
+                    <Button
+                      id="save-as-button"
+                      variant="outlined"
+                      disableElevation
+                      color="success"
+                      onClick={handleFormOpen}
+                    >
+                      Save As
+                    </Button>
+                  ) : (
+                    <></>
+                  )}
+                  <FormDialog
+                    open={formOpen}
+                    handleClose={handleFormClose}
+                    vertexCode={vertexCode}
+                    fragmentCode={fragmentCode}
+                  />
+                </Grid>
+                <Grid item>
+                  {showCode ? (
+                    <TextField
+                      id="shader-name-box"
+                      label="Shader name"
+                      variant="outlined"
+                      // TODO: sort out focus - when you leave the text box the focus leaves too
+                      autoFocus
+                      // TODO: we need to make the text actually visible, right now it's black
+                      color="info"
+                      size="small"
+                      value={shaderName}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                        setShaderName(e.target.value);
+                      }}
+                      style={{ width: "30ch" }}
+                    />
+                  ) : (
+                    <></>
+                  )}
+                </Grid>
               </>
             ) : (
               <></>
