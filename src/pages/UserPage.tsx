@@ -44,11 +44,11 @@ const UserPage = ({ match }: any) => {
           spacing={2}
           className="title-header"
         >
-          <Grid item>
+          {/*<Grid item>
             <Button variant="outlined" disableElevation component={Link} to="/">
               {"< Back to home"}
             </Button>
-          </Grid>
+          </Grid>*/}
           <Grid item>
             <Button
               variant="outlined"
