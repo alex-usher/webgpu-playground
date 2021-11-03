@@ -6,7 +6,7 @@ import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
 import { useState } from "react";
 import React from "react";
-import { Link } from "react-router-dom";
+//import { Link } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
 
 import { ShaderProps } from "../objects/Shader";
@@ -50,7 +50,7 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
       <div className="paddedDiv">
         <Grid container direction="row" justifyContent="flex-start">
           <Grid item container direction="row" spacing={2} xs={12} md={6}>
-            {/* Show/hide code button */}
+            {/*
             <Grid item>
               <Button
                 id="home-button"
@@ -62,7 +62,8 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
               >
                 {"< Back to Home"}
               </Button>
-            </Grid>
+            </Grid>*/}
+            {/* Show/hide code button */}
             <Grid item>
               <Button
                 id="show-code-button"
