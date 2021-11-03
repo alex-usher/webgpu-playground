@@ -206,8 +206,8 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
 };
 
 export const renderShader = async (
-  vertexCode: string,
-  fragmentCode: string
+  vertex: string,
+  fragment: string
 ): Promise<void> => {
   if (!checkWebGPU()) {
     return;
@@ -226,11 +226,11 @@ export const renderShader = async (
   const depthFormat = "depth24plus-stencil8";
 
   const vertexShaderModule = device.createShaderModule({
-    code: vertexCode,
+    code: `${structs}\n${vertex}`,
   });
 
   const fragmentShaderModule = device.createShaderModule({
-    code: fragmentCode,
+    code: `${structs}\n${fragment}`,
   });
 
   // check for compilation failures and output any compile messages

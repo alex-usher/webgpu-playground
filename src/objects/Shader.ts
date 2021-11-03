@@ -1,4 +1,4 @@
-import { rectangleFragment, rectangleVertex } from "../render";
+import { cubeFragment, cubeVertex } from "../render";
 
 export class Shader {
   // title: title of shader
@@ -30,6 +30,6 @@ export interface ShaderProps {
 export const defaultShader = new Shader(
   "Triangle",
   "https://i.ibb.co/M5Z06wy/triangle.png",
-  rectangleVertex,
-  rectangleFragment
+  cubeVertex,
+  cubeFragment
 );
