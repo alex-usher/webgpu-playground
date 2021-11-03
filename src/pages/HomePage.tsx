@@ -66,7 +66,7 @@ const HomePage = () => {
 
           <SignInButton />
         </Grid>
-        
+
         <CardCarousel
           sectionName="Examples"
           shaderList={[
