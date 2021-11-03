@@ -118,10 +118,9 @@ describe("Button Click Tests", () => {
     expect(vertexEditorDiv?.hasChildNodes()).toBeTruthy();
 
     const textAreas: HTMLElement[] = screen.getAllByRole("textbox");
-    expect(textAreas.length).toBe(3);
+    expect(textAreas.length).toBe(2);
     expect(textAreas[0]).toBeInTheDocument();
     expect(textAreas[1]).toBeInTheDocument();
-    expect(textAreas[2]).toBeInTheDocument();
   });
 
   test("Clicking the compile code button results in calling the WebGPU render function", () => {
@@ -146,8 +145,8 @@ describe("Code editor tests", () => {
 
     document.getElementById(SHOW_CODE_ID)?.click();
     const textAreas: HTMLElement[] = screen.getAllByRole("textbox");
-    vertexEditor = textAreas[1];
-    fragmentEditor = textAreas[2];
+    vertexEditor = textAreas[0];
+    fragmentEditor = textAreas[1];
   });
 
   afterEach(() => {
