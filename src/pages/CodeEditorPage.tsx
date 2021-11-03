@@ -72,14 +72,14 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
                     "canvas-webgpu"
                   ) as HTMLCanvasElement;
                   const link = document.createElement("a");
-                  link.download = "shader.jpg";
+                  link.download = "shader.png";
 
                   canvas.toBlob(function (blob) {
                     link.href = URL.createObjectURL(blob);
                     console.log(blob);
                     console.log(link.href);
                     link.click();
-                  }, "image/jpg");
+                  }, "image/png");
                 }}
                 color={"primary"}
               >
