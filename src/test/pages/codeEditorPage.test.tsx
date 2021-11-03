@@ -15,6 +15,7 @@ const renderCodeEditorPage = () =>
           new Shader(
             "test",
             "http://www.test.com",
+            false,
             shaders.shaderTriangleVertex,
             shaders.shaderTriangleFragment
           )
