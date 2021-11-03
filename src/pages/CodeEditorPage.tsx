@@ -57,7 +57,7 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
                 variant="outlined"
                 disableElevation
                 component={Link}
-                to={""}
+                to={"/"}
                 color="primary"
               >
                 {"< Back to Home"}
