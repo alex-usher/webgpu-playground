@@ -1,7 +1,7 @@
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Slider from "@mui/material/Slider";
-//import TextField from "@mui/material/TextField";
+import TextField from "@mui/material/TextField";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
 import { useState } from "react";
@@ -28,7 +28,7 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [formOpen, setFormOpen] = React.useState(false);
 
-  //const [shaderName, setShaderName] = useState("");
+  const [shaderName, setShaderName] = useState("");
 
   const handleFormOpen = () => {
     setFormOpen(true);
@@ -138,7 +138,7 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
                     fragmentCode={fragmentCode}
                   />
                 </Grid>
-                {/*<Grid item>
+                <Grid item>
                   {showCode ? (
                     <TextField
                       id="shader-name-box"
@@ -158,7 +158,7 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
                   ) : (
                     <></>
                   )}
-                  </Grid>*/}
+                </Grid>
               </>
             ) : (
               <></>
