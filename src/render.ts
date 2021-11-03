@@ -54,29 +54,17 @@ const cubeVertexArray = new Float32Array([
   -1, 1, -1, 1,  0, 1, 0, 1,  0, 0,
 ]);
 
-/*
- * Creates the global structs needed for the fragment + vertex shaders
- * ARG binding: this should be 0 for the vertex shader and 1 for the
- * fragment shader
- */
-const structs = (binding: number): string => `struct VertexInput {
-    [[location(0)]] position: vec2<f32>;
-    [[location(1)]] color: vec4<f32>;
+const structs = `struct VertexInput {
+  [[location(0)]] position: vec2<f32>;
+  [[location(1)]] color: vec4<f32>;
 };
-
-struct VertexOutput {
-    [[builtin(position)]] position: vec4<f32>;
-    [[location(0)]] color: vec4<f32>;
-};
-
 [[block]]
 struct ViewParams {
-    time: f32;
-    x: f32;
-    y: f32;
+  time: f32;
+  x: f32;
+  y: f32;
 };
-
-[[group(0), binding(${binding})]]
+[[group(0), binding(0)]]
 var<uniform> view_params: ViewParams;
 `;
 
@@ -274,12 +262,7 @@ export const renderShader = async (
     entries: [
       {
         binding: 0,
-        visibility: GPUShaderStage.VERTEX,
-        buffer: [{ type: "uniform" }],
-      } as GPUBindGroupLayoutEntry,
-      {
-        binding: 1,
-        visibility: GPUShaderStage.FRAGMENT,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
         buffer: [{ type: "uniform" }],
       } as GPUBindGroupLayoutEntry,
     ],
@@ -333,10 +316,7 @@ export const renderShader = async (
 
   const viewParamsBindGroup = device.createBindGroup({
     layout: bindGroupLayout,
-    entries: [
-      { binding: 0, resource: { buffer: viewParamsBuffer } },
-      { binding: 1, resource: { buffer: viewParamsBuffer } },
-    ],
+    entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
   });
 
   // track when canvas is visible and only render when true
