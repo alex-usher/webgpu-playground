@@ -2,12 +2,7 @@ import assert from "assert";
 
 export const checkWebGPU = (): boolean => navigator.gpu != null;
 
-/*
- * Creates the global structs needed for the fragment + vertex shaders
- * ARG binding: this should be 0 for the vertex shader and 1 for the
- * fragment shader
- */
-const structs = (binding: number): string => `struct VertexInput {
+const structs = `struct VertexInput {
     [[location(0)]] position: vec2<f32>;
     [[location(1)]] color: vec4<f32>;
 };
@@ -24,7 +19,7 @@ struct ViewParams {
     y: f32;
 };
 
-[[group(0), binding(${binding})]]
+[[group(0), binding(0)]]
 var<uniform> view_params: ViewParams;
 `;
 
@@ -57,8 +52,8 @@ fn main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput
 };`;
 
 export const rectangleFragment = `[[stage(fragment)]]
-fn fragment_main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
-    return sin(view_params_fragment.time * 0.01) * color;
+fn main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
+    return sin(view_params.time * 0.01) * color;
 };`;
 
 export const shaderTriangleFragment = `[[stage(fragment)]]
@@ -145,11 +140,11 @@ export const renderShader = async (
   const depthFormat = "depth24plus-stencil8";
 
   const vertexShaderModule = device.createShaderModule({
-    code: `${structs(0)}\n${vertex}`,
+    code: `${structs}\n${vertex}`,
   });
 
   const fragmentShaderModule = device.createShaderModule({
-    code: `${structs(1)}\n${fragment}`,
+    code: `${structs}\n${fragment}`,
   });
 
   // check for compilation failures and output any compile messages
@@ -196,12 +191,7 @@ export const renderShader = async (
     entries: [
       {
         binding: 0,
-        visibility: GPUShaderStage.VERTEX,
-        buffer: [{ type: "uniform" }],
-      } as GPUBindGroupLayoutEntry,
-      {
-        binding: 1,
-        visibility: GPUShaderStage.FRAGMENT,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
         buffer: [{ type: "uniform" }],
       } as GPUBindGroupLayoutEntry,
     ],
@@ -246,10 +236,7 @@ export const renderShader = async (
 
   const viewParamsBindGroup = device.createBindGroup({
     layout: bindGroupLayout,
-    entries: [
-      { binding: 0, resource: { buffer: viewParamsBuffer } },
-      { binding: 1, resource: { buffer: viewParamsBuffer } },
-    ],
+    entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
   });
 
   // track when canvas is visible and only render when true
