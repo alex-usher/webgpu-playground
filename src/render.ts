@@ -1,6 +1,58 @@
 import assert from "assert";
+import { mat4, vec3 } from "gl-matrix";
 
 export const checkWebGPU = (): boolean => navigator.gpu != null;
+
+const cubeVertexSize = 4 * 10; // Byte size of one cube vertex.
+const cubePositionOffset = 0;
+const cubeUVOffset = 4 * 8;
+const cubeVertexCount = 36;
+
+// prettier-ignore
+const cubeVertexArray = new Float32Array([
+  // float4 position, float4 color, float2 uv,
+  1, -1, 1, 1,   1, 0, 1, 1,  1, 1,
+  -1, -1, 1, 1,  0, 0, 1, 1,  0, 1,
+  -1, -1, -1, 1, 0, 0, 0, 1,  0, 0,
+  1, -1, -1, 1,  1, 0, 0, 1,  1, 0,
+  1, -1, 1, 1,   1, 0, 1, 1,  1, 1,
+  -1, -1, -1, 1, 0, 0, 0, 1,  0, 0,
+
+  1, 1, 1, 1,    1, 1, 1, 1,  1, 1,
+  1, -1, 1, 1,   1, 0, 1, 1,  0, 1,
+  1, -1, -1, 1,  1, 0, 0, 1,  0, 0,
+  1, 1, -1, 1,   1, 1, 0, 1,  1, 0,
+  1, 1, 1, 1,    1, 1, 1, 1,  1, 1,
+  1, -1, -1, 1,  1, 0, 0, 1,  0, 0,
+
+  -1, 1, 1, 1,   0, 1, 1, 1,  1, 1,
+  1, 1, 1, 1,    1, 1, 1, 1,  0, 1,
+  1, 1, -1, 1,   1, 1, 0, 1,  0, 0,
+  -1, 1, -1, 1,  0, 1, 0, 1,  1, 0,
+  -1, 1, 1, 1,   0, 1, 1, 1,  1, 1,
+  1, 1, -1, 1,   1, 1, 0, 1,  0, 0,
+
+  -1, -1, 1, 1,  0, 0, 1, 1,  1, 1,
+  -1, 1, 1, 1,   0, 1, 1, 1,  0, 1,
+  -1, 1, -1, 1,  0, 1, 0, 1,  0, 0,
+  -1, -1, -1, 1, 0, 0, 0, 1,  1, 0,
+  -1, -1, 1, 1,  0, 0, 1, 1,  1, 1,
+  -1, 1, -1, 1,  0, 1, 0, 1,  0, 0,
+
+  1, 1, 1, 1,    1, 1, 1, 1,  1, 1,
+  -1, 1, 1, 1,   0, 1, 1, 1,  0, 1,
+  -1, -1, 1, 1,  0, 0, 1, 1,  0, 0,
+  -1, -1, 1, 1,  0, 0, 1, 1,  0, 0,
+  1, -1, 1, 1,   1, 0, 1, 1,  1, 0,
+  1, 1, 1, 1,    1, 1, 1, 1,  1, 1,
+
+  1, -1, -1, 1,  1, 0, 0, 1,  1, 1,
+  -1, -1, -1, 1, 0, 0, 0, 1,  0, 1,
+  -1, 1, -1, 1,  0, 1, 0, 1,  0, 0,
+  1, 1, -1, 1,   1, 1, 0, 1,  1, 0,
+  1, -1, -1, 1,  1, 0, 0, 1,  1, 1,
+  -1, 1, -1, 1,  0, 1, 0, 1,  0, 0,
+]);
 
 /*
  * Creates the global structs needed for the fragment + vertex shaders
@@ -94,6 +146,35 @@ fn main([[builtin(vertex_index)]] index: u32) -> Output {
 }
 `;
 
+export const cubeVertex = `[[block]] struct Uniforms {
+  modelViewProjectionMatrix : mat4x4<f32>;
+};
+[[binding(0), group(0)]] var<uniform> uniforms : Uniforms;
+
+struct VertexOutput {
+  [[builtin(position)]] Position : vec4<f32>;
+  [[location(0)]] fragUV : vec2<f32>;
+  [[location(1)]] fragPosition: vec4<f32>;
+};
+
+[[stage(vertex)]]
+fn main([[location(0)]] position : vec4<f32>,
+        [[location(1)]] uv : vec2<f32>) -> VertexOutput {
+  var output : VertexOutput;
+  output.Position = uniforms.modelViewProjectionMatrix * position;
+  output.fragUV = uv;
+  output.fragPosition = 0.5 * (position + vec4<f32>(1.0, 1.0, 1.0, 1.0));
+  return output;
+}
+`;
+
+export const cubeFragment = `[[stage(fragment)]]
+fn main([[location(0)]] fragUV: vec2<f32>,
+        [[location(1)]] fragPosition: vec4<f32>) -> [[location(0)]] vec4<f32> {
+  return fragPosition;
+}
+`;
+
 const outputMessages = async (shaderModule: GPUShaderModule) => {
   if (shaderModule.compilationInfo) {
     const messages = (await shaderModule.compilationInfo()).messages;
@@ -125,8 +206,8 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
 };
 
 export const renderShader = async (
-  vertex: string,
-  fragment: string
+  vertexCode: string,
+  fragmentCode: string
 ): Promise<void> => {
   if (!checkWebGPU()) {
     return;
@@ -145,11 +226,11 @@ export const renderShader = async (
   const depthFormat = "depth24plus-stencil8";
 
   const vertexShaderModule = device.createShaderModule({
-    code: `${structs(0)}\n${vertex}`,
+    code: vertexCode,
   });
 
   const fragmentShaderModule = device.createShaderModule({
-    code: `${structs(1)}\n${fragment}`,
+    code: fragmentCode,
   });
 
   // check for compilation failures and output any compile messages
@@ -165,7 +246,7 @@ export const renderShader = async (
 
   // allocate a buffer for up to 6 vertices
   const dataBuffer = device.createBuffer({
-    size: 6 * 6 * 4,
+    size: cubeVertexArray.byteLength,
     usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     mappedAtCreation: true,
   });
@@ -173,10 +254,7 @@ export const renderShader = async (
   // this float 32 array is not necessary,
   // but with it you can do some cool things using the
   // VertexInput in the shader
-  new Float32Array(dataBuffer.getMappedRange()).set([
-    0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0,
-    0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1,
-  ]);
+  new Float32Array(dataBuffer.getMappedRange()).set(cubeVertexArray);
 
   dataBuffer.unmap();
 
@@ -218,11 +296,15 @@ export const renderShader = async (
       entryPoint: "main",
       buffers: [
         {
-          arrayStride: 6 * 4,
+          arrayStride: cubeVertexSize,
           stepMode: "vertex",
           attributes: [
-            { format: "float32x4", offset: 0, shaderLocation: 0 },
-            { format: "float32x4", offset: 2 * 4, shaderLocation: 1 },
+            {
+              format: "float32x4",
+              offset: cubePositionOffset,
+              shaderLocation: 0,
+            },
+            { format: "float32x2", offset: cubeUVOffset, shaderLocation: 1 },
           ],
         },
       ],
@@ -232,15 +314,20 @@ export const renderShader = async (
       entryPoint: "main",
       targets: [{ format: stateFormat }],
     },
+    primitive: {
+      topology: "triangle-list",
+      cullMode: "back",
+    },
     depthStencil: {
-      format: depthFormat,
+      format: "depth24plus",
       depthWriteEnabled: true,
       depthCompare: "less",
     },
   });
 
+  const viewParamsSize = 4 * 16;
   const viewParamsBuffer = device.createBuffer({
-    size: 4 * 3,
+    size: viewParamsSize,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
@@ -263,6 +350,28 @@ export const renderShader = async (
   observer.observe(canvas);
 
   let time = 0;
+
+  const aspect = canvas.width / canvas.height;
+  const projectionMatrix = mat4.create();
+  mat4.perspective(projectionMatrix, (2 * Math.PI) / 5, aspect, 1, 100.0);
+
+  function getTransformationMatrix() {
+    const viewMatrix = mat4.create();
+    mat4.translate(viewMatrix, viewMatrix, vec3.fromValues(0, 0, -4));
+    const now = Date.now() / 1000;
+    mat4.rotate(
+      viewMatrix,
+      viewMatrix,
+      1,
+      vec3.fromValues(Math.sin(now), Math.cos(now), 0)
+    );
+
+    const modelViewProjectionMatrix = mat4.create();
+    mat4.multiply(modelViewProjectionMatrix, projectionMatrix, viewMatrix);
+
+    return modelViewProjectionMatrix as Float32Array;
+  }
+
   const frame = () => {
     if (canvasVisible) {
       const upload = device.createBuffer({
@@ -308,6 +417,17 @@ export const renderShader = async (
         },
       };
 
+      const transformationMatrix = getTransformationMatrix();
+      device.queue.writeBuffer(
+        dataBuffer,
+        0,
+        transformationMatrix.buffer,
+        transformationMatrix.byteOffset,
+        transformationMatrix.byteLength
+      );
+      renderPassDescription.colorAttachments[0].view = context
+        .getCurrentTexture()
+        .createView();
       const commandEncoder = device.createCommandEncoder();
       commandEncoder.copyBufferToBuffer(upload, 0, viewParamsBuffer, 0, 4);
       commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
@@ -319,7 +439,7 @@ export const renderShader = async (
       renderPass.setPipeline(renderPipeline);
       renderPass.setBindGroup(0, viewParamsBindGroup);
       renderPass.setVertexBuffer(0, dataBuffer);
-      renderPass.draw(6, 1, 0, 0);
+      renderPass.draw(cubeVertexCount, 1, 0, 0);
 
       renderPass.endPass();
       device.queue.submit([commandEncoder.finish()]);
