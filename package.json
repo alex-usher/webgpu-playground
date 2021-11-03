@@ -86,7 +86,7 @@
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
-      "eslint --fix"
+      "eslint --fix --max-warnings=0"
     ]
   }
 }
