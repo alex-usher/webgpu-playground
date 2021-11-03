@@ -118,9 +118,10 @@ describe("Button Click Tests", () => {
     expect(vertexEditorDiv?.hasChildNodes()).toBeTruthy();
 
     const textAreas: HTMLElement[] = screen.getAllByRole("textbox");
-    expect(textAreas.length).toBe(2);
+    expect(textAreas.length).toBe(3);
     expect(textAreas[0]).toBeInTheDocument();
     expect(textAreas[1]).toBeInTheDocument();
+    expect(textAreas[2]).toBeInTheDocument();
   });
 
   test("Clicking the compile code button results in calling the WebGPU render function", () => {
