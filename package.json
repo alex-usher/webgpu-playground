@@ -25,6 +25,7 @@
     "axios": "^0.24.0",
     "eslint-plugin-react": "^7.26.1",
     "notistack": "^2.0.2",
+    "npm": "^6.14.15",
     "Prism": "^2.0.0",
     "prismjs": "^1.25.0",
     "react": "^17.0.2",
