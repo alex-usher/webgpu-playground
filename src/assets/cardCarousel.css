@@ -4,8 +4,11 @@
     width: 100%;
   }
 
-.title {
-    margin-left: 20px !important;
+
+.header {
+    margin-top: 20px !important;
+    margin-left: 10px !important;
+    margin-right: 20px !important;
   }
   
   .row__blocks {
@@ -23,7 +26,7 @@
   
   
   .row__tile:hover {
-    transform: scale(1.1);
+    transform: scale(1.04);
   }
 
 

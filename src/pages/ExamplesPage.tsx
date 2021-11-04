@@ -4,14 +4,21 @@ import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
-import { defaultShader } from "../objects/Shader";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "@firebase/auth";
-import { CardCarousel } from "../components/CardCarousel";
 
 import "../assets/homePage.css";
+import { Shader } from "../objects/Shader";
+import { ShaderCard } from "../components/ShaderCard";
+import { ImageList, ImageListItem } from "@mui/material";
 
-const HomePage = () => {
+interface ExampleProps {
+  shaderList: Shader[];
+}
+
+const ExamplesPage = () => {
+  const location = useLocation();
+  const { shaderList } = location.state as ExampleProps;
   const auth = getAuth();
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
   onAuthStateChanged(auth, (user) => {
@@ -25,7 +32,7 @@ const HomePage = () => {
         spacing={2}
         style={{ paddingTop: "100px" }}
         alignItems="center"
-        justifyContent="flex-end"
+        justifyContent="space-between"
       >
         <Grid
           item
@@ -66,22 +73,20 @@ const HomePage = () => {
 
           <SignInButton />
         </Grid>
-
-        <CardCarousel
-          sectionName="Examples"
-          pageLink="/examples"
-          shaderList={[
-            defaultShader,
-            defaultShader,
-            defaultShader,
-            defaultShader,
-            defaultShader,
-            defaultShader,
-            defaultShader,
-          ]}
-        />
+        <Grid item>
+          <Typography variant="h4" color="white" align="left">
+            Examples
+          </Typography>
+        </Grid>
+        <ImageList cols={4} rowHeight={220}>
+          {shaderList.map((shader) => (
+            <ImageListItem key={shader.image} style={{ padding: "20px" }}>
+              <ShaderCard shader={shader} />
+            </ImageListItem>
+          ))}
+        </ImageList>
       </Grid>
     </Container>
   );
 };
-export default HomePage;
+export default ExamplesPage;
