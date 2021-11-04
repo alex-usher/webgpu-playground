@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Redirect } from "react-router-dom";
 import Grid from "@mui/material/Grid";
+import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import SignInButton from "../components/SignInButton";
@@ -9,6 +10,7 @@ import { Link } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "@firebase/auth";
 import "../assets/style.css";
 import { CardCarousel } from "../components/CardCarousel";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 // eslint-disable-next-line
 const UserPage = ({ match }: any) => {
@@ -32,7 +34,7 @@ const UserPage = ({ match }: any) => {
       <Grid
         container
         spacing={2}
-        style={{ paddingTop: "100px" }}
+        className="container-grid"
         alignItems="center"
         justifyContent="flex-end"
       >
@@ -45,21 +47,32 @@ const UserPage = ({ match }: any) => {
           className="title-header"
         >
           <Grid item>
-            <Button variant="outlined" disableElevation component={Link} to="/">
-              {"< Back to home"}
-            </Button>
-          </Grid>
-          <Grid item>
             <Button
               variant="outlined"
               disableElevation
               component={Link}
-              to="/editor"
+              startIcon={<ArrowBackIcon />}
+              className="header-button"
+              to="/"
             >
-              New Shader Sandbox
+              {"Back to home"}
             </Button>
           </Grid>
-          <SignInButton />
+
+          <Stack direction="row" spacing={3}>
+            <Grid item>
+              <Button
+                variant="outlined"
+                disableElevation
+                component={Link}
+                to="/editor"
+                className="header-button"
+              >
+                New Shader Sandbox
+              </Button>
+            </Grid>
+            <SignInButton />
+          </Stack>
         </Grid>
 
         <CardCarousel

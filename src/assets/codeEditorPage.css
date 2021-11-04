@@ -18,3 +18,11 @@
     width: 30%;
     height: 85%;
 }
+
+.css-1yjjitx-MuiSwitch-track {
+    background-color: lightgray !important;
+}
+
+.css-5ryogn-MuiButtonBase-root-MuiSwitch-switchBase.Mui-checked+.MuiSwitch-track {
+    background-color: #1976d2 !important;
+}

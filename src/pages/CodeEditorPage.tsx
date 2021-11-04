@@ -1,6 +1,9 @@
 import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
 import Grid from "@mui/material/Grid";
+import Stack from "@mui/material/Stack";
 import Slider from "@mui/material/Slider";
+import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
@@ -8,6 +11,9 @@ import { useState } from "react";
 import React from "react";
 //import { Link } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
+
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 
 import { ShaderProps } from "../objects/Shader";
 
@@ -25,6 +31,7 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
   const [renderedFragmentCode, setRenderedFragmentCode] = useState(
     shader.fragmentCode
   );
+  const [inFullscreen, setInFullscreen] = useState(false);
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [formOpen, setFormOpen] = React.useState(false);
 
@@ -48,8 +55,21 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
   return (
     <div id="body">
       <div className="paddedDiv">
-        <Grid container direction="row" justifyContent="flex-start">
-          <Grid item container direction="row" spacing={2} xs={12} md={6}>
+        <Grid
+          container
+          direction="row"
+          justifyContent="flex-start"
+          alignItems="center"
+        >
+          <Grid
+            item
+            container
+            direction="row"
+            spacing={2}
+            xs={12}
+            md={8}
+            alignItems="center"
+          >
             {/*
             <Grid item>
               <Button
@@ -159,41 +179,86 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
                     <></>
                   )}
                 </Grid>
+                <Grid item>
+                  <Stack direction="row">
+                    <Button
+                      variant="text"
+                      disableRipple
+                      disableElevation
+                      color="primary"
+                      style={{ backgroundColor: "transparent" }}
+                    >
+                      Public
+                    </Button>
+                    {/* TODO Set the default checked value and onClick*/}
+                    <Switch />
+                  </Stack>
+                </Grid>
               </>
             ) : (
               <></>
             )}
           </Grid>
 
-          {showCode ? (
-            <Grid
-              item
-              container
-              direction="row"
-              justifyContent="flex-end"
-              spacing={2}
-              xs={12}
-              md={6}
-            >
-              <Grid item>
-                <Button variant="text" disableElevation color="primary">
-                  Editor Opacity
-                </Button>
-              </Grid>
-              <Grid item style={{ minWidth: "250px", paddingRight: "1.5em" }}>
-                <Slider
-                  color="primary"
-                  value={editorOpacity}
-                  onChange={handleOpacitySlider}
-                  min={0.3}
-                  step={0.001}
-                  max={1}
-                />
-              </Grid>
+          <Grid
+            item
+            container
+            direction="row"
+            justifyContent="flex-end"
+            spacing={1}
+            xs={12}
+            md={4}
+            alignItems="center"
+          >
+            <Grid item>
+              <IconButton
+                color="primary"
+                style={{ fontSize: "3vh" }}
+                onClick={() => {
+                  setInFullscreen(!inFullscreen);
+                  if (!inFullscreen) {
+                    const wholePage = document.documentElement;
+                    wholePage.requestFullscreen();
+                  } else {
+                    document.exitFullscreen();
+                  }
+                }}
+              >
+                {inFullscreen ? (
+                  <FullscreenExitIcon fontSize="inherit" />
+                ) : (
+                  <FullscreenIcon fontSize="inherit" />
+                )}
+              </IconButton>
             </Grid>
-          ) : (
-            <></>
-          )}
+            {showCode ? (
+              <>
+                <Grid item style={{ paddingLeft: "1em" }}>
+                  <Button
+                    variant="text"
+                    disableRipple
+                    disableElevation
+                    color="primary"
+                    style={{ backgroundColor: "transparent" }}
+                  >
+                    Editor Opacity
+                  </Button>
+                </Grid>
+                <Grid item style={{ minWidth: "250px", paddingRight: "1.0em" }}>
+                  <Slider
+                    color="primary"
+                    value={editorOpacity}
+                    onChange={handleOpacitySlider}
+                    min={0.3}
+                    step={0.001}
+                    max={1}
+                  />
+                </Grid>
+              </>
+            ) : (
+              <></>
+            )}
+          </Grid>
         </Grid>
       </div>
 
