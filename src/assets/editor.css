@@ -1,5 +1,6 @@
 /* div for alll elements of the editor */
 .editor-container {
+    scroll-behavior: smooth;
     overflow: auto;
     border-radius: 0.35em;
     width: 100%;    

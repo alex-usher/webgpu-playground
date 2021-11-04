@@ -1,12 +1,11 @@
 .title-header {
-    color: white;
-    padding-bottom: 2%;
+    padding-bottom: 5vh;
 }
 
 .shader-card {
     height: 15%;
     background-color: #4F5358;
-    color: white;
+    color: lightgray;
 }
 
 .shader-card-image {
