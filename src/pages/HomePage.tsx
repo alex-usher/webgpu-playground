@@ -10,6 +10,7 @@ import { getAuth, onAuthStateChanged } from "@firebase/auth";
 import { CardCarousel } from "../components/CardCarousel";
 
 import "../assets/homePage.css";
+import "../assets/shaderGallery.css";
 
 const HomePage = () => {
   const auth = getAuth();
@@ -23,48 +24,58 @@ const HomePage = () => {
       <Grid
         container
         spacing={2}
-        style={{ paddingTop: "100px" }}
+        className="container-grid"
         alignItems="center"
-        justifyContent="flex-end"
       >
         <Grid
-          item
           container
-          justifyContent="space-between"
           alignItems="center"
-          spacing={2}
+          spacing={3}
           className="title-header"
         >
-          <Grid item>
+          <Grid item xs={12} md={6}>
             <Typography variant="h3">WebGPU Playground</Typography>
           </Grid>
-          <Grid item>
-            <Button
-              variant="outlined"
-              disableElevation
-              component={Link}
-              to="/editor"
-            >
-              New Shader Sandbox
-            </Button>
-          </Grid>
 
-          {isLoggedIn ? (
+          <Grid
+            item
+            container
+            alignItems="center"
+            justifyContent="flex-end"
+            xs={12}
+            md={6}
+            spacing={3}
+          >
             <Grid item>
               <Button
                 variant="outlined"
                 disableElevation
                 component={Link}
-                to={"/user/" + auth.currentUser?.uid}
+                to="/editor"
+                className="header-button"
               >
-                My shaders
+                New Shader Sandbox
               </Button>
             </Grid>
-          ) : (
-            <></>
-          )}
 
-          <SignInButton />
+            {isLoggedIn ? (
+              <Grid item>
+                <Button
+                  variant="outlined"
+                  disableElevation
+                  component={Link}
+                  to={"/user/" + auth.currentUser?.uid}
+                  className="header-button"
+                >
+                  view my shaders
+                </Button>
+              </Grid>
+            ) : (
+              <></>
+            )}
+
+            <SignInButton />
+          </Grid>
         </Grid>
 
         <CardCarousel

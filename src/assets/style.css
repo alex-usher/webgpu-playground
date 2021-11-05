@@ -6,19 +6,22 @@ html {
 body {
     margin: 0;
     padding: 0;
-    height: 100%;
+    height: 100vh;
     width: 100%;
+    background-color: #101111;
+    background-size:cover;
 }
 
 #root {
     width: 100%;
-    height: 100%;
+    height: 100vh;
 }
 
 #body {
     width: 100%;
-    height: 100%;
-    background-color: black;
+    height: 100vh;
+    background-color: #101111;
+    background-size:cover;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -27,5 +30,5 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .paddedDiv {
-    padding: 1em;
+    padding: 1.3em
 }

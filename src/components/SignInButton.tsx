@@ -1,5 +1,4 @@
 import { useState } from "react";
-import GoogleButton from "react-google-button";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import {
@@ -12,6 +11,8 @@ import {
 import { firedb } from "../firebase";
 import { doc, setDoc } from "@firebase/firestore/lite";
 import Avatar from "@mui/material/Avatar";
+import GoogleIcon from "@mui/icons-material/Google";
+import "../assets/shaderGallery.css";
 
 const SignInButton = () => {
   const auth = getAuth();
@@ -22,6 +23,9 @@ const SignInButton = () => {
 
   const signInWithGoogle = () => {
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({
+      prompt: "select_account",
+    });
     signInWithPopup(auth, provider).then((result) => {
       const user = result.user;
       const userUid = user.uid;
@@ -41,11 +45,17 @@ const SignInButton = () => {
     <>
       <Grid item>
         {!isLoggedIn ? (
-          <GoogleButton
+          <Button
+            variant="outlined"
+            color="secondary"
+            startIcon={<GoogleIcon sx={{ width: "1.2em", height: "1.2em" }} />}
             onClick={() => {
               signInWithGoogle();
             }}
-          />
+            className="header-button"
+          >
+            Sign in with google
+          </Button>
         ) : (
           <Button
             variant="outlined"
@@ -60,12 +70,14 @@ const SignInButton = () => {
                   // An error happened.
                 });
             }}
+            className="header-button"
             startIcon={
               auth &&
               auth.currentUser && (
                 <Avatar
                   alt="Profile Picture"
                   src={auth.currentUser.photoURL?.toString()}
+                  sx={{ width: "1.3em", height: "1.3em" }}
                 />
               )
             }
