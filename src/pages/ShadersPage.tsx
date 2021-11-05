@@ -17,6 +17,8 @@ interface ShadersPageProps {
   shaderList: Shader[];
 }
 
+// This page is reused multiple times for different pages
+// it may be best to put it in components instead
 const ShadersPage = () => {
   const location = useLocation();
   const { sectionName, shaderList } = location.state as ShadersPageProps;
