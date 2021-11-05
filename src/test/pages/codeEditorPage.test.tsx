@@ -5,24 +5,27 @@ import { SnackbarProvider } from "notistack";
 import { Shader } from "../../objects/Shader";
 import * as shaders from "../../render";
 import { v4 as uuidv4 } from "uuid";
+import { BrowserRouter } from "react-router-dom";
 
 import "@testing-library/jest-dom/extend-expect";
 
 const renderCodeEditorPage = () =>
   render(
     <SnackbarProvider>
-      <CodeEditorPage
-        shader={
-          new Shader(
-            uuidv4() + "example_triangle_shader",
-            "test",
-            "http://www.test.com",
-            false,
-            shaders.shaderTriangleVertex,
-            shaders.shaderTriangleFragment
-          )
-        }
-      />
+      <BrowserRouter>
+        <CodeEditorPage
+          shader={
+            new Shader(
+              uuidv4() + "example_triangle_shader",
+              "test",
+              "http://www.test.com",
+              false,
+              shaders.shaderTriangleVertex,
+              shaders.shaderTriangleFragment
+            )
+          }
+        />
+      </BrowserRouter>
     </SnackbarProvider>
   );
 

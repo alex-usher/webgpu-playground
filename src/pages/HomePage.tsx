@@ -47,6 +47,7 @@ const HomePage = () => {
             spacing={3}
           >
             <Grid item>
+              {/* <BrowserRouter> */}
               <Button
                 variant="outlined"
                 disableElevation
@@ -56,10 +57,12 @@ const HomePage = () => {
               >
                 New Shader Sandbox
               </Button>
+              {/* </BrowserRouter> */}
             </Grid>
 
             {isLoggedIn ? (
               <Grid item>
+                {/* <BrowserRouter> */}
                 <Button
                   variant="outlined"
                   disableElevation
@@ -67,8 +70,9 @@ const HomePage = () => {
                   to={"/user/" + auth.currentUser?.uid}
                   className="header-button"
                 >
-                  view my shaders
+                  View My Shaders
                 </Button>
+                {/* </BrowserRouter> */}
               </Grid>
             ) : (
               <></>
