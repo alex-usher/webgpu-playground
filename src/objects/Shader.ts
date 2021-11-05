@@ -103,7 +103,7 @@ export interface ShaderProps {
 }
 
 export const defaultShader = new Shader(
-  uuidv4() + "example_shader",
+  uuidv4() + "example_rectangle_shader",
   "Triangle",
   "https://i.ibb.co/M5Z06wy/triangle.png",
   false,
