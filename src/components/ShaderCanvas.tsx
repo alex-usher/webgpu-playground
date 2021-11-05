@@ -64,7 +64,9 @@ const ShaderCanvas = ({ vertexCode, fragmentCode }: ShaderCanvasInput) => {
           />
         </div>
       ) : (
-        <Typography variant="h2"> webgpu not supported!</Typography>
+        <Typography variant="h2">
+          WebGPU support not enabled! Are you using Chrome Canary?
+        </Typography>
       )}
     </div>
   );

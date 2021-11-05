@@ -1,29 +1,42 @@
-import { useState } from "react";
+import { CardCarousel } from "../components/CardCarousel";
+import { getAuth, onAuthStateChanged } from "@firebase/auth";
+import {
+  getUserPublicShaders,
+  getUserPrivateShaders,
+} from "../utils/firebaseHelper";
+import { Link } from "react-router-dom";
 import { Redirect } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Shader } from "../objects/Shader";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import SignInButton from "../components/SignInButton";
-import { Link } from "react-router-dom";
-import { getAuth, onAuthStateChanged } from "@firebase/auth";
+import Stack from "@mui/material/Stack";
+
 import "../assets/style.css";
-import { CardCarousel } from "../components/CardCarousel";
-import {
-  getUserPrivateShaders,
-  getUserPublicShaders,
-} from "../utils/firebaseHelper";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const UserPage = ({ match }: any) => {
-  // TOOD - use uid to get a user's shaders from firebase
-  const uid = match.params.uid;
-  console.log(uid);
-
+// eslint-disable-next-line
+const UserPage = () => {
   const auth = getAuth();
+
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
+  const [privateShaders, setPrivateShaders] = useState<Shader[]>([]);
+  const [publicShaders, setPublicShaders] = useState<Shader[]>([]);
+
   onAuthStateChanged(auth, (user) => {
     setIsLoggedIn(user != null);
   });
+
+  useEffect(() => {
+    getUserPublicShaders().then((shaders: Shader[]) =>
+      setPublicShaders(shaders)
+    );
+    getUserPrivateShaders().then((shaders: Shader[]) =>
+      setPrivateShaders(shaders)
+    );
+  }, [setPrivateShaders, setPublicShaders]);
 
   // Redirect to the homepage if the user logs out
   if (!isLoggedIn) {
@@ -35,7 +48,7 @@ const UserPage = ({ match }: any) => {
       <Grid
         container
         spacing={2}
-        style={{ paddingTop: "100px" }}
+        className="container-grid"
         alignItems="center"
         justifyContent="flex-end"
       >
@@ -48,30 +61,41 @@ const UserPage = ({ match }: any) => {
           className="title-header"
         >
           <Grid item>
-            <Button variant="outlined" disableElevation component={Link} to="/">
-              {"< Back to home"}
-            </Button>
-          </Grid>
-          <Grid item>
             <Button
               variant="outlined"
               disableElevation
               component={Link}
-              to="/editor"
+              startIcon={<ArrowBackIcon />}
+              className="header-button"
+              to="/"
             >
-              New Shader Sandbox
+              {"Back to home"}
             </Button>
           </Grid>
-          <SignInButton />
+
+          <Stack direction="row" spacing={3}>
+            <Grid item>
+              <Button
+                variant="outlined"
+                disableElevation
+                component={Link}
+                to="/editor"
+                className="header-button"
+              >
+                New Shader Sandbox
+              </Button>
+            </Grid>
+            <SignInButton />
+          </Stack>
         </Grid>
 
         <CardCarousel
           sectionName="My public shaders"
-          shaderList={getUserPublicShaders(uid)}
+          shaderList={publicShaders}
         />
         <CardCarousel
           sectionName="My private shaders"
-          shaderList={getUserPrivateShaders(uid)}
+          shaderList={privateShaders}
         />
       </Grid>
     </Container>

@@ -1,72 +1,100 @@
-import { useState } from "react";
-import SignInButton from "../components/SignInButton";
+import { CardCarousel } from "../components/CardCarousel";
+import { getAuth, onAuthStateChanged } from "@firebase/auth";
+import { getExampleShaders, getPublicShaders } from "../utils/firebaseHelper";
+import { Link } from "react-router-dom";
+import { Shader } from "../objects/Shader";
+import { useEffect, useState } from "react";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
-import { getPublicShaders } from "../utils/firebaseHelper";
-import { Link } from "react-router-dom";
-import { getAuth, onAuthStateChanged } from "@firebase/auth";
-import { CardCarousel } from "../components/CardCarousel";
+import SignInButton from "../components/SignInButton";
 
 import "../assets/homePage.css";
+import "../assets/shaderGallery.css";
 
 const HomePage = () => {
   const auth = getAuth();
+
+  const [exampleShaders, setExampleShaders] = useState<Shader[]>([]);
+  const [publicShaders, setPublicShaders] = useState<Shader[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
+
   onAuthStateChanged(auth, (user) => {
     setIsLoggedIn(user != null);
   });
+
+  useEffect(() => {
+    getExampleShaders().then((exampleShaders) =>
+      setExampleShaders(exampleShaders)
+    );
+
+    getPublicShaders().then((publicShaders) => setPublicShaders(publicShaders));
+  }, [setExampleShaders, setPublicShaders]);
 
   return (
     <Container>
       <Grid
         container
         spacing={2}
-        style={{ paddingTop: "100px" }}
+        className="container-grid"
         alignItems="center"
-        justifyContent="flex-end"
       >
         <Grid
-          item
           container
-          justifyContent="space-between"
           alignItems="center"
-          spacing={2}
+          spacing={3}
           className="title-header"
         >
-          <Grid item>
+          <Grid item xs={12} md={6}>
             <Typography variant="h3">WebGPU Playground</Typography>
           </Grid>
-          <Grid item>
-            <Button
-              variant="outlined"
-              disableElevation
-              component={Link}
-              to="/editor"
-            >
-              New Shader Sandbox
-            </Button>
-          </Grid>
 
-          {isLoggedIn ? (
+          <Grid
+            item
+            container
+            alignItems="center"
+            justifyContent="flex-end"
+            xs={12}
+            md={6}
+            spacing={3}
+          >
             <Grid item>
               <Button
                 variant="outlined"
                 disableElevation
                 component={Link}
-                to={"/user/" + auth.currentUser?.uid}
+                to="/editor"
+                className="header-button"
               >
-                My shaders
+                New Shader Sandbox
               </Button>
             </Grid>
-          ) : (
-            <></>
-          )}
 
-          <SignInButton />
+            {isLoggedIn ? (
+              <Grid item>
+                <Button
+                  variant="outlined"
+                  disableElevation
+                  component={Link}
+                  to={"/user/" + auth.currentUser?.uid}
+                  className="header-button"
+                >
+                  view my shaders
+                </Button>
+              </Grid>
+            ) : (
+              <></>
+            )}
+
+            <SignInButton />
+          </Grid>
         </Grid>
-        <CardCarousel sectionName="Examples" shaderList={getPublicShaders()} />
+        <CardCarousel
+          sectionName="Example Shaders"
+          shaderList={exampleShaders}
+        />
+        <CardCarousel sectionName="Public Shaders" shaderList={publicShaders} />
       </Grid>
     </Container>
   );

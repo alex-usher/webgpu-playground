@@ -1,0 +1,9 @@
+.container-grid {
+    padding-top: 10vh;
+    color: lightgray;
+}
+
+.header-button {
+    min-height: 2.5rem;
+    max-height: 3rem;
+}
