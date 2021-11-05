@@ -2,7 +2,7 @@ import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/react";
 import CodeEditorPage from "../../pages/CodeEditorPage";
 import { SnackbarProvider } from "notistack";
-import { Shader } from "../../objects/Shader";
+import { FetchedShader } from "../../objects/Shader";
 import * as shaders from "../../render";
 
 import "@testing-library/jest-dom/extend-expect";
@@ -12,7 +12,7 @@ const renderCodeEditorPage = () =>
     <SnackbarProvider>
       <CodeEditorPage
         shader={
-          new Shader(
+          new FetchedShader(
             "test",
             "http://www.test.com",
             false,
