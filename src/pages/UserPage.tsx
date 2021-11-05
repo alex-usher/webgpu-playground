@@ -36,7 +36,7 @@ const UserPage = () => {
     getUserPrivateShaders().then((shaders: NonFetchedShader[]) =>
       setPrivateShaders(shaders)
     );
-  }, [setPrivateShaders, setPublicShaders]);
+  });
 
   // Redirect to the homepage if the user logs out
   if (!isLoggedIn) {

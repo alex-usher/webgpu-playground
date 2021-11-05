@@ -30,7 +30,7 @@ const HomePage = () => {
     );
 
     getPublicShaders().then((publicShaders) => setPublicShaders(publicShaders));
-  }, [setExampleShaders, setPublicShaders]);
+  });
 
   return (
     <Container>
