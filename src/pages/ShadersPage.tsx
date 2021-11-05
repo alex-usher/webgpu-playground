@@ -12,13 +12,14 @@ import { Shader } from "../objects/Shader";
 import { ShaderCard } from "../components/ShaderCard";
 import { ImageList, ImageListItem } from "@mui/material";
 
-interface ExampleProps {
+interface ShadersPageProps {
+  sectionName: string;
   shaderList: Shader[];
 }
 
-const ExamplesPage = () => {
+const ShadersPage = () => {
   const location = useLocation();
-  const { shaderList } = location.state as ExampleProps;
+  const { sectionName, shaderList } = location.state as ShadersPageProps;
   const auth = getAuth();
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
   onAuthStateChanged(auth, (user) => {
@@ -75,7 +76,7 @@ const ExamplesPage = () => {
         </Grid>
         <Grid item>
           <Typography variant="h4" color="white" align="left">
-            Examples
+            {sectionName}
           </Typography>
         </Grid>
         <ImageList cols={4} rowHeight={220}>
@@ -89,4 +90,4 @@ const ExamplesPage = () => {
     </Container>
   );
 };
-export default ExamplesPage;
+export default ShadersPage;

@@ -37,7 +37,7 @@ export const CardCarousel = ({
           component={Link}
           to={{
             pathname: pageLink,
-            state: { shaderList },
+            state: { sectionName, shaderList },
           }}
         >
           See All
