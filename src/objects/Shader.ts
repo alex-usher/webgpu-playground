@@ -14,6 +14,7 @@ import {
 import { firestorage } from "../firebase";
 import { v4 as uuidv4 } from "uuid";
 export class Shader {
+  readonly id: string;
   readonly image: string; //http link to img src
   fragmentCode: string;
   readonly title: string;
@@ -21,12 +22,14 @@ export class Shader {
   isPublic: boolean;
 
   constructor(
+    id: string,
     title: string,
     image: string,
     isPublic: boolean,
     vertexCode: string,
     fragmentCode: string
   ) {
+    this.id = id;
     this.title = title;
     this.image = image;
     this.isPublic = isPublic;
@@ -42,7 +45,7 @@ export const shaderConverter = {
 
     const vertexRef = ref(firestorage, vertexFile);
     const fragmentRef = ref(firestorage, fragmentFile);
-    console.log(shader.fragmentCode.toString());
+
     uploadString(vertexRef, shader.vertexCode.toString());
     uploadString(fragmentRef, shader.fragmentCode.toString());
 
@@ -73,6 +76,7 @@ export const shaderConverter = {
       );
 
       const shader = new Shader(
+        snapshot.id,
         data.shader_name,
         "", // image of shader
         data.isPublic,
@@ -99,6 +103,7 @@ export interface ShaderProps {
 }
 
 export const defaultShader = new Shader(
+  uuidv4() + "example_rectangle_shader",
   "Triangle",
   "https://i.ibb.co/M5Z06wy/triangle.png",
   false,

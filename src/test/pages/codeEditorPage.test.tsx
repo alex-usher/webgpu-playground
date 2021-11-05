@@ -4,6 +4,7 @@ import CodeEditorPage from "../../pages/CodeEditorPage";
 import { SnackbarProvider } from "notistack";
 import { Shader } from "../../objects/Shader";
 import * as shaders from "../../render";
+import { v4 as uuidv4 } from "uuid";
 
 import "@testing-library/jest-dom/extend-expect";
 
@@ -13,6 +14,7 @@ const renderCodeEditorPage = () =>
       <CodeEditorPage
         shader={
           new Shader(
+            uuidv4() + "example_triangle_shader",
             "test",
             "http://www.test.com",
             false,
