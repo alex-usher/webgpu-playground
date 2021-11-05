@@ -5,13 +5,13 @@ import {
   DocumentData,
 } from "@firebase/firestore/lite";
 import { auth, firedb } from "../firebase";
-import { shaderConverter, Shader } from "../objects/Shader";
+import { shaderConverter, NonFetchedShader } from "../objects/Shader";
 
 const getShaders = async (
   collection: CollectionReference<DocumentData>
-): Promise<Shader[]> => {
+): Promise<NonFetchedShader[]> => {
   const querySnapshot = await getDocs(collection);
-  const shaders: Shader[] = [];
+  const shaders: NonFetchedShader[] = [];
   for (const doc of querySnapshot.docs) {
     const shader = await shaderConverter.fromFirestore(doc);
     if (shader) {
@@ -21,15 +21,15 @@ const getShaders = async (
   return shaders;
 };
 
-export const getExampleShaders = async (): Promise<Shader[]> => {
+export const getExampleShaders = async (): Promise<NonFetchedShader[]> => {
   return await getShaders(collection(firedb, "example-shaders"));
 };
 
-export const getPublicShaders = async (): Promise<Shader[]> => {
+export const getPublicShaders = async (): Promise<NonFetchedShader[]> => {
   return await getShaders(collection(firedb, "public-shaders"));
 };
 
-export const getUserShaders = async (): Promise<Shader[]> => {
+export const getUserShaders = async (): Promise<NonFetchedShader[]> => {
   const user = auth.currentUser;
   if (user) {
     return await getShaders(collection(firedb, "users", user.uid, "shaders"));
@@ -41,22 +41,22 @@ export const getUserShaders = async (): Promise<Shader[]> => {
   return [];
 };
 
-export const getUserPublicShaders = async (): Promise<Shader[]> => {
-  const publicShaders: Shader[] = [];
-  const shaders: Shader[] = await getUserShaders();
+export const getUserPublicShaders = async (): Promise<NonFetchedShader[]> => {
+  const publicShaders: NonFetchedShader[] = [];
+  const shaders: NonFetchedShader[] = await getUserShaders();
   for (const shader of shaders) {
-    if (shader.isPublic == true) {
+    if (shader.isPublic) {
       publicShaders.push(shader);
     }
   }
   return publicShaders;
 };
 
-export const getUserPrivateShaders = async (): Promise<Shader[]> => {
-  const privateShaders: Shader[] = [];
-  const shaders: Shader[] = await getUserShaders();
+export const getUserPrivateShaders = async (): Promise<NonFetchedShader[]> => {
+  const privateShaders: NonFetchedShader[] = [];
+  const shaders: NonFetchedShader[] = await getUserShaders();
   for (const shader of shaders) {
-    if (shader.isPublic == false) {
+    if (!shader.isPublic) {
       privateShaders.push(shader);
     }
   }

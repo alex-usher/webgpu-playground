@@ -1,26 +1,24 @@
 import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
+import Editor from "../components/Editor";
+import FormDialog from "../components/FormDialog";
+import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import Grid from "@mui/material/Grid";
-import Stack from "@mui/material/Stack";
+import IconButton from "@mui/material/IconButton";
+import ShaderCanvas from "../components/ShaderCanvas";
 import Slider from "@mui/material/Slider";
+import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
-import Editor from "../components/Editor";
-import ShaderCanvas from "../components/ShaderCanvas";
-import { useState } from "react";
 import React from "react";
-//import { Link } from "react-router-dom";
-import FormDialog from "../components/FormDialog";
 
-import FullscreenIcon from "@mui/icons-material/Fullscreen";
-import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
-
-import { ShaderProps } from "../objects/Shader";
+import { FetchedShaderProps } from "../objects/Shader";
+import { useState } from "react";
 
 import "../assets/style.css";
 import "../assets/codeEditorPage.css";
 
-const CodeEditorPage = ({ shader }: ShaderProps) => {
+const CodeEditorPage = ({ shader }: FetchedShaderProps) => {
   const [vertexCode, setVertexCode] = useState(shader.vertexCode);
   const [fragmentCode, setFragmentCode] = useState(shader.fragmentCode);
   const [showCode, setShowCode] = useState(false);

@@ -2,7 +2,7 @@ import { CardCarousel } from "../components/CardCarousel";
 import { getAuth, onAuthStateChanged } from "@firebase/auth";
 import { getExampleShaders, getPublicShaders } from "../utils/firebaseHelper";
 import { Link } from "react-router-dom";
-import { Shader } from "../objects/Shader";
+import { NonFetchedShader } from "../objects/Shader";
 import { useEffect, useState } from "react";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
@@ -16,8 +16,8 @@ import "../assets/shaderGallery.css";
 const HomePage = () => {
   const auth = getAuth();
 
-  const [exampleShaders, setExampleShaders] = useState<Shader[]>([]);
-  const [publicShaders, setPublicShaders] = useState<Shader[]>([]);
+  const [exampleShaders, setExampleShaders] = useState<NonFetchedShader[]>([]);
+  const [publicShaders, setPublicShaders] = useState<NonFetchedShader[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
 
   onAuthStateChanged(auth, (user) => {

@@ -7,7 +7,7 @@ import {
 import { Link } from "react-router-dom";
 import { Redirect } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Shader } from "../objects/Shader";
+import { NonFetchedShader } from "../objects/Shader";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
@@ -22,18 +22,18 @@ const UserPage = () => {
   const auth = getAuth();
 
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
-  const [privateShaders, setPrivateShaders] = useState<Shader[]>([]);
-  const [publicShaders, setPublicShaders] = useState<Shader[]>([]);
+  const [privateShaders, setPrivateShaders] = useState<NonFetchedShader[]>([]);
+  const [publicShaders, setPublicShaders] = useState<NonFetchedShader[]>([]);
 
   onAuthStateChanged(auth, (user) => {
     setIsLoggedIn(user != null);
   });
 
   useEffect(() => {
-    getUserPublicShaders().then((shaders: Shader[]) =>
+    getUserPublicShaders().then((shaders: NonFetchedShader[]) =>
       setPublicShaders(shaders)
     );
-    getUserPrivateShaders().then((shaders: Shader[]) =>
+    getUserPrivateShaders().then((shaders: NonFetchedShader[]) =>
       setPrivateShaders(shaders)
     );
   }, [setPrivateShaders, setPublicShaders]);

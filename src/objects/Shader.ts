@@ -2,23 +2,63 @@ import axios from "axios";
 import { rectangleFragment, rectangleVertex } from "../render";
 import {
   DocumentData,
-  WithFieldValue,
   QueryDocumentSnapshot,
+  WithFieldValue,
 } from "@firebase/firestore/lite";
 import {
-  ref,
-  uploadString,
   getDownloadURL,
+  ref,
   StorageReference,
+  uploadString,
 } from "@firebase/storage";
 import { firestorage } from "../firebase";
 import { v4 as uuidv4 } from "uuid";
-export class Shader {
+
+abstract class Shader {
   readonly image: string; //http link to img src
-  fragmentCode: string;
   readonly title: string;
-  vertexCode: string;
   isPublic: boolean;
+
+  constructor(title: string, image: string, isPublic: boolean) {
+    this.title = title;
+    this.image = image;
+    this.isPublic = isPublic;
+  }
+}
+
+export class NonFetchedShader extends Shader {
+  fragmentCodeRef: StorageReference;
+  vertexCodeRef: StorageReference;
+
+  constructor(
+    title: string,
+    image: string,
+    isPublic: boolean,
+    vertexCodeRef: StorageReference,
+    fragmentCodeRef: StorageReference
+  ) {
+    super(title, image, isPublic);
+    this.vertexCodeRef = vertexCodeRef;
+    this.fragmentCodeRef = fragmentCodeRef;
+  }
+
+  public async doFetchCode(): Promise<FetchedShader> {
+    const fragmentCode = await downloadStorageRef(this.fragmentCodeRef);
+    const vertexCode = await downloadStorageRef(this.vertexCodeRef);
+
+    return new FetchedShader(
+      this.title,
+      this.image,
+      this.isPublic,
+      vertexCode,
+      fragmentCode
+    );
+  }
+}
+
+export class FetchedShader extends Shader {
+  fragmentCode: string;
+  vertexCode: string;
 
   constructor(
     title: string,
@@ -27,16 +67,14 @@ export class Shader {
     vertexCode: string,
     fragmentCode: string
   ) {
-    this.title = title;
-    this.image = image;
-    this.isPublic = isPublic;
+    super(title, image, isPublic);
     this.vertexCode = vertexCode;
     this.fragmentCode = fragmentCode;
   }
 }
 
 export const shaderConverter = {
-  toFirestore(shader: WithFieldValue<Shader>): DocumentData {
+  toFirestore(shader: WithFieldValue<FetchedShader>): DocumentData {
     const vertexFile = uuidv4() + "_" + shader.title + "_vertex.txt";
     const fragmentFile = uuidv4() + "_" + shader.title + "_fragment.txt";
 
@@ -55,7 +93,9 @@ export const shaderConverter = {
 
     return shaderDoc;
   },
-  async fromFirestore(snapshot: QueryDocumentSnapshot): Promise<Shader | void> {
+  async fromFirestore(
+    snapshot: QueryDocumentSnapshot
+  ): Promise<NonFetchedShader | void> {
     if (!snapshot.data()) {
       return;
     }
@@ -65,21 +105,16 @@ export const shaderConverter = {
     }
 
     try {
-      const vertexCode = await downloadStorageRef(
-        ref(firestorage, data.vertex_code)
-      );
-      const fragmentCode = await downloadStorageRef(
-        ref(firestorage, data.fragment_code)
-      );
+      const vertexCodeRef = ref(firestorage, data.vertex_code);
+      const fragmentCodeRef = ref(firestorage, data.fragment_code);
 
-      const shader = new Shader(
+      return new NonFetchedShader(
         data.shader_name,
         "", // image of shader
         data.isPublic,
-        vertexCode,
-        fragmentCode
+        vertexCodeRef,
+        fragmentCodeRef
       );
-      return shader;
     } catch (err) {
       if (err instanceof Error) {
         console.log("ERROR: " + err.message);
@@ -94,11 +129,15 @@ const downloadStorageRef = async (ref: StorageReference): Promise<string> => {
   return (await axios.get(url)).data;
 };
 
-export interface ShaderProps {
-  shader: Shader;
+export interface NonFetchedShaderProps {
+  shader: NonFetchedShader;
 }
 
-export const defaultShader = new Shader(
+export interface FetchedShaderProps {
+  shader: FetchedShader;
+}
+
+export const defaultShader = new FetchedShader(
   "Triangle",
   "https://i.ibb.co/M5Z06wy/triangle.png",
   false,
