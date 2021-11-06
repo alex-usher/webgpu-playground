@@ -15,7 +15,7 @@ import FormDialog from "../components/FormDialog";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 
-import { ShaderProps } from "../objects/Shader";
+import { Shader } from "../objects/Shader";
 import { getShaderCode } from "../utils/firebaseHelper";
 
 import "../assets/style.css";
@@ -23,7 +23,8 @@ import "../assets/codeEditorPage.css";
 
 const CodeEditorPage = () => {
   const location = useLocation();
-  let { shader } = location.state as ShaderProps;
+  console.log(location.state);
+  let shader = location.state as Shader;
   console.log(shader);
 
   const [vertexCode, setVertexCode] = useState(

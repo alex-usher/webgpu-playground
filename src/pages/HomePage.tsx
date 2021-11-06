@@ -4,7 +4,7 @@ import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
-import { Shader } from "../objects/Shader";
+import { Shader, defaultShader } from "../objects/Shader";
 import { Link } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "@firebase/auth";
 import { CardCarousel } from "../components/CardCarousel";
@@ -68,7 +68,10 @@ const HomePage = () => {
                 variant="outlined"
                 disableElevation
                 component={Link}
-                to="/editor"
+                to={{
+                  pathname: "/editor",
+                  state: { defaultShader },
+                }}
                 className="header-button"
               >
                 New Shader Sandbox
