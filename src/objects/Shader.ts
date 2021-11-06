@@ -75,7 +75,9 @@ export const shaderConverter = {
   },
 };
 
-export const downloadShaderCode = async (id: string): Promise<any> => {
+export const downloadShaderCode = async (
+  id: string
+): Promise<Record<string, string>> => {
   const user = auth.currentUser;
   let querySnapshot;
 

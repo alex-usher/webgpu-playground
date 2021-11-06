@@ -12,11 +12,12 @@ import { CardCarousel } from "../components/CardCarousel";
 import "../assets/homePage.css";
 import "../assets/shaderGallery.css";
 
-import { getExampleShaders } from "../utils/firebaseHelper";
+import { getExampleShaders, getPublicShaders } from "../utils/firebaseHelper";
 
 const HomePage = () => {
   const auth = getAuth();
   const [exampleShaders, setExampleShaders] = useState<Shader[]>([]);
+  const [publicShaders, setPublicShaders] = useState<Shader[]>([]);
   // const [defaultShader, setDefaultShader] = useState<Shader>();
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
   onAuthStateChanged(auth, (user) => {
@@ -29,12 +30,11 @@ const HomePage = () => {
     });
   }, []);
 
-  // useEffect(() => {
-  //   getDefaultShader().then((shader) => {
-  //     setDefaultShader(shader);
-  //     console.log("default shader:", shader);
-  //   });
-  // }, []);
+  useEffect(() => {
+    getPublicShaders().then((shaders) => {
+      setPublicShaders(shaders);
+    });
+  }, []);
 
   return (
     <Container>
@@ -99,6 +99,7 @@ const HomePage = () => {
         </Grid>
 
         <CardCarousel sectionName="Examples" shaderList={exampleShaders} />
+        <CardCarousel sectionName="Public" shaderList={publicShaders} />
       </Grid>
     </Container>
   );
