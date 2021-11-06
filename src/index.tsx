@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import CodeEditorPage from "./pages/CodeEditorPage";
 import UserPage from "./pages/UserPage";
-import ShadersPage from "./pages/ShadersPage";
+import ShadersComponent from "./pages/ShadersComponent";
 import { SnackbarProvider } from "notistack";
 
 import "./assets/style.css";
@@ -24,10 +24,10 @@ ReactDOM.render(
               <CodeEditorPage shader={defaultShader} />
             </Route>
             <Route path="/user/:uid" component={UserPage} />
-            <Route path="/examples" component={ShadersPage} />
-            <Route path="/public" component={ShadersPage} />
-            <Route path="/mypublicshaders" component={ShadersPage} />
-            <Route path="/myprivateshaders" component={ShadersPage} />
+            <Route path="/examples" component={ShadersComponent} />
+            <Route path="/public" component={ShadersComponent} />
+            <Route path="/mypublicshaders" component={ShadersComponent} />
+            <Route path="/myprivateshaders" component={ShadersComponent} />
           </Switch>
         </Router>
       </div>

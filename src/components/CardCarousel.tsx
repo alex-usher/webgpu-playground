@@ -27,7 +27,6 @@ export const CardCarousel = ({
         spacing={2}
         className="header"
       >
-        {/* title */}
         <Typography variant="h4" className="title">
           {sectionName}
         </Typography>
@@ -43,9 +42,7 @@ export const CardCarousel = ({
           See All
         </Button>
       </Grid>
-      {/* container -> posters */}
       <div className="row__blocks">
-        {/* several row posters */}
         {shaderList.map((shader) => (
           <li className="row__tile">
             <ShaderCard shader={shader} />

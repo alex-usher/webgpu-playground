@@ -1,5 +1,5 @@
 import { useState } from "react";
-import SignInButton from "../components/SignInButton";
+import SignInButton from "./SignInButton";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
@@ -9,19 +9,17 @@ import { getAuth, onAuthStateChanged } from "@firebase/auth";
 
 import "../assets/homePage.css";
 import { Shader } from "../objects/Shader";
-import { ShaderCard } from "../components/ShaderCard";
+import { ShaderCard } from "./ShaderCard";
 import { ImageList, ImageListItem } from "@mui/material";
 
-interface ShadersPageProps {
+interface ShadersComponentProps {
   sectionName: string;
   shaderList: Shader[];
 }
 
-// This page is reused multiple times for different pages
-// it may be best to put it in components instead
-const ShadersPage = () => {
+const ShadersComponent = () => {
   const location = useLocation();
-  const { sectionName, shaderList } = location.state as ShadersPageProps;
+  const { sectionName, shaderList } = location.state as ShadersComponentProps;
   const auth = getAuth();
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
   onAuthStateChanged(auth, (user) => {
@@ -92,4 +90,4 @@ const ShadersPage = () => {
     </Container>
   );
 };
-export default ShadersPage;
+export default ShadersComponent;
