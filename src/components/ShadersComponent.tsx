@@ -31,9 +31,9 @@ const ShadersComponent = () => {
       <Grid
         container
         spacing={2}
-        style={{ paddingTop: "100px" }}
         alignItems="center"
         justifyContent="space-between"
+        className="container-grid"
       >
         <Grid
           item
@@ -81,7 +81,7 @@ const ShadersComponent = () => {
         </Grid>
         <ImageList cols={4} rowHeight={220}>
           {shaderList.map((shader) => (
-            <ImageListItem key={shader.image} style={{ padding: "20px" }}>
+            <ImageListItem key={shader.image} style={{ padding: "1vw" }}>
               <ShaderCard shader={shader} />
             </ImageListItem>
           ))}

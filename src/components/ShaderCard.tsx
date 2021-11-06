@@ -10,7 +10,7 @@ import { ShaderProps } from "../objects/Shader";
 
 export const ShaderCard = ({ shader }: ShaderProps) => {
   return (
-    <Grid item xs={12} sx={{ width: "250px" }}>
+    <Grid item xs={12} sx={{ width: "15em" }}>
       <Card variant="outlined">
         <CardActionArea
           component={Link}

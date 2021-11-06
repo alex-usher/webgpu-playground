@@ -1,13 +1,12 @@
 .row {
-  /* margin-left: 30px; */
   color: white;
   width: 100%;
 }
 
 .header {
-  margin-top: 20px !important;
-  margin-left: 10px !important;
-  margin-right: 20px !important;
+  margin-top: 2vh !important;
+  margin-left: 1vw !important;
+  margin-right: 2vw !important;
 }
 
 .row__blocks {
@@ -19,7 +18,7 @@
 .row__tile {
   display: inline-block;
   color: white;
-  padding: 20px;
+  padding: 1vw;
 }
 
 .row__tile:hover {
