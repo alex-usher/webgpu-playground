@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import CodeEditorPage from "./pages/CodeEditorPage";
 import UserPage from "./pages/UserPage";
-import ShadersComponent from "./pages/ShadersComponent";
+import ShadersComponent from "./components/ShadersComponent";
 import { SnackbarProvider } from "notistack";
 
 import "./assets/style.css";
