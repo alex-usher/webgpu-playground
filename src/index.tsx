@@ -8,7 +8,6 @@ import UserPage from "./pages/UserPage";
 import { SnackbarProvider } from "notistack";
 
 import "./assets/style.css";
-import { defaultShader } from "./objects/Shader";
 
 ReactDOM.render(
   <React.StrictMode>
@@ -19,9 +18,7 @@ ReactDOM.render(
             <Route path="/" exact>
               <HomePage />
             </Route>
-            <Route path="/editor">
-              <CodeEditorPage shader={defaultShader} />
-            </Route>
+            <Route path="/editor" component={CodeEditorPage}></Route>
             <Route path="/user/:uid" component={UserPage} />
           </Switch>
         </Router>

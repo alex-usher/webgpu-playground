@@ -4,21 +4,21 @@ import {
   DocumentData,
   WithFieldValue,
   QueryDocumentSnapshot,
+  doc,
+  getDoc,
 } from "@firebase/firestore/lite";
-import {
-  ref,
-  uploadString,
-  getDownloadURL,
-  StorageReference,
-} from "@firebase/storage";
+import { ref, uploadString, getDownloadURL } from "@firebase/storage";
+
+import { auth, firedb } from "../firebase";
+
 import { firestorage } from "../firebase";
 import { v4 as uuidv4 } from "uuid";
 export class Shader {
   readonly id: string;
   readonly image: string; //http link to img src
-  fragmentCode: string;
   readonly title: string;
-  vertexCode: string;
+  vertexCode: string | null;
+  fragmentCode: string | null;
   isPublic: boolean;
 
   constructor(
@@ -26,8 +26,8 @@ export class Shader {
     title: string,
     image: string,
     isPublic: boolean,
-    vertexCode: string,
-    fragmentCode: string
+    vertexCode: string | null,
+    fragmentCode: string | null
   ) {
     this.id = id;
     this.title = title;
@@ -46,8 +46,9 @@ export const shaderConverter = {
     const vertexRef = ref(firestorage, vertexFile);
     const fragmentRef = ref(firestorage, fragmentFile);
 
-    uploadString(vertexRef, shader.vertexCode.toString());
-    uploadString(fragmentRef, shader.fragmentCode.toString());
+    // !!! Fix force unwrap
+    uploadString(vertexRef, shader.vertexCode!.toString());
+    uploadString(fragmentRef, shader.fragmentCode!.toString());
 
     const shaderDoc = {
       shader_name: shader.title,
@@ -58,44 +59,50 @@ export const shaderConverter = {
 
     return shaderDoc;
   },
-  async fromFirestore(snapshot: QueryDocumentSnapshot): Promise<Shader | void> {
-    if (!snapshot.data()) {
-      return;
-    }
+  fromFirestore(snapshot: QueryDocumentSnapshot): Shader {
     const data = snapshot.data();
     if (!data) {
       throw new Error("shader data could not be retrieved from Firebase");
     }
-
-    try {
-      const vertexCode = await downloadStorageRef(
-        ref(firestorage, data.vertex_code)
-      );
-      const fragmentCode = await downloadStorageRef(
-        ref(firestorage, data.fragment_code)
-      );
-
-      const shader = new Shader(
-        snapshot.id,
-        data.shader_name,
-        "", // image of shader
-        data.isPublic,
-        vertexCode,
-        fragmentCode
-      );
-      return shader;
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log("ERROR: " + err.message);
-      }
-      return;
-    }
+    return new Shader(
+      snapshot.id,
+      data.shader_name,
+      data.image ? data.image : "https://i.ibb.co/M5Z06wy/triangle.png", // image of shader
+      data.isPublic,
+      null,
+      null
+    );
   },
 };
 
-const downloadStorageRef = async (ref: StorageReference): Promise<string> => {
-  const url = await getDownloadURL(ref);
-  return (await axios.get(url)).data;
+export const downloadShaderCode = async (id: string): Promise<any> => {
+  const user = auth.currentUser;
+  let querySnapshot;
+
+  if (user) {
+    querySnapshot = await getDoc(doc(firedb, "users", user.uid, "shaders", id));
+  }
+
+  let data = querySnapshot?.data();
+  if (!data) {
+    querySnapshot = await getDoc(doc(firedb, "example-shaders", id));
+    data = querySnapshot?.data();
+    if (!data) {
+      throw new Error("Shader data could not be retrieved from Firebase");
+    }
+  }
+
+  const vertexCodeURL = await getDownloadURL(
+    ref(firestorage, data.vertex_code)
+  );
+  const fragmentCodeURL = await getDownloadURL(
+    ref(firestorage, data.fragment_code)
+  );
+
+  const vertexCode = (await axios.get(vertexCodeURL)).data;
+  const fragmentCode = (await axios.get(fragmentCodeURL)).data;
+
+  return { vertexCode, fragmentCode };
 };
 
 export interface ShaderProps {
@@ -103,8 +110,8 @@ export interface ShaderProps {
 }
 
 export const defaultShader = new Shader(
-  uuidv4() + "example_rectangle_shader",
-  "Triangle",
+  "",
+  "Rectangle",
   "https://i.ibb.co/M5Z06wy/triangle.png",
   false,
   rectangleVertex,

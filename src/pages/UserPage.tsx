@@ -1,28 +1,56 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Redirect } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import SignInButton from "../components/SignInButton";
-import { defaultShader } from "../objects/Shader";
+import { Shader } from "../objects/Shader";
 import { Link } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "@firebase/auth";
 import "../assets/style.css";
 import { CardCarousel } from "../components/CardCarousel";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
+import {
+  getUserPublicShaders,
+  getUserPrivateShaders,
+  getDefaultShader,
+} from "../utils/firebaseHelper";
+
 // eslint-disable-next-line
 const UserPage = ({ match }: any) => {
   // TOOD - use uid to get a user's shaders from firebase
   const uid = match.params.uid;
-  console.log(uid);
+  console.log("Userpage:", uid);
+
+  const [defaultShader, setDefaultShader] = useState<Shader>();
+  const [userPublicShaders, setUserPublicShaders] = useState<Shader[]>([]);
+  const [userPrivateShaders, setUserPrivateShaders] = useState<Shader[]>([]);
 
   const auth = getAuth();
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
   onAuthStateChanged(auth, (user) => {
     setIsLoggedIn(user != null);
   });
+
+  useEffect(() => {
+    getUserPublicShaders().then((shaders) => {
+      setUserPublicShaders(shaders);
+    });
+  }, []);
+
+  useEffect(() => {
+    getUserPrivateShaders().then((shaders) => {
+      setUserPrivateShaders(shaders);
+    });
+  }, []);
+
+  useEffect(() => {
+    getDefaultShader().then((shader) => {
+      setDefaultShader(shader);
+    });
+  }, []);
 
   // Redirect to the homepage if the user logs out
   if (!isLoggedIn) {
@@ -65,7 +93,7 @@ const UserPage = ({ match }: any) => {
                 variant="outlined"
                 disableElevation
                 component={Link}
-                to="/editor"
+                to={{ pathname: "/editor", state: { defaultShader } }}
                 className="header-button"
               >
                 New Shader Sandbox
@@ -77,21 +105,11 @@ const UserPage = ({ match }: any) => {
 
         <CardCarousel
           sectionName="My public shaders"
-          shaderList={[
-            defaultShader,
-            defaultShader,
-            defaultShader,
-            defaultShader,
-          ]}
+          shaderList={userPublicShaders}
         />
         <CardCarousel
           sectionName="My private shaders"
-          shaderList={[
-            defaultShader,
-            defaultShader,
-            defaultShader,
-            defaultShader,
-          ]}
+          shaderList={userPrivateShaders}
         />
       </Grid>
     </Container>

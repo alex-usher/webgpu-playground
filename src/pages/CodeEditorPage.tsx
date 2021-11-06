@@ -7,35 +7,53 @@ import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import React from "react";
-//import { Link } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
 
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 
 import { ShaderProps } from "../objects/Shader";
+import { getShaderCode } from "../utils/firebaseHelper";
 
 import "../assets/style.css";
 import "../assets/codeEditorPage.css";
 
-const CodeEditorPage = ({ shader }: ShaderProps) => {
-  const [vertexCode, setVertexCode] = useState(shader.vertexCode);
-  const [fragmentCode, setFragmentCode] = useState(shader.fragmentCode);
+const CodeEditorPage = () => {
+  const location = useLocation();
+  let { shader } = location.state as ShaderProps;
+  console.log(shader);
+
+  const [vertexCode, setVertexCode] = useState(
+    shader.vertexCode ? shader.vertexCode : ""
+  );
+  const [fragmentCode, setFragmentCode] = useState(
+    shader.fragmentCode ? shader.fragmentCode : ""
+  );
   const [showCode, setShowCode] = useState(false);
   const [viewCodeText, setViewCodeText] = useState("View Code");
   const [renderedVertexCode, setRenderedVertexCode] = useState(
-    shader.vertexCode
+    shader.vertexCode ? shader.vertexCode : ""
   );
   const [renderedFragmentCode, setRenderedFragmentCode] = useState(
-    shader.fragmentCode
+    shader.fragmentCode ? shader.fragmentCode : ""
   );
   const [inFullscreen, setInFullscreen] = useState(false);
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [formOpen, setFormOpen] = React.useState(false);
 
   const [shaderName, setShaderName] = useState("");
+
+  useEffect(() => {
+    console.log("Updating: ", shader);
+    getShaderCode(shader).then((shaderWithCode) => {
+      shader = shaderWithCode;
+      setVertexCode(shader.vertexCode ? shader.vertexCode : "");
+      setFragmentCode(shader.fragmentCode ? shader.fragmentCode : "");
+    });
+  }, []);
 
   const handleFormOpen = () => {
     setFormOpen(true);

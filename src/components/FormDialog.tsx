@@ -58,8 +58,8 @@ const saveShaderCode = async (
   const vertexRef = ref(firestorage, vertexFile);
   const fragmentRef = ref(firestorage, fragmentFile);
 
-  uploadString(vertexRef, vertexCode);
-  uploadString(fragmentRef, fragmentCode);
+  uploadString(vertexRef, vertexCode!);
+  uploadString(fragmentRef, fragmentCode!);
 
   const shaderDoc = {
     shader_name: shaderName,
@@ -67,8 +67,6 @@ const saveShaderCode = async (
     fragment_code: fragmentFile,
     isPublic: isPublic,
   };
-
-  let hasErred = false;
 
   try {
     const user = auth.currentUser;
@@ -103,8 +101,11 @@ const saveShaderCode = async (
         await addDoc(usersShadersRef, shaderDoc);
       }
     }
+    enqueueSnackbar("Successfully saved!", {
+      variant: "success",
+      autoHideDuration: 1000,
+    });
   } catch (err) {
-    hasErred = true;
     if (err instanceof nameErr) {
       enqueueSnackbar(
         "A shader with name " + err.dupedName + " already exists!",
@@ -116,13 +117,6 @@ const saveShaderCode = async (
     } else {
       enqueueSnackbar("Failed to save!", {
         variant: "error",
-        autoHideDuration: 1000,
-      });
-    }
-  } finally {
-    if (!hasErred) {
-      enqueueSnackbar("Successfully saved!", {
-        variant: "success",
         autoHideDuration: 1000,
       });
     }

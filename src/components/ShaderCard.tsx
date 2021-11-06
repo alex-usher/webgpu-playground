@@ -9,6 +9,7 @@ import Grid from "@mui/material/Grid";
 import { ShaderProps } from "../objects/Shader";
 
 export const ShaderCard = ({ shader }: ShaderProps) => {
+  console.log("ShaderCard:", shader);
   return (
     <Grid item xs={12}>
       <Card variant="outlined">
