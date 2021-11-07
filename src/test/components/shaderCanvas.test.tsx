@@ -5,7 +5,7 @@ import {
   shaderTriangleVertex,
 } from "../sample_shaders/triangle";
 
-import * as shaders from "../../render";
+import * as shaders from "../../webgpu/helpers";
 
 const renderShaderCanvas = () =>
   render(

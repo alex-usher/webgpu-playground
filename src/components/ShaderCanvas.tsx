@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "../assets/shaderCanvas.css";
-import { checkWebGPU } from "../render";
-import { renderShader, updateCoordinates } from "../render";
+import { checkWebGPU } from "../webgpu/helpers";
+import { renderShader, updateCoordinates } from "../webgpu/render";
 import Typography from "@mui/material/Typography";
 
 const WIDTH_ASPECT = 968;

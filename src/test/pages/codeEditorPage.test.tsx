@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import CodeEditorPage from "../../pages/CodeEditorPage";
 import { SnackbarProvider } from "notistack";
 import { Shader } from "../../objects/Shader";
-import * as shaders from "../../render";
+import * as shaders from "../../webgpu/render";
 
 import "@testing-library/jest-dom/extend-expect";
 

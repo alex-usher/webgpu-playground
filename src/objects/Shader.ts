@@ -1,5 +1,5 @@
 import axios from "axios";
-import { rectangleFragment, rectangleVertex } from "../render";
+import { cubeFragment, cubeVertex } from "../webgpu/shaders";
 import {
   DocumentData,
   WithFieldValue,
@@ -102,6 +102,6 @@ export const defaultShader = new Shader(
   "Triangle",
   "https://i.ibb.co/M5Z06wy/triangle.png",
   false,
-  rectangleVertex,
-  rectangleFragment
+  cubeVertex,
+  cubeFragment
 );

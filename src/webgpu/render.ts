@@ -1,115 +1,14 @@
 import assert from "assert";
-
-export const checkWebGPU = (): boolean => navigator.gpu != null;
-
-const structs = `struct VertexInput {
-    [[location(0)]] position: vec2<f32>;
-    [[location(1)]] color: vec4<f32>;
-};
-
-struct VertexOutput {
-    [[builtin(position)]] position: vec4<f32>;
-    [[location(0)]] color: vec4<f32>;
-};
-
-[[block]]
-struct ViewParams {
-    time: f32;
-    x: f32;
-    y: f32;
-};
-
-[[group(0), binding(0)]]
-var<uniform> view_params: ViewParams;
-`;
-
-export const rectangleVertex = `/*${structs}*/
-
-[[stage(vertex)]]
-fn main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput {
-    var pos = array<vec2<f32>, 6>(
-        vec2<f32>(1.0, 1.0),
-        vec2<f32>(view_params.x, view_params.y),
-        vec2<f32>(-1.0, -1.0),
-        vec2<f32>(1.0, 1.0),
-        vec2<f32>(-1.0, 1.0),
-        vec2<f32>(-1.0, -1.0)
-    );
-    
-    var color = array<vec3<f32>, 6>(
-        vec3<f32>(1.0, 0.0, 0.0),
-        vec3<f32>(0.0, 1.0, 0.0),
-        vec3<f32>(0.0, 0.0, 1.0),
-        vec3<f32>(1.0, 0.0, 0.0),
-        vec3<f32>(0.0, 1.0, 0.0),
-        vec3<f32>(0.0, 0.0, 1.0)
-    );
-
-    var out: VertexOutput;
-    out.position = vec4<f32>(pos[index], 0.0, 1.0);
-    out.color = vert.color + vec4<f32>(color[index], 1.0);
-    return out;
-};`;
-
-export const rectangleFragment = `[[stage(fragment)]]
-fn main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
-    return sin(view_params.time * 0.01) * color;
-};`;
-
-export const shaderTriangleFragment = `[[stage(fragment)]]
-fn main([[location(0)]] vColor: vec4<f32>) -> [[location(0)]] vec4<f32> {
-    return vColor;
-}
-`;
-
-export const shaderTriangleVertex = `struct Output {
-    [[builtin(position)]] Position : vec4<f32>;
-    [[location(0)]] vColor : vec4<f32>;
-};
-
-[[stage(vertex)]]
-fn main([[builtin(vertex_index)]] index: u32) -> Output {
-    var pos = array<vec2<f32>, 3>(
-        vec2<f32>(0.0, 0.5),
-        vec2<f32>(-0.5, -0.5),
-        vec2<f32>(0.5, -0.5)
-    );
-    
-    var color = array<vec3<f32>, 3>(
-        vec3<f32>(1.0, 0.0, 0.0),
-        vec3<f32>(0.0, 1.0, 0.0),
-        vec3<f32>(0.0, 0.0, 1.0)
-    );
-    
-    var output: Output;
-    output.Position = vec4<f32>(pos[index], 0.0, 1.0);
-    output.vColor = vec4<f32>(color[index], 1.0);
-    
-    return output;
-}
-`;
-
-const outputMessages = async (shaderModule: GPUShaderModule) => {
-  if (shaderModule.compilationInfo) {
-    const messages = (await shaderModule.compilationInfo()).messages;
-    if (messages.length > 0) {
-      let error = false;
-      for (let i = 0; i < messages.length; i++) {
-        const message = messages[i];
-        console.log(
-          `(${message.lineNum}, ${message.linePos}): ${message.message}`
-        );
-        error = error || message.type === "error";
-      }
-
-      return !error;
-    }
-
-    return true;
-  }
-
-  return false;
-};
+import { structs } from "./shaders";
+import {
+  checkWebGPU,
+  outputMessages,
+  CreateGPUBuffer,
+  CreateTransforms,
+  CreateViewProjection,
+} from "./helpers";
+import { cubeColours, cubePositions } from "./meshes";
+import { mat4 } from "gl-matrix";
 
 let x = 0;
 let y = 0;
@@ -127,6 +26,8 @@ export const renderShader = async (
     return;
   }
 
+  // --------------------------------------------------------------------------------------
+  // Initialise GPU
   const canvas = document.getElementById("canvas-webgpu") as HTMLCanvasElement;
 
   assert(navigator.gpu);
@@ -139,6 +40,13 @@ export const renderShader = async (
   const stateFormat = "bgra8unorm";
   const depthFormat = "depth24plus-stencil8";
 
+  context.configure({
+    device: device,
+    format: stateFormat,
+    usage: GPUTextureUsage.RENDER_ATTACHMENT,
+  });
+  // --------------------------------------------------------------------------------------
+  // Load Shader Code
   const vertexShaderModule = device.createShaderModule({
     code: `${structs}\n${vertex}`,
   });
@@ -157,32 +65,16 @@ export const renderShader = async (
     console.log("Fragment Shader Compilation failed");
     return;
   }
+  // --------------------------------------------------------------------------------------
+  // create buffers
+  const numberOfVertices = cubePositions.length / 3;
+  const vertexBuffer = CreateGPUBuffer(device, cubePositions);
+  const colorBuffer = CreateGPUBuffer(device, cubeColours);
 
-  // allocate a buffer for up to 6 vertices
-  const dataBuffer = device.createBuffer({
-    size: 6 * 6 * 4,
-    usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    mappedAtCreation: true,
-  });
-
-  // this float 32 array is not necessary,
-  // but with it you can do some cool things using the
-  // VertexInput in the shader
-  new Float32Array(dataBuffer.getMappedRange()).set([
-    0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0,
-    0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1,
-  ]);
-
-  dataBuffer.unmap();
-
-  context.configure({
-    device: device,
-    format: stateFormat,
-    usage: GPUTextureUsage.RENDER_ATTACHMENT,
-  });
-
+  // --------------------------------------------------------------------------------------
+  // Define  layouts
   const depthTexture = device.createTexture({
-    size: { width: canvas.width, height: canvas.height },
+    size: [canvas.width, canvas.height, 1],
     format: depthFormat,
     usage: GPUTextureUsage.RENDER_ATTACHMENT,
   });
@@ -208,11 +100,23 @@ export const renderShader = async (
       entryPoint: "main",
       buffers: [
         {
-          arrayStride: 6 * 4,
-          stepMode: "vertex",
+          arrayStride: 12,
           attributes: [
-            { format: "float32x4", offset: 0, shaderLocation: 0 },
-            { format: "float32x4", offset: 2 * 4, shaderLocation: 1 },
+            {
+              shaderLocation: 0,
+              format: "float32x3",
+              offset: 0,
+            },
+          ],
+        },
+        {
+          arrayStride: 12,
+          attributes: [
+            {
+              shaderLocation: 1,
+              format: "float32x3",
+              offset: 0,
+            },
           ],
         },
       ],
@@ -230,7 +134,7 @@ export const renderShader = async (
   });
 
   const viewParamsBuffer = device.createBuffer({
-    size: 4 * 3,
+    size: 64,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
@@ -284,6 +188,7 @@ export const renderShader = async (
           {
             view: context.getCurrentTexture().createView(),
             loadValue: [0.0, 0.0, 0.0, 0.0],
+            storeOp: "store",
           },
         ],
         depthStencilAttachment: {
@@ -295,8 +200,19 @@ export const renderShader = async (
         },
       };
 
+      // create uniform data
+      const modelMatrix = mat4.create();
+      const mvpMatrix = mat4.create();
+      let vpMatrix = mat4.create();
+      const vp = CreateViewProjection(canvas.width / canvas.height);
+      vpMatrix = vp.viewProjectionMatrix;
+
+      CreateTransforms(modelMatrix);
+      mat4.multiply(mvpMatrix, vpMatrix, modelMatrix);
+      device.queue.writeBuffer(viewParamsBuffer, 0, mvpMatrix as ArrayBuffer);
+
       const commandEncoder = device.createCommandEncoder();
-      commandEncoder.copyBufferToBuffer(upload, 0, viewParamsBuffer, 0, 4);
+      // commandEncoder.copyBufferToBuffer(upload, 0, viewParamsBuffer, 0, 4);
       commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
       commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
 
@@ -305,10 +221,11 @@ export const renderShader = async (
       );
       renderPass.setPipeline(renderPipeline);
       renderPass.setBindGroup(0, viewParamsBindGroup);
-      renderPass.setVertexBuffer(0, dataBuffer);
-      renderPass.draw(6, 1, 0, 0);
-
+      renderPass.setVertexBuffer(0, vertexBuffer);
+      renderPass.setVertexBuffer(1, colorBuffer);
+      renderPass.draw(numberOfVertices);
       renderPass.endPass();
+
       device.queue.submit([commandEncoder.finish()]);
       time++;
     }
@@ -316,8 +233,4 @@ export const renderShader = async (
   };
 
   requestAnimationFrame(frame);
-};
-
-export const renderTriangle = (): void => {
-  renderShader(shaderTriangleVertex, shaderTriangleFragment);
 };
