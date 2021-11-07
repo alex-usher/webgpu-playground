@@ -18,8 +18,7 @@ const renderCodeEditorPage = () =>
             "test",
             "http://www.test.com",
             false,
-            shaders.shaderTriangleVertex,
-            shaders.shaderTriangleFragment
+            `${shaders.shaderTriangleVertex}\n${shaders.shaderTriangleFragment}`
           )
         }
       />
@@ -32,8 +31,7 @@ let simpleShaderMock: jest.SpyInstance;
 // helper constants defining the button texts and ids
 const SHOW_CODE_ID = "show-code-button";
 const COMPILE_ID = "compile-button";
-const VERTEX_EDITOR_CLASS = "vertex-editor";
-const FRAGMENT_EDITOR_CLASS = "fragment-editor";
+const EDITOR_CLASS = "editors";
 const SHOW_CODE_TEXT = "View Code";
 const HIDE_CODE_TEXT = "Hide Code";
 
@@ -54,16 +52,9 @@ describe("Default render tests", () => {
 
   afterEach(jest.resetAllMocks);
 
-  test("By default the fragment editor is not rendered", () => {
-    const fragmentEditorDiv = document.querySelector(
-      `.${FRAGMENT_EDITOR_CLASS}`
-    );
-    expect(fragmentEditorDiv?.hasChildNodes()).toBeFalsy();
-  });
-
-  test("By default the vertex editor is not rendered", () => {
-    const vertexEditorDiv = document.querySelector(`.${VERTEX_EDITOR_CLASS}`);
-    expect(vertexEditorDiv?.hasChildNodes()).toBeFalsy();
+  test("By default the code editor is not rendered", () => {
+    const codeEditorDiv = document.querySelector(`.${EDITOR_CLASS}`);
+    expect(codeEditorDiv?.hasChildNodes()).toBeFalsy();
   });
 });
 
@@ -111,19 +102,14 @@ describe("Button Click Tests", () => {
     }
   });
 
-  test("Clicking the show code button displays the vertex and fragment editor", () => {
+  test("Clicking the show code button displays the code editor", () => {
     showCodeButton?.click();
-    const fragmentEditorDiv = document.querySelector(
-      `.${FRAGMENT_EDITOR_CLASS}`
-    );
-    expect(fragmentEditorDiv?.hasChildNodes()).toBeTruthy();
-    const vertexEditorDiv = document.querySelector(`.${VERTEX_EDITOR_CLASS}`);
-    expect(vertexEditorDiv?.hasChildNodes()).toBeTruthy();
+    const codeEditorDiv = document.querySelector(`.${EDITOR_CLASS}`);
+    expect(codeEditorDiv?.hasChildNodes()).toBeTruthy();
 
     const textAreas: HTMLElement[] = screen.getAllByRole("textbox");
-    expect(textAreas.length).toBe(3); // contains shader name textbox, vertex editor and fragment editor
+    expect(textAreas.length).toBe(2); // contains shader name textbox, vertex editor and fragment editor
     expect(textAreas[0]).toBeInTheDocument();
-    expect(textAreas[1]).toBeInTheDocument();
     expect(textAreas[1]).toBeInTheDocument();
   });
 
@@ -140,8 +126,7 @@ describe("Button Click Tests", () => {
 });
 
 describe("Code editor tests", () => {
-  let vertexEditor: HTMLElement | null;
-  let fragmentEditor: HTMLElement | null;
+  let codeEditor: HTMLElement | null;
 
   beforeEach(() => {
     doMocks();
@@ -149,40 +134,26 @@ describe("Code editor tests", () => {
 
     document.getElementById(SHOW_CODE_ID)?.click();
     const textAreas: HTMLElement[] = screen.getAllByRole("textbox");
-    vertexEditor = textAreas[1];
-    fragmentEditor = textAreas[2];
+    codeEditor = textAreas[1];
   });
 
   afterEach(() => {
     jest.resetAllMocks();
 
-    vertexEditor = null;
-    fragmentEditor = null;
+    codeEditor = null;
   });
 
-  test("Typing into the vertex code editor updates its text content", () => {
-    if (vertexEditor) {
-      expect(vertexEditor.textContent).toEqual(shaders.shaderTriangleVertex);
-      userEvent.type(vertexEditor, "a");
-      expect(vertexEditor.textContent).toEqual(
-        `${shaders.shaderTriangleVertex}a`
+  test("Typing into the code editor updates its text content", () => {
+    if (codeEditor) {
+      expect(codeEditor.textContent).toEqual(
+        `${shaders.shaderTriangleVertex}\n${shaders.shaderTriangleFragment}`
+      );
+      userEvent.type(codeEditor, "a");
+      expect(codeEditor.textContent).toEqual(
+        `${shaders.shaderTriangleVertex}\n${shaders.shaderTriangleFragment}a`
       );
     } else {
       fail("Vertex editor null");
-    }
-  });
-
-  test("Typing into the fragment code editor updates its text content", () => {
-    if (fragmentEditor) {
-      expect(fragmentEditor.textContent).toEqual(
-        shaders.shaderTriangleFragment
-      );
-      userEvent.type(fragmentEditor, "a");
-      expect(fragmentEditor.textContent).toEqual(
-        `${shaders.shaderTriangleFragment}a`
-      );
-    } else {
-      fail("Fragment editor null");
     }
   });
 });
