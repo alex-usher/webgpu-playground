@@ -80,6 +80,21 @@ const HomePage = () => {
 
         <CardCarousel
           sectionName="Examples"
+          pageLink="/examples"
+          shaderList={[
+            defaultShader,
+            defaultShader,
+            defaultShader,
+            defaultShader,
+            defaultShader,
+            defaultShader,
+            defaultShader,
+          ]}
+        />
+
+        <CardCarousel
+          sectionName="Recent Public Shaders"
+          pageLink="/public"
           shaderList={[
             defaultShader,
             defaultShader,

@@ -77,6 +77,7 @@ const UserPage = ({ match }: any) => {
 
         <CardCarousel
           sectionName="My public shaders"
+          pageLink="/mypublicshaders"
           shaderList={[
             defaultShader,
             defaultShader,
@@ -86,6 +87,7 @@ const UserPage = ({ match }: any) => {
         />
         <CardCarousel
           sectionName="My private shaders"
+          pageLink="/myprivateshaders"
           shaderList={[
             defaultShader,
             defaultShader,
