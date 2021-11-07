@@ -57,7 +57,7 @@ const saveShaderCode = async (
 
   const shaderDoc = {
     shader_name: shaderName,
-    shader_code: shaderCode,
+    shader_code: shaderFile,
     isPublic: isPublic,
   };
 

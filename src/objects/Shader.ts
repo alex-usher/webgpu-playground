@@ -45,7 +45,7 @@ export const shaderConverter = {
 
     return {
       shader_name: shader.title,
-      shader_code: shader.shaderCode,
+      shader_code: shaderFile,
       isPublic: shader.isPublic,
     };
   },
