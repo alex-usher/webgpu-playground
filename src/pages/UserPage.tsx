@@ -1,28 +1,44 @@
-import { useState } from "react";
-import { Redirect } from "react-router-dom";
-import Grid from "@mui/material/Grid";
-import Stack from "@mui/material/Stack";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
+import Grid from "@mui/material/Grid";
 import SignInButton from "../components/SignInButton";
-import { defaultShader } from "../objects/Shader";
-import { Link } from "react-router-dom";
-import { getAuth, onAuthStateChanged } from "@firebase/auth";
-import "../assets/style.css";
+import Stack from "@mui/material/Stack";
 import { CardCarousel } from "../components/CardCarousel";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { Shader } from "../objects/Shader";
+import { getAuth, onAuthStateChanged } from "@firebase/auth";
+import { Link } from "react-router-dom";
+import { Redirect } from "react-router-dom";
+import { useEffect, useState } from "react";
 
-// eslint-disable-next-line
-const UserPage = ({ match }: any) => {
-  // TOOD - use uid to get a user's shaders from firebase
-  const uid = match.params.uid;
-  console.log(uid);
+import "../assets/style.css";
+import {
+  getUserPrivateShaders,
+  getUserPublicShaders,
+} from "../utils/firebaseHelper";
 
+const UserPage = () => {
   const auth = getAuth();
+
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
+  const [publicShaders, setPublicShaders] = useState<Shader[]>([]);
+  const [privateShaders, setPrivateShaders] = useState<Shader[]>([]);
+
   onAuthStateChanged(auth, (user) => {
     setIsLoggedIn(user != null);
   });
+
+  useEffect(() => {
+    getUserPublicShaders().then((shaders: Shader[]) =>
+      setPublicShaders(shaders)
+    );
+  }, []);
+
+  useEffect(() => {
+    getUserPrivateShaders().then((shaders: Shader[]) =>
+      setPrivateShaders(shaders)
+    );
+  }, []);
 
   // Redirect to the homepage if the user logs out
   if (!isLoggedIn) {
@@ -77,21 +93,11 @@ const UserPage = ({ match }: any) => {
 
         <CardCarousel
           sectionName="My public shaders"
-          shaderList={[
-            defaultShader,
-            defaultShader,
-            defaultShader,
-            defaultShader,
-          ]}
+          shaderList={publicShaders}
         />
         <CardCarousel
           sectionName="My private shaders"
-          shaderList={[
-            defaultShader,
-            defaultShader,
-            defaultShader,
-            defaultShader,
-          ]}
+          shaderList={privateShaders}
         />
       </Grid>
     </Container>

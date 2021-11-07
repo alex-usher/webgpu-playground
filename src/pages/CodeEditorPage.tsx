@@ -7,7 +7,7 @@ import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import React from "react";
 //import { Link } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
@@ -15,12 +15,17 @@ import FormDialog from "../components/FormDialog";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 
-import { ShaderProps } from "../objects/Shader";
+import { Shader } from "../objects/Shader";
 
 import "../assets/style.css";
 import "../assets/codeEditorPage.css";
+import { getShaderCode } from "../utils/firebaseHelper";
+import { useLocation } from "react-router-dom";
 
-const CodeEditorPage = ({ shader }: ShaderProps) => {
+const CodeEditorPage = () => {
+  const location = useLocation();
+  let shader = location.state as Shader;
+
   const [shaderCode, setShaderCode] = useState(shader.shaderCode);
   const [showCode, setShowCode] = useState(false);
   const [viewCodeText, setViewCodeText] = useState("View Code");
@@ -32,6 +37,16 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
   const [formOpen, setFormOpen] = React.useState(false);
 
   const [shaderName, setShaderName] = useState("");
+
+  useEffect(() => {
+    if (shader.shaderCode === undefined) {
+      getShaderCode(shader).then((shaderWithCode: Shader) => {
+        shader = shaderWithCode;
+        setShaderCode(shader.shaderCode);
+        setRenderedShaderCode(shader.shaderCode);
+      });
+    }
+  }, [shader]);
 
   const handleFormOpen = () => {
     setFormOpen(true);
