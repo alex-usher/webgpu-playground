@@ -67,7 +67,7 @@ const HomePage = () => {
                   to={"/user/" + auth.currentUser?.uid}
                   className="header-button"
                 >
-                  view my shaders
+                  View My Shaders
                 </Button>
               </Grid>
             ) : (
