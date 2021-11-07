@@ -21,15 +21,11 @@ import "../assets/style.css";
 import "../assets/codeEditorPage.css";
 
 const CodeEditorPage = ({ shader }: ShaderProps) => {
-  const [vertexCode, setVertexCode] = useState(shader.vertexCode);
-  const [fragmentCode, setFragmentCode] = useState(shader.fragmentCode);
+  const [shaderCode, setShaderCode] = useState(shader.shaderCode);
   const [showCode, setShowCode] = useState(false);
   const [viewCodeText, setViewCodeText] = useState("View Code");
-  const [renderedVertexCode, setRenderedVertexCode] = useState(
-    shader.vertexCode
-  );
-  const [renderedFragmentCode, setRenderedFragmentCode] = useState(
-    shader.fragmentCode
+  const [renderedShaderCode, setRenderedShaderCode] = useState(
+    shader.shaderCode
   );
   const [inFullscreen, setInFullscreen] = useState(false);
   const [editorOpacity, setEditorOpacity] = useState(0.5);
@@ -109,8 +105,7 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
                     disableElevation
                     color="secondary"
                     onClick={() => {
-                      setRenderedVertexCode(vertexCode);
-                      setRenderedFragmentCode(fragmentCode);
+                      setRenderedShaderCode(shaderCode);
                     }}
                   >
                     Compile
@@ -133,8 +128,7 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
                   <FormDialog
                     open={formOpen}
                     handleClose={handleFormClose}
-                    vertexCode={vertexCode}
-                    fragmentCode={fragmentCode}
+                    shaderCode={shaderCode}
                   />
                 </Grid>
                 <Grid item>
@@ -154,8 +148,7 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
                   <FormDialog
                     open={formOpen}
                     handleClose={handleFormClose}
-                    vertexCode={vertexCode}
-                    fragmentCode={fragmentCode}
+                    shaderCode={shaderCode}
                   />
                 </Grid>
                 <Grid item>
@@ -262,37 +255,19 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
         </Grid>
       </div>
 
-      <ShaderCanvas
-        vertexCode={renderedVertexCode}
-        fragmentCode={renderedFragmentCode}
-      />
+      <ShaderCanvas shaderCode={renderedShaderCode} />
       <div className="editors">
-        <div className="vertex-editor">
-          {showCode ? (
-            <Editor
-              value={vertexCode}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                setVertexCode(e.target.value);
-              }}
-              opacity={editorOpacity}
-            />
-          ) : (
-            <></>
-          )}
-        </div>
-        <div className="fragment-editor">
-          {showCode ? (
-            <Editor
-              value={fragmentCode}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                setFragmentCode(e.target.value);
-              }}
-              opacity={editorOpacity}
-            />
-          ) : (
-            <></>
-          )}
-        </div>
+        {showCode ? (
+          <Editor
+            value={shaderCode}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+              setShaderCode(e.target.value);
+            }}
+            opacity={editorOpacity}
+          />
+        ) : (
+          <></>
+        )}
       </div>
     </div>
   );

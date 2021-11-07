@@ -2,61 +2,52 @@ import axios from "axios";
 import { rectangleFragment, rectangleVertex } from "../render";
 import {
   DocumentData,
-  WithFieldValue,
   QueryDocumentSnapshot,
+  WithFieldValue,
 } from "@firebase/firestore/lite";
 import {
-  ref,
-  uploadString,
   getDownloadURL,
+  ref,
   StorageReference,
+  uploadString,
 } from "@firebase/storage";
 import { firestorage } from "../firebase";
 import { v4 as uuidv4 } from "uuid";
+
 export class Shader {
   readonly id: string;
   readonly image: string; //http link to img src
-  fragmentCode: string;
   readonly title: string;
-  vertexCode: string;
   isPublic: boolean;
+  shaderCode: string;
 
   constructor(
     id: string,
     title: string,
     image: string,
     isPublic: boolean,
-    vertexCode: string,
-    fragmentCode: string
+    shaderCode: string
   ) {
     this.id = id;
     this.title = title;
     this.image = image;
     this.isPublic = isPublic;
-    this.vertexCode = vertexCode;
-    this.fragmentCode = fragmentCode;
+    this.shaderCode = shaderCode;
   }
 }
 
 export const shaderConverter = {
   toFirestore(shader: WithFieldValue<Shader>): DocumentData {
-    const vertexFile = uuidv4() + "_" + shader.title + "_vertex.txt";
-    const fragmentFile = uuidv4() + "_" + shader.title + "_fragment.txt";
+    const shaderFile = `${uuidv4()}_${shader.title}.txt`;
+    const shaderRef = ref(firestorage, shaderFile);
 
-    const vertexRef = ref(firestorage, vertexFile);
-    const fragmentRef = ref(firestorage, fragmentFile);
+    uploadString(shaderRef, shader.shaderCode.toString());
 
-    uploadString(vertexRef, shader.vertexCode.toString());
-    uploadString(fragmentRef, shader.fragmentCode.toString());
-
-    const shaderDoc = {
+    return {
       shader_name: shader.title,
-      vertex_code: vertexFile,
-      fragment_code: fragmentFile,
+      shader_code: shader.shaderCode,
       isPublic: shader.isPublic,
     };
-
-    return shaderDoc;
   },
   async fromFirestore(snapshot: QueryDocumentSnapshot): Promise<Shader | void> {
     if (!snapshot.data()) {
@@ -68,22 +59,17 @@ export const shaderConverter = {
     }
 
     try {
-      const vertexCode = await downloadStorageRef(
-        ref(firestorage, data.vertex_code)
-      );
-      const fragmentCode = await downloadStorageRef(
-        ref(firestorage, data.fragment_code)
+      const shaderCode = await downloadStorageRef(
+        ref(firestorage, data.shader_code)
       );
 
-      const shader = new Shader(
+      return new Shader(
         snapshot.id,
         data.shader_name,
         "", // image of shader
         data.isPublic,
-        vertexCode,
-        fragmentCode
+        shaderCode
       );
-      return shader;
     } catch (err) {
       if (err instanceof Error) {
         console.log("ERROR: " + err.message);
@@ -107,6 +93,5 @@ export const defaultShader = new Shader(
   "Triangle",
   "https://i.ibb.co/M5Z06wy/triangle.png",
   false,
-  rectangleVertex,
-  rectangleFragment
+  `${rectangleVertex}\n${rectangleFragment}`
 );

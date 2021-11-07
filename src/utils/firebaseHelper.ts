@@ -45,7 +45,7 @@ export const getUserPublicShaders = async (): Promise<Shader[]> => {
   const publicShaders: Shader[] = [];
   const shaders: Shader[] = await getUserShaders();
   for (const shader of shaders) {
-    if (shader.isPublic == true) {
+    if (shader.isPublic) {
       publicShaders.push(shader);
     }
   }
@@ -56,7 +56,7 @@ export const getUserPrivateShaders = async (): Promise<Shader[]> => {
   const privateShaders: Shader[] = [];
   const shaders: Shader[] = await getUserShaders();
   for (const shader of shaders) {
-    if (shader.isPublic == false) {
+    if (!shader.isPublic) {
       privateShaders.push(shader);
     }
   }

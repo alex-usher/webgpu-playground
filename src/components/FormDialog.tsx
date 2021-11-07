@@ -28,8 +28,7 @@ import { getUserShaders } from "../utils/firebaseHelper";
 interface FormDialogProps {
   open: boolean;
   handleClose: () => void;
-  vertexCode: string;
-  fragmentCode: string;
+  shaderCode: string;
 }
 
 class nameErr extends Error {
@@ -41,8 +40,7 @@ class nameErr extends Error {
 }
 
 const saveShaderCode = async (
-  vertexCode: string,
-  fragmentCode: string,
+  shaderCode: string,
   shaderName: string,
   isPublic: boolean,
   enqueueSnackbar: {
@@ -52,19 +50,14 @@ const saveShaderCode = async (
     ): SnackbarKey;
   }
 ) => {
-  const vertexFile = uuidv4() + "_" + shaderName + "_vertex.txt";
-  const fragmentFile = uuidv4() + "_" + shaderName + "_fragment.txt";
+  const shaderFile = `${uuidv4()}_${shaderName}.txt`;
+  const shaderRef = ref(firestorage, shaderFile);
 
-  const vertexRef = ref(firestorage, vertexFile);
-  const fragmentRef = ref(firestorage, fragmentFile);
-
-  uploadString(vertexRef, vertexCode);
-  uploadString(fragmentRef, fragmentCode);
+  uploadString(shaderRef, shaderCode);
 
   const shaderDoc = {
     shader_name: shaderName,
-    vertex_code: vertexFile,
-    fragment_code: fragmentFile,
+    shader_code: shaderCode,
     isPublic: isPublic,
   };
 
@@ -129,12 +122,7 @@ const saveShaderCode = async (
   }
 };
 
-const FormDialog = ({
-  open,
-  handleClose,
-  vertexCode,
-  fragmentCode,
-}: FormDialogProps) => {
+const FormDialog = ({ open, handleClose, shaderCode }: FormDialogProps) => {
   const [fileName, setFileName] = useState("no name provided");
   const [isPublic, setIsPublic] = useState(false);
 
@@ -178,13 +166,7 @@ const FormDialog = ({
         <Button onClick={resetAndClose}>Cancel</Button>
         <Button
           onClick={() => {
-            saveShaderCode(
-              vertexCode,
-              fragmentCode,
-              fileName,
-              isPublic,
-              enqueueSnackbar
-            );
+            saveShaderCode(shaderCode, fileName, isPublic, enqueueSnackbar);
             resetAndClose();
           }}
         >
