@@ -5,23 +5,14 @@ import { SnackbarProvider } from "notistack";
 import { Shader } from "../../objects/Shader";
 import * as shaders from "../../render";
 import { v4 as uuidv4 } from "uuid";
+import routeData from "react-router";
 
 import "@testing-library/jest-dom/extend-expect";
 
 const renderCodeEditorPage = () =>
   render(
     <SnackbarProvider>
-      <CodeEditorPage
-        shader={
-          new Shader(
-            uuidv4() + "example_triangle_shader",
-            "test",
-            "http://www.test.com",
-            false,
-            `${shaders.shaderTriangleVertex}\n${shaders.shaderTriangleFragment}`
-          )
-        }
-      />
+      <CodeEditorPage />
     </SnackbarProvider>
   );
 
@@ -35,7 +26,24 @@ const EDITOR_CLASS = "editors";
 const SHOW_CODE_TEXT = "View Code";
 const HIDE_CODE_TEXT = "Hide Code";
 
+const shader = new Shader(
+  uuidv4() + "example_triangle_shader",
+  "test",
+  "http://www.test.com",
+  false,
+  `${shaders.shaderTriangleVertex}\n${shaders.shaderTriangleFragment}`
+);
+
+const mockLocation = {
+  pathname: "/editor",
+  hash: "",
+  search: "",
+  state: shader,
+};
+
 const doMocks = () => {
+  jest.spyOn(routeData, "useLocation").mockReturnValue(mockLocation);
+
   checkWebGPUMock = jest.spyOn(shaders, "checkWebGPU");
   checkWebGPUMock.mockImplementation(() => true);
   simpleShaderMock = jest.spyOn(shaders, "renderShader");
