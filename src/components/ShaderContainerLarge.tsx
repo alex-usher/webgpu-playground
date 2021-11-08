@@ -14,8 +14,8 @@ const ShaderContainerLarge = (props: ShadersContainerProps) => {
       container
       spacing={2}
       alignItems="center"
-      justifyContent="space-between"
       className="container-grid"
+      padding="2%"
     >
       {props.shaderList.map((shader) => (
         <Grid item>
