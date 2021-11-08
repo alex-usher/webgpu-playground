@@ -12,8 +12,9 @@ import { useState } from "react";
 export const ShaderCard = ({ shader }: ShaderProps) => {
   const [isHover, setIsHover] = useState(false);
 
+  const visability = shader.isPublic ? "Public" : "Private";
   return (
-    <Grid item xs={12} sx={{ width: "15em", height: "15em", minWidth: 0 }}>
+    <Grid item xs={12} sx={{ width: "15em", height: "15em" }}>
       <Card
         variant="outlined"
         sx={{ width: "15em", height: "15em" }}
@@ -39,11 +40,20 @@ export const ShaderCard = ({ shader }: ShaderProps) => {
           <CardContent className="card-textbox">
             <Typography
               variant="h4"
-              align="left"
+              align="center"
               className="shadercard-text"
               noWrap={!isHover}
             >
               {shader.title}
+            </Typography>
+
+            <Typography
+              variant="body1"
+              align="right"
+              className="visability"
+              sx={{ position: "absolute", bottom: "0", right: "0" }}
+            >
+              {visability}
             </Typography>
           </CardContent>
         </CardActionArea>

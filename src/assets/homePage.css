@@ -6,7 +6,7 @@
   height: 15%;
   background-color: #4f5358;
   color: lightgray;
-  border: 2em;
+  border: 3em;
 }
 
 .shader-card-image {
@@ -14,8 +14,12 @@
   object-fit: cover;
 }
 
+.card-textbox {
+  padding: 0.5em !important;
+}
+
 .whole-card:hover .shader-card-image {
-  height: 30%;
+  height: 40%;
 }
 
 .whole-card:hover .shader-card {
