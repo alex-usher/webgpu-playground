@@ -9,13 +9,13 @@ import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
 import { useEffect, useState } from "react";
 import React from "react";
-//import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
 
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 
-import { Shader } from "../objects/Shader";
+import { defaultShader, Shader } from "../objects/Shader";
 
 import "../assets/style.css";
 import "../assets/codeEditorPage.css";
@@ -25,6 +25,9 @@ import { useLocation } from "react-router-dom";
 const CodeEditorPage = () => {
   const location = useLocation();
   let shader = location.state as Shader;
+  if (shader === undefined) {
+    shader = defaultShader;
+  }
 
   const [shaderCode, setShaderCode] = useState(shader.shaderCode);
   const [showCode, setShowCode] = useState(false);
@@ -81,7 +84,6 @@ const CodeEditorPage = () => {
             md={8}
             alignItems="center"
           >
-            {/*
             <Grid item>
               <Button
                 id="home-button"
@@ -93,7 +95,7 @@ const CodeEditorPage = () => {
               >
                 {"< Back to Home"}
               </Button>
-            </Grid>*/}
+            </Grid>
             {/* Show/hide code button */}
             <Grid item>
               <Button

@@ -84,7 +84,7 @@ const HomePage = () => {
                   to={"/user/" + auth.currentUser?.uid}
                   className="header-button"
                 >
-                  view my shaders
+                  View My Shaders
                 </Button>
               </Grid>
             ) : (
@@ -95,8 +95,16 @@ const HomePage = () => {
           </Grid>
         </Grid>
 
-        <CardCarousel sectionName="Examples" shaderList={exampleShaders} />
-        <CardCarousel sectionName="Public" shaderList={publicShaders} />
+        <CardCarousel
+          pageLink="/examples"
+          sectionName="Examples"
+          shaderList={exampleShaders}
+        />
+        <CardCarousel
+          pageLink="/public"
+          sectionName="Recent Public Shaders"
+          shaderList={publicShaders}
+        />
       </Grid>
     </Container>
   );

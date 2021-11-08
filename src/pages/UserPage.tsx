@@ -92,10 +92,12 @@ const UserPage = () => {
         </Grid>
 
         <CardCarousel
+          pageLink="/mypublicshaders"
           sectionName="My public shaders"
           shaderList={publicShaders}
         />
         <CardCarousel
+          pageLink="/myprivateshaders"
           sectionName="My private shaders"
           shaderList={privateShaders}
         />

@@ -6,13 +6,16 @@ import { Shader } from "../../objects/Shader";
 import * as shaders from "../../render";
 import { v4 as uuidv4 } from "uuid";
 import routeData from "react-router";
+import { BrowserRouter } from "react-router-dom";
 
 import "@testing-library/jest-dom/extend-expect";
 
 const renderCodeEditorPage = () =>
   render(
     <SnackbarProvider>
-      <CodeEditorPage />
+      <BrowserRouter>
+        <CodeEditorPage />
+      </BrowserRouter>
     </SnackbarProvider>
   );
 
