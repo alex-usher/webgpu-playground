@@ -13,6 +13,8 @@ export const ShaderCard = ({ shader }: ShaderProps) => {
   const [isHover, setIsHover] = useState(false);
 
   const visability = shader.isPublic ? "Public" : "Private";
+  const color = shader.isPublic ? "#ED6C02" : "primary";
+  // I want to use "warning" here like we do on the button but that doesnt work for some reason
   return (
     <Grid item xs={12} sx={{ width: "15em", height: "15em" }}>
       <Card
@@ -48,7 +50,7 @@ export const ShaderCard = ({ shader }: ShaderProps) => {
             </Typography>
 
             <Typography
-              variant="body1"
+              variant="caption"
               align="right"
               className="visability"
               sx={{
@@ -57,6 +59,7 @@ export const ShaderCard = ({ shader }: ShaderProps) => {
                 right: "0",
                 padding: "3px",
               }}
+              color={color}
             >
               {visability}
             </Typography>
