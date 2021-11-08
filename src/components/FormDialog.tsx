@@ -6,7 +6,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 
-import { ref, uploadString } from "@firebase/storage";
+import { ref, uploadBytes, uploadString } from "@firebase/storage";
 import { collection, addDoc, doc, setDoc } from "@firebase/firestore/lite";
 import { auth, firestorage, firedb } from "../firebase";
 import { v4 as uuidv4 } from "uuid";
@@ -33,6 +33,7 @@ interface FormDialogProps {
 
 class nameErr extends Error {
   dupedName: string;
+
   constructor(dupedName: string) {
     super();
     this.dupedName = dupedName;
@@ -50,14 +51,26 @@ const saveShaderCode = async (
     ): SnackbarKey;
   }
 ) => {
-  const shaderFile = `${uuidv4()}_${shaderName}.txt`;
+  const id = uuidv4();
+  const shaderFile = `${id}_${shaderName}.txt`;
   const shaderRef = ref(firestorage, shaderFile);
+  const shaderImage = `images/${id}_${shaderName}.png`;
+  const shaderImageRef = ref(firestorage, shaderImage);
+
+  const canvas = document.getElementById("canvas-webgpu") as HTMLCanvasElement;
+
+  await canvas.toBlob((blob) => {
+    if (blob) {
+      uploadBytes(shaderImageRef, blob);
+    }
+  }, "image/png");
 
   uploadString(shaderRef, shaderCode);
 
   const shaderDoc = {
     shader_name: shaderName,
     shader_code: shaderFile,
+    shader_image: shaderImage,
     isPublic: isPublic,
   };
 
