@@ -7,7 +7,7 @@ import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import React from "react";
 import { Link } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
@@ -15,27 +15,41 @@ import FormDialog from "../components/FormDialog";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 
-import { ShaderProps } from "../objects/Shader";
+import { defaultShader, Shader } from "../objects/Shader";
 
 import "../assets/style.css";
 import "../assets/codeEditorPage.css";
+import { getShaderCode } from "../utils/firebaseHelper";
+import { useLocation } from "react-router-dom";
 
-const CodeEditorPage = ({ shader }: ShaderProps) => {
-  const [vertexCode, setVertexCode] = useState(shader.vertexCode);
-  const [fragmentCode, setFragmentCode] = useState(shader.fragmentCode);
+const CodeEditorPage = () => {
+  const location = useLocation();
+  let shader = location.state as Shader;
+  if (shader === undefined) {
+    shader = defaultShader;
+  }
+
+  const [shaderCode, setShaderCode] = useState(shader.shaderCode);
   const [showCode, setShowCode] = useState(false);
   const [viewCodeText, setViewCodeText] = useState("View Code");
-  const [renderedVertexCode, setRenderedVertexCode] = useState(
-    shader.vertexCode
-  );
-  const [renderedFragmentCode, setRenderedFragmentCode] = useState(
-    shader.fragmentCode
+  const [renderedShaderCode, setRenderedShaderCode] = useState(
+    shader.shaderCode
   );
   const [inFullscreen, setInFullscreen] = useState(false);
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [formOpen, setFormOpen] = React.useState(false);
 
   const [shaderName, setShaderName] = useState("");
+
+  useEffect(() => {
+    if (shader.shaderCode === undefined) {
+      getShaderCode(shader).then((shaderWithCode: Shader) => {
+        shader = shaderWithCode;
+        setShaderCode(shader.shaderCode);
+        setRenderedShaderCode(shader.shaderCode);
+      });
+    }
+  }, [shader]);
 
   const handleFormOpen = () => {
     setFormOpen(true);
@@ -108,8 +122,7 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
                     disableElevation
                     color="secondary"
                     onClick={() => {
-                      setRenderedVertexCode(vertexCode);
-                      setRenderedFragmentCode(fragmentCode);
+                      setRenderedShaderCode(shaderCode);
                     }}
                   >
                     Compile
@@ -132,8 +145,7 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
                   <FormDialog
                     open={formOpen}
                     handleClose={handleFormClose}
-                    vertexCode={vertexCode}
-                    fragmentCode={fragmentCode}
+                    shaderCode={shaderCode}
                   />
                 </Grid>
                 <Grid item>
@@ -153,8 +165,7 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
                   <FormDialog
                     open={formOpen}
                     handleClose={handleFormClose}
-                    vertexCode={vertexCode}
-                    fragmentCode={fragmentCode}
+                    shaderCode={shaderCode}
                   />
                 </Grid>
                 <Grid item>
@@ -261,37 +272,19 @@ const CodeEditorPage = ({ shader }: ShaderProps) => {
         </Grid>
       </div>
 
-      <ShaderCanvas
-        vertexCode={renderedVertexCode}
-        fragmentCode={renderedFragmentCode}
-      />
+      <ShaderCanvas shaderCode={renderedShaderCode} />
       <div className="editors">
-        <div className="vertex-editor">
-          {showCode ? (
-            <Editor
-              value={vertexCode}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                setVertexCode(e.target.value);
-              }}
-              opacity={editorOpacity}
-            />
-          ) : (
-            <></>
-          )}
-        </div>
-        <div className="fragment-editor">
-          {showCode ? (
-            <Editor
-              value={fragmentCode}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                setFragmentCode(e.target.value);
-              }}
-              opacity={editorOpacity}
-            />
-          ) : (
-            <></>
-          )}
-        </div>
+        {showCode ? (
+          <Editor
+            value={shaderCode}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+              setShaderCode(e.target.value);
+            }}
+            opacity={editorOpacity}
+          />
+        ) : (
+          <></>
+        )}
       </div>
     </div>
   );

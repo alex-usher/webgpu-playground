@@ -1,5 +1,5 @@
 import { Shader } from "../objects/Shader";
-import { ShaderCard } from "../components/ShaderCard";
+import { ShaderCard } from "./ShaderCard";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
@@ -44,7 +44,7 @@ export const CardCarousel = ({
       </Grid>
       <div className="row__blocks">
         {shaderList.map((shader) => (
-          <li className="row__tile">
+          <li key={shader.id} className="row__tile">
             <ShaderCard shader={shader} />
           </li>
         ))}

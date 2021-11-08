@@ -26,7 +26,7 @@ var<uniform> view_params: ViewParams;
 export const rectangleVertex = `/*${structs}*/
 
 [[stage(vertex)]]
-fn main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput {
+fn vertex_main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput {
     var pos = array<vec2<f32>, 6>(
         vec2<f32>(1.0, 1.0),
         vec2<f32>(view_params.x, view_params.y),
@@ -52,12 +52,12 @@ fn main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput
 };`;
 
 export const rectangleFragment = `[[stage(fragment)]]
-fn main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
+fn fragment_main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
     return sin(view_params.time * 0.01) * color;
 };`;
 
 export const shaderTriangleFragment = `[[stage(fragment)]]
-fn main([[location(0)]] vColor: vec4<f32>) -> [[location(0)]] vec4<f32> {
+fn fragment_main([[location(0)]] vColor: vec4<f32>) -> [[location(0)]] vec4<f32> {
     return vColor;
 }
 `;
@@ -68,7 +68,7 @@ export const shaderTriangleVertex = `struct Output {
 };
 
 [[stage(vertex)]]
-fn main([[builtin(vertex_index)]] index: u32) -> Output {
+fn vertex_main([[builtin(vertex_index)]] index: u32) -> Output {
     var pos = array<vec2<f32>, 3>(
         vec2<f32>(0.0, 0.5),
         vec2<f32>(-0.5, -0.5),
@@ -119,10 +119,7 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
   y = position.y;
 };
 
-export const renderShader = async (
-  vertex: string,
-  fragment: string
-): Promise<void> => {
+export const renderShader = async (shaderCode: string): Promise<void> => {
   if (!checkWebGPU()) {
     return;
   }
@@ -139,22 +136,13 @@ export const renderShader = async (
   const stateFormat = "bgra8unorm";
   const depthFormat = "depth24plus-stencil8";
 
-  const vertexShaderModule = device.createShaderModule({
-    code: `${structs}\n${vertex}`,
-  });
-
-  const fragmentShaderModule = device.createShaderModule({
-    code: `${structs}\n${fragment}`,
+  const shaderModule = device.createShaderModule({
+    code: `${structs}\n${shaderCode}`,
   });
 
   // check for compilation failures and output any compile messages
-  if (!(await outputMessages(vertexShaderModule))) {
-    console.log("Vertex Shader Compilation failed");
-    return;
-  }
-
-  if (!(await outputMessages(fragmentShaderModule))) {
-    console.log("Fragment Shader Compilation failed");
+  if (!(await outputMessages(shaderModule))) {
+    console.log("Shader Compilation failed");
     return;
   }
 
@@ -204,8 +192,8 @@ export const renderShader = async (
   const renderPipeline = device.createRenderPipeline({
     layout: layout,
     vertex: {
-      module: vertexShaderModule,
-      entryPoint: "main",
+      module: shaderModule,
+      entryPoint: "vertex_main",
       buffers: [
         {
           arrayStride: 6 * 4,
@@ -218,8 +206,8 @@ export const renderShader = async (
       ],
     },
     fragment: {
-      module: fragmentShaderModule,
-      entryPoint: "main",
+      module: shaderModule,
+      entryPoint: "fragment_main",
       targets: [{ format: stateFormat }],
     },
     depthStencil: {
@@ -319,5 +307,5 @@ export const renderShader = async (
 };
 
 export const renderTriangle = (): void => {
-  renderShader(shaderTriangleVertex, shaderTriangleFragment);
+  renderShader(`${shaderTriangleVertex}\n${shaderTriangleFragment}`);
 };

@@ -9,7 +9,6 @@ import ShadersComponent from "./components/ShadersComponent";
 import { SnackbarProvider } from "notistack";
 
 import "./assets/style.css";
-import { defaultShader } from "./objects/Shader";
 
 ReactDOM.render(
   <React.StrictMode>
@@ -21,9 +20,9 @@ ReactDOM.render(
               <HomePage />
             </Route>
             <Route path="/editor">
-              <CodeEditorPage shader={defaultShader} />
+              <CodeEditorPage />
             </Route>
-            <Route path="/user/:uid" component={UserPage} />
+            <Route path="/user" component={UserPage} />
             <Route path="/examples" component={ShadersComponent} />
             <Route path="/public" component={ShadersComponent} />
             <Route path="/mypublicshaders" component={ShadersComponent} />

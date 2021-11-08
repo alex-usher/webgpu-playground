@@ -1,13 +1,20 @@
 import {
+  addDoc,
   collection,
-  getDocs,
   CollectionReference,
-  DocumentData,
   doc,
+  DocumentData,
+  getDoc,
+  getDocs,
   runTransaction,
 } from "@firebase/firestore/lite";
+import {
+  defaultShader,
+  downloadShaderCode,
+  Shader,
+  shaderConverter,
+} from "../objects/Shader";
 import { auth, firedb } from "../firebase";
-import { shaderConverter, Shader } from "../objects/Shader";
 import { useSnackbar } from "notistack";
 
 const getShaders = async (
@@ -48,7 +55,7 @@ export const getUserPublicShaders = async (): Promise<Shader[]> => {
   const publicShaders: Shader[] = [];
   const shaders: Shader[] = await getUserShaders();
   for (const shader of shaders) {
-    if (shader.isPublic == true) {
+    if (shader.isPublic) {
       publicShaders.push(shader);
     }
   }
@@ -59,11 +66,49 @@ export const getUserPrivateShaders = async (): Promise<Shader[]> => {
   const privateShaders: Shader[] = [];
   const shaders: Shader[] = await getUserShaders();
   for (const shader of shaders) {
-    if (shader.isPublic == false) {
+    if (!shader.isPublic) {
       privateShaders.push(shader);
     }
   }
   return privateShaders;
+};
+
+// eslint-disable-next-line
+export const getShaderCode = async (shader: any): Promise<Shader> => {
+  shader.shaderCode = await downloadShaderCode(shader.shader.id);
+  return shader;
+};
+
+export const getShaderById = async (id: string): Promise<Shader> => {
+  const user = auth.currentUser;
+  let querySnapshot;
+
+  if (user) {
+    querySnapshot = await getDoc(
+      doc(firedb, "users", user.uid, "shaders", id).withConverter(
+        shaderConverter
+      )
+    );
+  }
+
+  let data = querySnapshot?.data();
+  if (!data) {
+    querySnapshot = await getDoc(
+      doc(firedb, "example-shaders", id).withConverter(shaderConverter)
+    );
+    data = querySnapshot?.data();
+    if (!data) {
+      querySnapshot = await getDoc(
+        doc(firedb, "public-shaders", id).withConverter(shaderConverter)
+      );
+
+      data = querySnapshot?.data();
+      if (!data) {
+        throw new Error("Shader data could not be retrieved from Firebase");
+      }
+    }
+  }
+  return data;
 };
 
 class unsavedErr extends Error {
@@ -150,9 +195,33 @@ const toggleShaderPublicity = async (
       }
     }
   }
-
   // a false result means that the toggle should not move! the operation has not been successful
   return success;
+};
+
+export const getDefaultShader = async (): Promise<Shader> => {
+  try {
+    const shader = (
+      await getDoc(
+        doc(firedb, "example-shaders", "8ssqqpVWyfXYdQphsbnP").withConverter(
+          shaderConverter
+        )
+      )
+    ).data();
+
+    if (shader === undefined) {
+      throw new Error();
+    }
+
+    return shader;
+  } catch (err) {
+    throw new Error("Shader data could not be retrieved from Firebase");
+  }
+};
+
+export const uploadExample = async (): Promise<void> => {
+  const data = shaderConverter.toFirestore(defaultShader);
+  await addDoc(collection(firedb, "example-shaders"), data);
 };
 
 export const makeShaderPublic = async (shader: Shader): Promise<boolean> => {
