@@ -5,9 +5,8 @@ import { useLocation } from "react-router-dom";
 
 import "../assets/homePage.css";
 import { Shader } from "../objects/Shader";
-import { ShaderCard } from "../components/ShaderCard";
-import { ImageList, ImageListItem } from "@mui/material";
 import HeaderComponent from "../components/HeaderComponent";
+import ShaderContainerLarge from "../components/ShaderContainerLarge";
 
 interface ShadersPageProps {
   sectionName: string;
@@ -32,13 +31,8 @@ const ShadersPage = () => {
             {sectionName}
           </Typography>
         </Grid>
-        <ImageList cols={4} rowHeight={220}>
-          {shaderList.map((shader) => (
-            <ImageListItem key={shader.image} style={{ padding: "1vw" }}>
-              <ShaderCard shader={shader} />
-            </ImageListItem>
-          ))}
-        </ImageList>
+
+        <ShaderContainerLarge shaderList={shaderList} />
       </Grid>
     </Container>
   );

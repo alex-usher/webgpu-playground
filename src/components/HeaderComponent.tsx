@@ -1,7 +1,7 @@
 import SignInButton from "../components/SignInButton";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
+import LinkMui from "@mui/material/Link";
 import { getAuth, onAuthStateChanged } from "@firebase/auth";
 import { Link } from "react-router-dom";
 import { useState } from "react";
@@ -20,7 +20,9 @@ const HeaderComponent = () => {
   return (
     <Grid container alignItems="center" spacing={3} className="title-header">
       <Grid item xs={12} md={6}>
-        <Typography variant="h3">WebGPU Playground</Typography>
+        <LinkMui href="/" variant="h3" color="white" underline="none">
+          WebGPU Playground
+        </LinkMui>
       </Grid>
 
       <Grid
