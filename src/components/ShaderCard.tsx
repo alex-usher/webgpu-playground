@@ -27,8 +27,18 @@ export const ShaderCard = ({ shader }: ShaderProps) => {
             component="img"
             src={shader.image}
           />
-          <CardContent>
-            <Typography variant="h4" align="left">
+          <CardContent
+            style={{
+              padding: "0 0.5em 0 0.5em !important",
+              backgroundColor: "#222222",
+              borderTop: "1px solid white",
+            }}
+          >
+            <Typography
+              variant="h6"
+              style={{ lineHeight: 1, fontWeight: 400 }}
+              align="center"
+            >
               {shader.title}
             </Typography>
           </CardContent>
