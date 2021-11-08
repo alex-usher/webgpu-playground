@@ -51,7 +51,12 @@ export const ShaderCard = ({ shader }: ShaderProps) => {
               variant="body1"
               align="right"
               className="visability"
-              sx={{ position: "absolute", bottom: "0", right: "0" }}
+              sx={{
+                position: "absolute",
+                bottom: "0",
+                right: "0",
+                padding: "3px",
+              }}
             >
               {visability}
             </Typography>

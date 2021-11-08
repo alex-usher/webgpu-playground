@@ -18,7 +18,7 @@ const ShaderContainerLarge = (props: ShadersContainerProps) => {
       padding="2%"
     >
       {props.shaderList.map((shader) => (
-        <Grid item>
+        <Grid item key={shader.id}>
           <ShaderCard shader={shader} />
         </Grid>
       ))}
