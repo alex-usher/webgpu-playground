@@ -5,34 +5,34 @@ import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import { Shader, defaultShader } from "../objects/Shader";
-import { Link } from "react-router-dom";
-import { getAuth, onAuthStateChanged } from "@firebase/auth";
 import { CardCarousel } from "../components/CardCarousel";
+import { getAuth, onAuthStateChanged } from "@firebase/auth";
+import { Link } from "react-router-dom";
 
 import "../assets/homePage.css";
 import "../assets/shaderGallery.css";
-
 import { getExampleShaders, getPublicShaders } from "../utils/firebaseHelper";
 
 const HomePage = () => {
   const auth = getAuth();
+
   const [exampleShaders, setExampleShaders] = useState<Shader[]>([]);
   const [publicShaders, setPublicShaders] = useState<Shader[]>([]);
-  // const [defaultShader, setDefaultShader] = useState<Shader>();
+
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
   onAuthStateChanged(auth, (user) => {
     setIsLoggedIn(user != null);
   });
 
   useEffect(() => {
-    getExampleShaders().then((shaders) => {
-      setExampleShaders(shaders);
+    getPublicShaders().then((shaders: Shader[]) => {
+      setPublicShaders(shaders);
     });
   }, []);
 
   useEffect(() => {
-    getPublicShaders().then((shaders) => {
-      setPublicShaders(shaders);
+    getExampleShaders().then((shaders: Shader[]) => {
+      setExampleShaders(shaders);
     });
   }, []);
 
@@ -87,7 +87,7 @@ const HomePage = () => {
                   to={"/user/" + auth.currentUser?.uid}
                   className="header-button"
                 >
-                  view my shaders
+                  View My Shaders
                 </Button>
               </Grid>
             ) : (
@@ -98,8 +98,16 @@ const HomePage = () => {
           </Grid>
         </Grid>
 
-        <CardCarousel sectionName="Examples" shaderList={exampleShaders} />
-        <CardCarousel sectionName="Public" shaderList={publicShaders} />
+        <CardCarousel
+          pageLink="/examples"
+          sectionName="Examples"
+          shaderList={exampleShaders}
+        />
+        <CardCarousel
+          pageLink="/public"
+          sectionName="Recent Public Shaders"
+          shaderList={publicShaders}
+        />
       </Grid>
     </Container>
   );
