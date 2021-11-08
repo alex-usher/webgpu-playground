@@ -1,5 +1,5 @@
 import { Shader } from "../objects/Shader";
-import { ShaderCard } from "../components/ShaderCard";
+import { ShaderCard } from "./ShaderCard";
 import Typography from "@mui/material/Typography";
 import "../assets/cardCarousel.css";
 
@@ -19,7 +19,7 @@ export const CardCarousel = ({ sectionName, shaderList }: CarouselProps) => {
       <div className="row__blocks">
         {/* several row posters */}
         {shaderList.map((shader) => (
-          <li className="row__tile">
+          <li key={shader.id} className="row__tile">
             <ShaderCard shader={shader} />
           </li>
         ))}

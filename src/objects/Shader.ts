@@ -1,17 +1,14 @@
 import axios from "axios";
 import { rectangleFragment, rectangleVertex } from "../render";
 import {
+  doc,
+  getDoc,
   DocumentData,
   QueryDocumentSnapshot,
   WithFieldValue,
 } from "@firebase/firestore/lite";
-import {
-  getDownloadURL,
-  ref,
-  StorageReference,
-  uploadString,
-} from "@firebase/storage";
-import { firestorage } from "../firebase";
+import { getDownloadURL, ref, uploadString } from "@firebase/storage";
+import { auth, firedb, firestorage } from "../firebase";
 import { v4 as uuidv4 } from "uuid";
 
 export class Shader {
@@ -49,39 +46,50 @@ export const shaderConverter = {
       isPublic: shader.isPublic,
     };
   },
-  async fromFirestore(snapshot: QueryDocumentSnapshot): Promise<Shader | void> {
-    if (!snapshot.data()) {
-      return;
-    }
+  fromFirestore(snapshot: QueryDocumentSnapshot): Shader {
     const data = snapshot.data();
     if (!data) {
       throw new Error("shader data could not be retrieved from Firebase");
     }
 
-    try {
-      const shaderCode = await downloadStorageRef(
-        ref(firestorage, data.shader_code)
-      );
-
-      return new Shader(
-        snapshot.id,
-        data.shader_name,
-        "", // image of shader
-        data.isPublic,
-        shaderCode
-      );
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log("ERROR: " + err.message);
-      }
-      return;
-    }
+    return new Shader(
+      snapshot.id,
+      data.shader_name,
+      data.image ? data.image : "https://i.ibb.co/M5Z06wy/triangle.png", // image of shader
+      data.isPublic,
+      ""
+    );
   },
 };
 
-const downloadStorageRef = async (ref: StorageReference): Promise<string> => {
-  const url = await getDownloadURL(ref);
-  return (await axios.get(url)).data;
+export const downloadShaderCode = async (id: string): Promise<string> => {
+  const user = auth.currentUser;
+  let querySnapshot;
+
+  if (user !== null) {
+    querySnapshot = await getDoc(doc(firedb, "users", user.uid, "shaders", id));
+  }
+
+  let data = querySnapshot?.data();
+  if (!data) {
+    querySnapshot = await getDoc(doc(firedb, "example-shaders", id));
+
+    data = querySnapshot?.data();
+    if (!data) {
+      querySnapshot = await getDoc(doc(firedb, "public-shaders", id));
+
+      data = querySnapshot?.data();
+      if (!data) {
+        throw new Error("Shader data could not be retrieved from Firebase");
+      }
+    }
+  }
+
+  const shaderCodeURL = await getDownloadURL(
+    ref(firestorage, data.shader_code)
+  );
+
+  return (await axios.get(shaderCodeURL)).data;
 };
 
 export interface ShaderProps {
