@@ -75,7 +75,7 @@ export const getUserPrivateShaders = async (): Promise<Shader[]> => {
 
 // eslint-disable-next-line
 export const getShaderCode = async (shader: any): Promise<Shader> => {
-  shader.shaderCode = await downloadShaderCode(shader.shader.id);
+  shader.shaderCode = await downloadShaderCode(shader.id);
   return shader;
 };
 
