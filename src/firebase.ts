@@ -19,6 +19,8 @@ const firestorage = getStorage();
 const analytics = getAnalytics(fire);
 const auth = getAuth(fire);
 const firedb = getFirestore(fire);
+export const imageDownloadUrl = (itemLocation: string, token: string): string =>
+  `httpsL//firebasestorage.googleapis.com/v0/b/web-gpu-playground.appspot.com/o/${itemLocation}?alt=media&token=${token}`;
 
 export default fire;
 export { auth, firedb, analytics, firestorage };
