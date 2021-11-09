@@ -10,7 +10,10 @@ interface EditorProps {
 }
 
 const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
-  const lines = (value.split(/\r\n|\r|\n/) || []).length;
+  let lines = 0;
+  if (value) {
+    lines = value.split(/\r\n|\r|\n/).length;
+  }
 
   const gutterRef = React.useRef<HTMLDivElement>(null);
   const editorRef = React.useRef<HTMLTextAreaElement>(null);

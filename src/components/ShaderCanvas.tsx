@@ -9,11 +9,10 @@ const HEIGHT_ASPECT = 720;
 const ASPECT_RATIO = 0.9;
 
 interface ShaderCanvasInput {
-  vertexCode: string;
-  fragmentCode: string;
+  shaderCode: string;
 }
 
-const ShaderCanvas = ({ vertexCode, fragmentCode }: ShaderCanvasInput) => {
+const ShaderCanvas = ({ shaderCode }: ShaderCanvasInput) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
   const aspectMultiple = Math.min(
@@ -22,8 +21,10 @@ const ShaderCanvas = ({ vertexCode, fragmentCode }: ShaderCanvasInput) => {
   );
 
   useEffect(() => {
-    renderShader(vertexCode, fragmentCode);
-  }, [vertexCode, fragmentCode]);
+    if (shaderCode !== undefined) {
+      renderShader(shaderCode);
+    }
+  }, [shaderCode]);
 
   useEffect(() => {
     const setFromEvent = (e: MouseEvent) => {
@@ -64,7 +65,9 @@ const ShaderCanvas = ({ vertexCode, fragmentCode }: ShaderCanvasInput) => {
           />
         </div>
       ) : (
-        <Typography variant="h2"> webgpu not supported!</Typography>
+        <Typography variant="h2">
+          WebGPU support not enabled! Are you using Chrome Canary?
+        </Typography>
       )}
     </div>
   );

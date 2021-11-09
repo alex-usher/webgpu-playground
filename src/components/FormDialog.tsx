@@ -7,9 +7,8 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 
 import { ref, uploadString } from "@firebase/storage";
-import { getAuth } from "@firebase/auth";
-import { collection, addDoc } from "@firebase/firestore/lite";
-import { firestorage, firedb } from "../firebase";
+import { collection, addDoc, doc, setDoc } from "@firebase/firestore/lite";
+import { auth, firestorage, firedb } from "../firebase";
 import { v4 as uuidv4 } from "uuid";
 
 import FormGroup from "@mui/material/FormGroup";
@@ -24,16 +23,24 @@ import {
   useSnackbar,
 } from "notistack";
 
+import { getUserShaders } from "../utils/firebaseHelper";
+
 interface FormDialogProps {
   open: boolean;
   handleClose: () => void;
-  vertexCode: string;
-  fragmentCode: string;
+  shaderCode: string;
 }
 
-const saveShaderCode = (
-  vertexCode: string,
-  fragmentCode: string,
+class nameErr extends Error {
+  dupedName: string;
+  constructor(dupedName: string) {
+    super();
+    this.dupedName = dupedName;
+  }
+}
+
+const saveShaderCode = async (
+  shaderCode: string,
   shaderName: string,
   isPublic: boolean,
   enqueueSnackbar: {
@@ -43,63 +50,79 @@ const saveShaderCode = (
     ): SnackbarKey;
   }
 ) => {
-  const vertexFile = uuidv4() + shaderName + "_vertex.txt";
-  const fragmentFile = uuidv4() + shaderName + "_fragment.txt";
+  const shaderFile = `${uuidv4()}_${shaderName}.txt`;
+  const shaderRef = ref(firestorage, shaderFile);
 
-  const vertexRef = ref(firestorage, vertexFile);
-  const fragmentRef = ref(firestorage, fragmentFile);
-
-  uploadString(vertexRef, vertexCode);
-  uploadString(fragmentRef, fragmentCode);
+  uploadString(shaderRef, shaderCode);
 
   const shaderDoc = {
     shader_name: shaderName,
-    vertex_code: vertexFile,
-    fragment_code: fragmentFile,
+    shader_code: shaderFile,
     isPublic: isPublic,
   };
 
-  if (isPublic) {
-    addDoc(collection(firedb, "public-shaders"), shaderDoc)
-      .then(() => {
-        enqueueSnackbar("Successfully saved!", {
-          variant: "success",
-          autoHideDuration: 1000,
-        });
-      })
-      .catch((_err) => {
-        enqueueSnackbar("Failed to save", {
-          variant: "error",
-          autoHideDuration: 1000,
-        });
-      });
-  }
+  let hasErred = false;
 
-  const user = getAuth().currentUser;
-  if (user) {
-    const usersShadersRef = collection(firedb, "users", user.uid, "shaders");
-    addDoc(usersShadersRef, shaderDoc)
-      .then(() => {
-        enqueueSnackbar("Successfully saved!", {
-          variant: "success",
-          autoHideDuration: 1000,
-        });
-      })
-      .catch((_err) => {
-        enqueueSnackbar("Failed to save", {
+  try {
+    const user = auth.currentUser;
+    if (user) {
+      const existingShaders = await getUserShaders();
+      for (const existingShader of existingShaders) {
+        if (shaderName == existingShader.title) {
+          throw new nameErr(shaderName);
+        }
+      }
+    }
+
+    let shaderId = null;
+    if (isPublic) {
+      shaderId = (await addDoc(collection(firedb, "public-shaders"), shaderDoc))
+        .id;
+    }
+
+    if (user) {
+      if (shaderId) {
+        await setDoc(
+          doc(firedb, "users", user.uid, "shaders", shaderId),
+          shaderDoc
+        );
+      } else {
+        const usersShadersRef = collection(
+          firedb,
+          "users",
+          user.uid,
+          "shaders"
+        );
+        await addDoc(usersShadersRef, shaderDoc);
+      }
+    }
+  } catch (err) {
+    hasErred = true;
+    if (err instanceof nameErr) {
+      enqueueSnackbar(
+        "A shader with name " + err.dupedName + " already exists!",
+        {
           variant: "error",
           autoHideDuration: 1000,
-        });
+        }
+      );
+    } else {
+      enqueueSnackbar("Failed to save!", {
+        variant: "error",
+        autoHideDuration: 1000,
       });
+    }
+  } finally {
+    if (!hasErred) {
+      enqueueSnackbar("Successfully saved!", {
+        variant: "success",
+        autoHideDuration: 1000,
+      });
+    }
   }
 };
 
-const FormDialog = ({
-  open,
-  handleClose,
-  vertexCode,
-  fragmentCode,
-}: FormDialogProps) => {
+const FormDialog = ({ open, handleClose, shaderCode }: FormDialogProps) => {
   const [fileName, setFileName] = useState("no name provided");
   const [isPublic, setIsPublic] = useState(false);
 
@@ -143,13 +166,7 @@ const FormDialog = ({
         <Button onClick={resetAndClose}>Cancel</Button>
         <Button
           onClick={() => {
-            saveShaderCode(
-              vertexCode,
-              fragmentCode,
-              fileName,
-              isPublic,
-              enqueueSnackbar
-            );
+            saveShaderCode(shaderCode, fileName, isPublic, enqueueSnackbar);
             resetAndClose();
           }}
         >

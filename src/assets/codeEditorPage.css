@@ -1,20 +1,15 @@
 .editors {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.vertex-editor {
     position: fixed;
     left: 3%;
-    top: 10%;
-    width: 62%;
-    height: 85%;
+    top: 8%;
+    width: 95%;
+    height: 88%;
 }
-.fragment-editor {
-    position: fixed;
-    right: 3%;
-    top: 10%;
-    width: 30%;
-    height: 85%;
+
+.css-1yjjitx-MuiSwitch-track {
+    background-color: lightgray !important;
+}
+
+.css-5ryogn-MuiButtonBase-root-MuiSwitch-switchBase.Mui-checked+.MuiSwitch-track {
+    background-color: #1976d2 !important;
 }

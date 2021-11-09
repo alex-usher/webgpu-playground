@@ -1,29 +1,26 @@
 .row {
-    /* margin-left: 30px; */
-    color: white;
-    width: 100%;
-  }
+  color: white;
+  width: 100%;
+}
 
-.title {
-    margin-left: 20px !important;
-  }
-  
-  .row__blocks {
-    display: flex;
-    overflow-x: scroll;
-    overflow-y: hidden;
-  }
-  
-  
-  .row__tile {
-    display: inline-block;
-    color: white;
-    padding: 20px;
-  }
-  
-  
-  .row__tile:hover {
-    transform: scale(1.1);
-  }
+.header {
+  margin-top: 2vh !important;
+  margin-left: 1vw !important;
+  margin-right: 2vw !important;
+}
 
+.row__blocks {
+  display: flex;
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
 
+.row__tile {
+  display: inline-block;
+  color: white;
+  padding: 1vw;
+}
+
+.row__tile:hover {
+  transform: scale(1.04);
+}
