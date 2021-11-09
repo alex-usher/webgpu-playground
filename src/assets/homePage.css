@@ -1,14 +1,27 @@
 .title-header {
-    padding-bottom: 5vh;
+  padding-bottom: 5vh;
 }
 
 .shader-card {
-    height: 15%;
-    background-color: #4F5358;
-    color: lightgray;
+  height: 15%;
+  background-color: #4f5358;
+  color: lightgray;
+  border: 3em;
 }
 
 .shader-card-image {
-    height: 70%;
-    object-fit: cover;
+  height: 70%;
+  object-fit: cover;
+}
+
+.card-textbox {
+  padding: 0.5em !important;
+}
+
+.whole-card:hover .shader-card-image {
+  height: 40%;
+}
+
+.whole-card:hover .shader-card {
+  white-space: normal;
 }
