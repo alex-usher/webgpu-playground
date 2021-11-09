@@ -7,7 +7,7 @@ import {
   CreateTransforms,
   CreateViewProjection,
 } from "./helpers";
-import { cubeColours, cubePositions } from "./meshes";
+import { cubeIndices, cubeVertices } from "./meshes";
 import { mat4 } from "gl-matrix";
 
 let x = 0;
@@ -67,9 +67,9 @@ export const renderShader = async (
   }
   // --------------------------------------------------------------------------------------
   // create buffers
-  const numberOfVertices = cubePositions.length / 3;
-  const vertexBuffer = CreateGPUBuffer(device, cubePositions);
-  const colorBuffer = CreateGPUBuffer(device, cubeColours);
+  const numberOfVertices = cubeIndices.length;
+  const vertexBuffer = CreateGPUBuffer(device, cubeVertices);
+  const indexBuffer = CreateGPUBuffer(device, cubeIndices, true);
 
   // --------------------------------------------------------------------------------------
   // Define  layouts
@@ -100,22 +100,17 @@ export const renderShader = async (
       entryPoint: "main",
       buffers: [
         {
-          arrayStride: 12,
+          arrayStride: 24,
           attributes: [
             {
               shaderLocation: 0,
               format: "float32x3",
               offset: 0,
             },
-          ],
-        },
-        {
-          arrayStride: 12,
-          attributes: [
             {
               shaderLocation: 1,
               format: "float32x3",
-              offset: 0,
+              offset: 12,
             },
           ],
         },
@@ -213,8 +208,8 @@ export const renderShader = async (
 
       const commandEncoder = device.createCommandEncoder();
       // commandEncoder.copyBufferToBuffer(upload, 0, viewParamsBuffer, 0, 4);
-      commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
-      commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
+      // commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
+      // commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
 
       const renderPass = commandEncoder.beginRenderPass(
         renderPassDescription as GPURenderPassDescriptor
@@ -222,8 +217,8 @@ export const renderShader = async (
       renderPass.setPipeline(renderPipeline);
       renderPass.setBindGroup(0, viewParamsBindGroup);
       renderPass.setVertexBuffer(0, vertexBuffer);
-      renderPass.setVertexBuffer(1, colorBuffer);
-      renderPass.draw(numberOfVertices);
+      renderPass.setIndexBuffer(indexBuffer, "uint32");
+      renderPass.drawIndexed(numberOfVertices);
       renderPass.endPass();
 
       device.queue.submit([commandEncoder.finish()]);

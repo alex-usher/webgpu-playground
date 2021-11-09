@@ -26,7 +26,8 @@ export const outputMessages = async (shaderModule: GPUShaderModule) => {
 
 export const CreateGPUBuffer = (
   device: GPUDevice,
-  data: Float32Array,
+  data: Float32Array | Uint32Array,
+  uInt = false,
   usageFlag: GPUBufferUsageFlags = GPUBufferUsage.VERTEX |
     GPUBufferUsage.COPY_DST
 ) => {
@@ -35,7 +36,11 @@ export const CreateGPUBuffer = (
     usage: usageFlag,
     mappedAtCreation: true,
   });
-  new Float32Array(buffer.getMappedRange()).set(data);
+  if (uInt) {
+    new Uint32Array(buffer.getMappedRange()).set(data);
+  } else {
+    new Float32Array(buffer.getMappedRange()).set(data);
+  }
   buffer.unmap();
   return buffer;
 };
