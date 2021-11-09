@@ -51,31 +51,13 @@ export const shaderConverter = {
     if (!data) {
       throw new Error("shader data could not be retrieved from Firebase");
     }
-
-    if (data.shader_image) {
-      getDownloadURL(ref(firestorage, data.shader_image))
-        .then((url) => {
-          return new Shader(
-            snapshot.id,
-            data.shader_name,
-            url,
-            data.isPublic,
-            ""
-          );
-        })
-        .catch((err) => {
-          console.log(err);
-          throw new Error("Couldn't get image download url");
-        });
-    } else {
-      return new Shader(
-        snapshot.id,
-        data.shader_name,
-        "https://i.ibb.co/M5Z06wy/triangle.png",
-        data.isPublic,
-        ""
-      );
-    }
+    return new Shader(
+      snapshot.id,
+      data.shader_name,
+      data.image ? data.image : "https://i.ibb.co/M5Z06wy/triangle.png", // image of shader
+      data.isPublic,
+      ""
+    );
   },
 };
 
