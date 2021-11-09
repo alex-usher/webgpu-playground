@@ -4,22 +4,22 @@
 
 .shader-card {
   height: 15%;
-  background-color: #4f5358;
-  color: lightgray;
-  border: 3em;
+  color: #000;
 }
 
 .shader-card-image {
-  height: 70%;
+  height: 75%;
   object-fit: cover;
 }
 
 .card-textbox {
+  border-top: 1px solid white;
+  background-color: #000;
   padding: 0.5em !important;
 }
 
 .whole-card:hover .shader-card-image {
-  height: 40%;
+  height: 60%;
 }
 
 .whole-card:hover .shader-card {

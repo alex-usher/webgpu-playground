@@ -51,7 +51,6 @@ export const shaderConverter = {
     if (!data) {
       throw new Error("shader data could not be retrieved from Firebase");
     }
-
     return new Shader(
       snapshot.id,
       data.shader_name,

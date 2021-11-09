@@ -293,7 +293,7 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
         colorAttachments: [
           {
             view: context.getCurrentTexture().createView(),
-            loadValue: [0.0, 0.0, 0.0, 0.0],
+            loadValue: [0.0, 0.0, 0.0, 1.0],
           },
         ],
         depthStencilAttachment: {
