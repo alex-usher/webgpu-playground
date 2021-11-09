@@ -46,7 +46,7 @@ export const shaderConverter = {
       isPublic: shader.isPublic,
     };
   },
-  fromFirestore(snapshot: QueryDocumentSnapshot): Shader | void {
+  fromFirestore(snapshot: QueryDocumentSnapshot): Shader {
     const data = snapshot.data();
     if (!data) {
       throw new Error("shader data could not be retrieved from Firebase");
