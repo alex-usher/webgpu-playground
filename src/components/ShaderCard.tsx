@@ -12,9 +12,9 @@ import { useState } from "react";
 export const ShaderCard = ({ shader }: ShaderProps) => {
   const [isHover, setIsHover] = useState(false);
 
-  const visability = shader.isPublic ? "Public" : "Private";
+  const visibility = shader.isPublic ? "Public" : "Private";
   const color = shader.isPublic ? "#ED6C02" : "primary";
-  // I want to use "warning" here like we do on the button but that doesnt work for some reason
+  // if anyone can refactor this hex code to be the warning color instead that would be idea
   return (
     <Grid item xs={12} sx={{ width: "15em", height: "15em" }}>
       <Card
@@ -52,7 +52,7 @@ export const ShaderCard = ({ shader }: ShaderProps) => {
             <Typography
               variant="caption"
               align="right"
-              className="visability"
+              className="visibility"
               sx={{
                 position: "absolute",
                 bottom: "0",
@@ -61,7 +61,7 @@ export const ShaderCard = ({ shader }: ShaderProps) => {
               }}
               color={color}
             >
-              {visability}
+              {visibility}
             </Typography>
           </CardContent>
         </CardActionArea>
