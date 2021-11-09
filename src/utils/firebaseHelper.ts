@@ -6,7 +6,10 @@ import {
   DocumentData,
   getDoc,
   getDocs,
+  limit,
+  query,
   runTransaction,
+  startAt,
 } from "@firebase/firestore/lite";
 import {
   defaultShader,
@@ -18,10 +21,25 @@ import { auth, firedb } from "../firebase";
 import { useSnackbar } from "notistack";
 
 const getShaders = async (
-  collection: CollectionReference<DocumentData>
+  collection: CollectionReference<DocumentData>,
+  pageLength?: number,
+  prevPage?: number
 ): Promise<Shader[]> => {
-  const querySnapshot = await getDocs(collection);
   const shaders: Shader[] = [];
+
+  let querySnapshot;
+
+  if (pageLength && prevPage) {
+    querySnapshot = await getDocs(
+      query(
+        collection,
+        startAt(prevPage),
+        limit(prevPage * pageLength + pageLength)
+      )
+    );
+  } else {
+    querySnapshot = await getDocs(collection);
+  }
   for (const doc of querySnapshot.docs) {
     const shader = await shaderConverter.fromFirestore(doc);
     if (shader) {
@@ -31,18 +49,39 @@ const getShaders = async (
   return shaders;
 };
 
-export const getExampleShaders = async (): Promise<Shader[]> => {
-  return await getShaders(collection(firedb, "example-shaders"));
+export const getExampleShaders = async (
+  pageLength?: number,
+  prevPage?: number
+): Promise<Shader[]> => {
+  return await getShaders(
+    collection(firedb, "example-shaders"),
+    pageLength,
+    prevPage
+  );
 };
 
-export const getPublicShaders = async (): Promise<Shader[]> => {
-  return await getShaders(collection(firedb, "public-shaders"));
+export const getPublicShaders = async (
+  pageLength?: number,
+  prevPage?: number
+): Promise<Shader[]> => {
+  return await getShaders(
+    collection(firedb, "public-shaders"),
+    pageLength,
+    prevPage
+  );
 };
 
-export const getUserShaders = async (): Promise<Shader[]> => {
+export const getUserShaders = async (
+  pageLength?: number,
+  prevPage?: number
+): Promise<Shader[]> => {
   const user = auth.currentUser;
   if (user) {
-    return await getShaders(collection(firedb, "users", user.uid, "shaders"));
+    return await getShaders(
+      collection(firedb, "users", user.uid, "shaders"),
+      pageLength,
+      prevPage
+    );
   } else {
     // user is not logged in. this should never be a problem, as getUserShaders should
     // never be invoked without the user being logged in.

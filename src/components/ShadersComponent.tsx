@@ -10,7 +10,9 @@ import { getAuth, onAuthStateChanged } from "@firebase/auth";
 import "../assets/homePage.css";
 import { Shader } from "../objects/Shader";
 import { ShaderCard } from "./ShaderCard";
-import { ImageList, ImageListItem } from "@mui/material";
+import { ImageListItem, Pagination } from "@mui/material";
+
+const PAGE_LENGTH = 20;
 
 interface ShadersComponentProps {
   sectionName: string;
@@ -20,14 +22,19 @@ interface ShadersComponentProps {
 const ShadersComponent = () => {
   const location = useLocation();
   const { sectionName, shaderList } = location.state as ShadersComponentProps;
+  const [page, setPage] = useState(1);
   const auth = getAuth();
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
+  const handleChange = (_event: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value);
+  };
+
   onAuthStateChanged(auth, (user) => {
     setIsLoggedIn(user != null);
   });
 
   return (
-    <Container>
+    <Container>th
       <Grid
         container
         spacing={2}
@@ -79,14 +86,17 @@ const ShadersComponent = () => {
             {sectionName}
           </Typography>
         </Grid>
-        <ImageList cols={4} rowHeight={220}>
-          {shaderList.map((shader) => (
-            <ImageListItem key={shader.image} style={{ padding: "1vw" }}>
-              <ShaderCard shader={shader} />
-            </ImageListItem>
-          ))}
-        </ImageList>
+        {/* <ImageList cols={4} rowHeight={220}> */}
+        {shaderList.map((shader) => (
+          <ImageListItem key={shader.image} style={{ padding: "1vw" }}>
+            <ShaderCard shader={shader} />
+          </ImageListItem>
+        ))}
+        {/* </ImageList> */}
       </Grid>
+      <div>
+        <Pagination count={10} page={page} onChange={handleChange} />
+      </div>
     </Container>
   );
 };
