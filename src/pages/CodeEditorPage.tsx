@@ -149,6 +149,30 @@ const CodeEditorPage = () => {
                   />
                 </Grid>
                 <Grid item>
+                  <Button
+                    id="export-button"
+                    variant="outlined"
+                    disableElevation
+                    onClick={() => {
+                      const canvas = document.getElementById(
+                        "canvas-webgpu"
+                      ) as HTMLCanvasElement;
+                      const link = document.createElement("a");
+                      link.download = "shader.png";
+
+                      canvas.toBlob(function (blob) {
+                        link.href = URL.createObjectURL(blob);
+                        console.log(blob);
+                        console.log(link.href);
+                        link.click();
+                      }, "image/png");
+                    }}
+                    color={"primary"}
+                  >
+                    Export as png
+                  </Button>
+                </Grid>
+                <Grid item>
                   {showCode ? (
                     <Button
                       id="save-as-button"
