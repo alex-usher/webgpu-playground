@@ -21,7 +21,7 @@ const ShaderCanvas = ({ shaderCode }: ShaderCanvasInput) => {
   );
 
   useEffect(() => {
-    if (shaderCode !== "") {
+    if (shaderCode !== "" && shaderCode !== undefined) {
       renderShader(shaderCode);
     }
   }, [shaderCode]);
