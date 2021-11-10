@@ -29,27 +29,9 @@ export const rectangleVertex = `/*${structs}*/
 
 [[stage(vertex)]]
 fn vertex_main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput {
-    var pos = array<vec2<f32>, 6>(
-        vec2<f32>(1.0, 1.0),
-        vec2<f32>(view_params.x, view_params.y),
-        vec2<f32>(-1.0, -1.0),
-        vec2<f32>(1.0, 1.0),
-        vec2<f32>(-1.0, 1.0),
-        vec2<f32>(-1.0, -1.0)
-    );
-    
-    var color = array<vec3<f32>, 6>(
-        vec3<f32>(1.0, 0.0, 0.0),
-        vec3<f32>(0.0, 1.0, 0.0),
-        vec3<f32>(0.0, 0.0, 1.0),
-        vec3<f32>(1.0, 0.0, 0.0),
-        vec3<f32>(0.0, 1.0, 0.0),
-        vec3<f32>(0.0, 0.0, 1.0)
-    );
-
     var out: VertexOutput;
-    out.position = vec4<f32>(pos[index], 0.0, 1.0);
-    out.color = vert.color + vec4<f32>(color[index], 1.0);
+    out.position = vec4<f32>(vert.position, 0.0, 1.0);
+    out.color = vert.color;
     return out;
 };`;
 
@@ -71,17 +53,6 @@ export const shaderTriangleVertex = `struct Output {
 
 [[stage(vertex)]]
 fn vertex_main([[builtin(vertex_index)]] index: u32) -> Output {
-    var pos = array<vec2<f32>, 3>(
-        vec2<f32>(0.0, 0.5),
-        vec2<f32>(-0.5, -0.5),
-        vec2<f32>(0.5, -0.5)
-    );
-    
-    var color = array<vec3<f32>, 3>(
-        vec3<f32>(1.0, 0.0, 0.0),
-        vec3<f32>(0.0, 1.0, 0.0),
-        vec3<f32>(0.0, 0.0, 1.0)
-    );
     
     var output: Output;
     output.Position = vec4<f32>(pos[index], 0.0, 1.0);
@@ -121,6 +92,8 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
   y = position.y;
 };
 
+let renderFrame = -1;
+
 export const renderShader = async (shaderCode: string): Promise<void> => {
   if (!checkWebGPU()) {
     return;
@@ -148,6 +121,11 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
     return;
   }
 
+  // cancel the previous render once we know the next render will compile
+  if (renderFrame != -1) {
+    cancelAnimationFrame(renderFrame);
+  }
+
   // allocate a buffer for up to 6 vertices
   const dataBuffer = device.createBuffer({
     size: 6 * 6 * 4,
@@ -159,8 +137,8 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
   // but with it you can do some cool things using the
   // VertexInput in the shader
   new Float32Array(dataBuffer.getMappedRange()).set([
-    0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0,
-    0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1,
+    1, 1, 1, 0, 0, 1, 1, -1, 0, 1, 0, 1, -1, -1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1,
+    -1, 1, 0, 1, 0, 1, -1, -1, 0, 0, 1, 1,
   ]);
 
   dataBuffer.unmap();
@@ -201,7 +179,7 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
           arrayStride: 6 * 4,
           stepMode: "vertex",
           attributes: [
-            { format: "float32x4", offset: 0, shaderLocation: 0 },
+            { format: "float32x2", offset: 0, shaderLocation: 0 },
             { format: "float32x4", offset: 2 * 4, shaderLocation: 1 },
           ],
         },
@@ -244,7 +222,7 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
   const res_y = canvas.height;
   const frame = () => {
     if (canvasVisible) {
-      const upload = device.createBuffer({
+      const timeBuffer = device.createBuffer({
         size: 4,
         usage: GPUBufferUsage.COPY_SRC,
         mappedAtCreation: true,
@@ -274,8 +252,8 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
         mappedAtCreation: true,
       });
 
-      new Float32Array(upload.getMappedRange()).set([time]);
-      upload.unmap();
+      new Float32Array(timeBuffer.getMappedRange()).set([time]);
+      timeBuffer.unmap();
 
       new Float32Array(xBuffer.getMappedRange()).set([x]);
       xBuffer.unmap();
@@ -306,7 +284,7 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
       };
 
       const commandEncoder = device.createCommandEncoder();
-      commandEncoder.copyBufferToBuffer(upload, 0, viewParamsBuffer, 0, 4);
+      commandEncoder.copyBufferToBuffer(timeBuffer, 0, viewParamsBuffer, 0, 4);
       commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
       commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
       commandEncoder.copyBufferToBuffer(resXBuffer, 0, viewParamsBuffer, 12, 4);
@@ -324,10 +302,11 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
       device.queue.submit([commandEncoder.finish()]);
       time++;
     }
-    requestAnimationFrame(frame);
+
+    renderFrame = requestAnimationFrame(frame);
   };
 
-  requestAnimationFrame(frame);
+  renderFrame = requestAnimationFrame(frame);
 };
 
 export const renderTriangle = (): void => {
