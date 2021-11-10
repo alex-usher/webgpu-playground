@@ -159,8 +159,8 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
   // but with it you can do some cool things using the
   // VertexInput in the shader
   new Float32Array(dataBuffer.getMappedRange()).set([
-    0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0,
-    0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1,
+    1, 1, 1, 0, 0, 1, 1, -1, 0, 1, 0, 1, -1, -1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1,
+    -1, 1, 0, 1, 0, 0, -1, -1, 0, 0, 1, 1,
   ]);
 
   dataBuffer.unmap();
