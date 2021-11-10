@@ -29,27 +29,9 @@ export const rectangleVertex = `/*${structs}*/
 
 [[stage(vertex)]]
 fn vertex_main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput {
-    var pos = array<vec2<f32>, 6>(
-        vec2<f32>(1.0, 1.0),
-        vec2<f32>(view_params.x, view_params.y),
-        vec2<f32>(-1.0, -1.0),
-        vec2<f32>(1.0, 1.0),
-        vec2<f32>(-1.0, 1.0),
-        vec2<f32>(-1.0, -1.0)
-    );
-    
-    var color = array<vec3<f32>, 6>(
-        vec3<f32>(1.0, 0.0, 0.0),
-        vec3<f32>(0.0, 1.0, 0.0),
-        vec3<f32>(0.0, 0.0, 1.0),
-        vec3<f32>(1.0, 0.0, 0.0),
-        vec3<f32>(0.0, 1.0, 0.0),
-        vec3<f32>(0.0, 0.0, 1.0)
-    );
-
     var out: VertexOutput;
-    out.position = vec4<f32>(pos[index], 0.0, 1.0);
-    out.color = vert.color + vec4<f32>(color[index], 1.0);
+    out.position = vec4<f32>(vert.position, 0.0, 1.0);
+    out.color = vert.color;
     return out;
 };`;
 
@@ -71,17 +53,6 @@ export const shaderTriangleVertex = `struct Output {
 
 [[stage(vertex)]]
 fn vertex_main([[builtin(vertex_index)]] index: u32) -> Output {
-    var pos = array<vec2<f32>, 3>(
-        vec2<f32>(0.0, 0.5),
-        vec2<f32>(-0.5, -0.5),
-        vec2<f32>(0.5, -0.5)
-    );
-    
-    var color = array<vec3<f32>, 3>(
-        vec3<f32>(1.0, 0.0, 0.0),
-        vec3<f32>(0.0, 1.0, 0.0),
-        vec3<f32>(0.0, 0.0, 1.0)
-    );
     
     var output: Output;
     output.Position = vec4<f32>(pos[index], 0.0, 1.0);
@@ -167,7 +138,7 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
   // VertexInput in the shader
   new Float32Array(dataBuffer.getMappedRange()).set([
     1, 1, 1, 0, 0, 1, 1, -1, 0, 1, 0, 1, -1, -1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1,
-    -1, 1, 0, 1, 0, 0, -1, -1, 0, 0, 1, 1,
+    -1, 1, 0, 1, 0, 1, -1, -1, 0, 0, 1, 1,
   ]);
 
   dataBuffer.unmap();
@@ -208,7 +179,7 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
           arrayStride: 6 * 4,
           stepMode: "vertex",
           attributes: [
-            { format: "float32x4", offset: 0, shaderLocation: 0 },
+            { format: "float32x2", offset: 0, shaderLocation: 0 },
             { format: "float32x4", offset: 2 * 4, shaderLocation: 1 },
           ],
         },
