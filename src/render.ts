@@ -128,10 +128,6 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
     return;
   }
 
-  if (renderFrame != -1) {
-    cancelAnimationFrame(renderFrame);
-  }
-
   const canvas = document.getElementById("canvas-webgpu") as HTMLCanvasElement;
 
   assert(navigator.gpu);
@@ -152,6 +148,10 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
   if (!(await outputMessages(shaderModule))) {
     console.log("Shader Compilation failed");
     return;
+  }
+
+  if (renderFrame != -1) {
+    cancelAnimationFrame(renderFrame);
   }
 
   // allocate a buffer for up to 6 vertices
@@ -328,7 +328,6 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
 
       renderPass.endPass();
       device.queue.submit([commandEncoder.finish()]);
-      console.log(time);
       time++;
     }
 
