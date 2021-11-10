@@ -121,9 +121,15 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
   y = position.y;
 };
 
+let renderFrame = -1;
+
 export const renderShader = async (shaderCode: string): Promise<void> => {
   if (!checkWebGPU()) {
     return;
+  }
+
+  if (renderFrame != -1) {
+    cancelAnimationFrame(renderFrame);
   }
 
   const canvas = document.getElementById("canvas-webgpu") as HTMLCanvasElement;
@@ -244,7 +250,7 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
   const res_y = canvas.height;
   const frame = () => {
     if (canvasVisible) {
-      const upload = device.createBuffer({
+      const timeBuffer = device.createBuffer({
         size: 4,
         usage: GPUBufferUsage.COPY_SRC,
         mappedAtCreation: true,
@@ -274,8 +280,8 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
         mappedAtCreation: true,
       });
 
-      new Float32Array(upload.getMappedRange()).set([time]);
-      upload.unmap();
+      new Float32Array(timeBuffer.getMappedRange()).set([time]);
+      timeBuffer.unmap();
 
       new Float32Array(xBuffer.getMappedRange()).set([x]);
       xBuffer.unmap();
@@ -306,7 +312,7 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
       };
 
       const commandEncoder = device.createCommandEncoder();
-      commandEncoder.copyBufferToBuffer(upload, 0, viewParamsBuffer, 0, 4);
+      commandEncoder.copyBufferToBuffer(timeBuffer, 0, viewParamsBuffer, 0, 4);
       commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
       commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
       commandEncoder.copyBufferToBuffer(resXBuffer, 0, viewParamsBuffer, 12, 4);
@@ -322,12 +328,14 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
 
       renderPass.endPass();
       device.queue.submit([commandEncoder.finish()]);
+      console.log(time);
       time++;
     }
-    requestAnimationFrame(frame);
+
+    renderFrame = requestAnimationFrame(frame);
   };
 
-  requestAnimationFrame(frame);
+  renderFrame = requestAnimationFrame(frame);
 };
 
 export const renderTriangle = (): void => {
