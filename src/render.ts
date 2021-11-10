@@ -17,6 +17,8 @@ struct ViewParams {
     time: f32;
     x: f32;
     y: f32;
+    res_x: f32;
+    res_y: f32;
 };
 
 [[group(0), binding(0)]]
@@ -218,7 +220,7 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
   });
 
   const viewParamsBuffer = device.createBuffer({
-    size: 4 * 3,
+    size: 4 * 5,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
@@ -238,6 +240,8 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
   observer.observe(canvas);
 
   let time = 0;
+  const res_x = canvas.width;
+  const res_y = canvas.height;
   const frame = () => {
     if (canvasVisible) {
       const upload = device.createBuffer({
@@ -258,6 +262,18 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
         mappedAtCreation: true,
       });
 
+      const resXBuffer = device.createBuffer({
+        size: 4,
+        usage: GPUBufferUsage.COPY_SRC,
+        mappedAtCreation: true,
+      });
+
+      const resYBuffer = device.createBuffer({
+        size: 4,
+        usage: GPUBufferUsage.COPY_SRC,
+        mappedAtCreation: true,
+      });
+
       new Float32Array(upload.getMappedRange()).set([time]);
       upload.unmap();
 
@@ -267,11 +283,17 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
       new Float32Array(yBuffer.getMappedRange()).set([y]);
       yBuffer.unmap();
 
+      new Float32Array(resXBuffer.getMappedRange()).set([res_x]);
+      resXBuffer.unmap();
+
+      new Float32Array(resYBuffer.getMappedRange()).set([res_y]);
+      resYBuffer.unmap();
+
       const renderPassDescription = {
         colorAttachments: [
           {
             view: context.getCurrentTexture().createView(),
-            loadValue: [0.0, 0.0, 0.0, 0.0],
+            loadValue: [0.0, 0.0, 0.0, 1.0],
           },
         ],
         depthStencilAttachment: {
@@ -287,6 +309,8 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
       commandEncoder.copyBufferToBuffer(upload, 0, viewParamsBuffer, 0, 4);
       commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
       commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
+      commandEncoder.copyBufferToBuffer(resXBuffer, 0, viewParamsBuffer, 12, 4);
+      commandEncoder.copyBufferToBuffer(resYBuffer, 0, viewParamsBuffer, 16, 4);
 
       const renderPass = commandEncoder.beginRenderPass(
         renderPassDescription as GPURenderPassDescriptor

@@ -90,6 +90,46 @@ const CodeEditorPage = () => {
   };
 
   const editorActionComponents = [
+    // <Button
+    //   id="compile-button"
+    //   variant="outlined"
+    //   disableElevation
+    //   color="secondary"
+    //   onClick={() => {
+    //     setRenderedShaderCode(shaderCode);
+    //   }}
+    // >
+    //   Compile
+    // </Button>,
+    // <Button
+    //   id="save-button"
+    //   variant="outlined"
+    //   disableElevation
+    //   color="success"
+    //   onClick={handleFormOpen}
+    // >
+    //   Save
+    // </Button>,
+    // <FormDialog
+    //   open={formOpen}
+    //   handleClose={handleFormClose}
+    //   shaderCode={shaderCode}
+    // />,
+    // <Button
+    //   id="save-as-button"
+    //   variant="outlined"
+    //   disableElevation
+    //   color="success"
+    //   onClick={handleFormOpen}
+    // >
+    //   Save As
+    // </Button>,
+    // <FormDialog
+    //   open={formOpen}
+    //   handleClose={handleFormClose}
+    //   shaderCode={shaderCode}
+    // />,
+
     <Button
       id="compile-button"
       variant="outlined"
@@ -110,11 +150,28 @@ const CodeEditorPage = () => {
     >
       Save
     </Button>,
-    <FormDialog
-      open={formOpen}
-      handleClose={handleFormClose}
-      shaderCode={shaderCode}
-    />,
+    <Button
+      id="export-button"
+      variant="outlined"
+      disableElevation
+      onClick={() => {
+        const canvas = document.getElementById(
+          "canvas-webgpu"
+        ) as HTMLCanvasElement;
+        const link = document.createElement("a");
+        link.download = "shader.png";
+
+        canvas.toBlob(function (blob) {
+          link.href = URL.createObjectURL(blob);
+          console.log(blob);
+          console.log(link.href);
+          link.click();
+        }, "image/png");
+      }}
+      color={"primary"}
+    >
+      Export as png
+    </Button>,
     <Button
       id="save-as-button"
       variant="outlined"
@@ -172,9 +229,7 @@ const CodeEditorPage = () => {
             container
             direction="row"
             spacing={2}
-            // xs={7}
-            // md={8}
-            style={{ minWidth: "45%" }}
+            style={{ minWidth: "55%", maxWidth: "55%" }}
             alignItems="center"
           >
             <Grid item>
@@ -218,7 +273,7 @@ const CodeEditorPage = () => {
           </Grid>
 
           {/* Shader title (roughly spaced on either side) */}
-          <Grid container direction="row" justifyContent="center">
+          <Grid container direction="row" justifyContent="left">
             <Grid item>
               <Typography variant="h4" style={{ color: "lightGrey" }}>
                 {shaderName}
@@ -230,8 +285,6 @@ const CodeEditorPage = () => {
           <Grid
             container
             direction="row"
-            // xs={12}
-            // md={4}
             alignItems="center"
             justifyContent="flex-end"
           >
