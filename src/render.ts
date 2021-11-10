@@ -28,6 +28,7 @@ var<uniform> view_params: ViewParams;
 export const rectangleVertex = `/*${structs}*/
 [[stage(vertex)]]
 fn vertex_main(vert: VertexInput) -> VertexOutput {
+
     var out: VertexOutput;
     out.position = vec4<f32>(vert.position, 0.0, 1.0);
     out.color = vert.color;
