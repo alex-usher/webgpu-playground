@@ -90,47 +90,8 @@ const CodeEditorPage = () => {
   };
 
   const editorActionComponents = [
-    // <Button
-    //   id="compile-button"
-    //   variant="outlined"
-    //   disableElevation
-    //   color="secondary"
-    //   onClick={() => {
-    //     setRenderedShaderCode(shaderCode);
-    //   }}
-    // >
-    //   Compile
-    // </Button>,
-    // <Button
-    //   id="save-button"
-    //   variant="outlined"
-    //   disableElevation
-    //   color="success"
-    //   onClick={handleFormOpen}
-    // >
-    //   Save
-    // </Button>,
-    // <FormDialog
-    //   open={formOpen}
-    //   handleClose={handleFormClose}
-    //   shaderCode={shaderCode}
-    // />,
-    // <Button
-    //   id="save-as-button"
-    //   variant="outlined"
-    //   disableElevation
-    //   color="success"
-    //   onClick={handleFormOpen}
-    // >
-    //   Save As
-    // </Button>,
-    // <FormDialog
-    //   open={formOpen}
-    //   handleClose={handleFormClose}
-    //   shaderCode={shaderCode}
-    // />,
-
     <Button
+      key={1}
       id="compile-button"
       variant="outlined"
       disableElevation
@@ -142,6 +103,7 @@ const CodeEditorPage = () => {
       Compile
     </Button>,
     <Button
+      key={2}
       id="save-button"
       variant="outlined"
       disableElevation
@@ -151,6 +113,7 @@ const CodeEditorPage = () => {
       Save
     </Button>,
     <Button
+      key={3}
       id="export-button"
       variant="outlined"
       disableElevation
@@ -173,6 +136,7 @@ const CodeEditorPage = () => {
       Export as png
     </Button>,
     <Button
+      key={4}
       id="save-as-button"
       variant="outlined"
       disableElevation
@@ -182,6 +146,7 @@ const CodeEditorPage = () => {
       Save As
     </Button>,
     <FormDialog
+      key={5}
       open={formOpen}
       handleClose={handleFormClose}
       shaderCode={shaderCode}
@@ -190,12 +155,14 @@ const CodeEditorPage = () => {
 
   const opacitySliderComponent = (
     <Stack
+      key={6}
       alignItems="center"
       direction="row"
       justifyContent="center"
       spacing={1.5}
     >
       <Button
+        key={7}
         variant="text"
         disableRipple
         disableElevation
@@ -205,6 +172,7 @@ const CodeEditorPage = () => {
         Opacity
       </Button>
       <Slider
+        key={8}
         color="primary"
         value={editorOpacity}
         onChange={handleOpacitySlider}
@@ -275,7 +243,10 @@ const CodeEditorPage = () => {
           {/* Shader title (roughly spaced on either side) */}
           <Grid container direction="row" justifyContent="left">
             <Grid item>
-              <Typography variant="h4" style={{ color: "lightGrey" }}>
+              <Typography
+                variant="h5"
+                style={{ color: "lightGrey", fontSize: "3vh" }}
+              >
                 {shaderName}
               </Typography>
             </Grid>
@@ -309,9 +280,9 @@ const CodeEditorPage = () => {
                 )}
               </IconButton>
             </Grid>
-            {/* Display editor opacity normally if screen is wide */}
             {showCode ? (
               <>
+                {/* Display editor opacity normally if screen is wide, hide in a drawer otherwise */}
                 {!isSmallWidth ? (
                   <>{opacitySliderComponent}</>
                 ) : (
