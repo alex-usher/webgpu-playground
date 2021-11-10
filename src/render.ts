@@ -150,6 +150,7 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
     return;
   }
 
+  // cancel the previous render once we know the next render will compile
   if (renderFrame != -1) {
     cancelAnimationFrame(renderFrame);
   }
