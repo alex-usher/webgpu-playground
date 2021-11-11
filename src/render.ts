@@ -26,9 +26,9 @@ var<uniform> view_params: ViewParams;
 `;
 
 export const rectangleVertex = `/*${structs}*/
-
 [[stage(vertex)]]
-fn vertex_main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput {
+fn vertex_main(vert: VertexInput) -> VertexOutput {
+
     var out: VertexOutput;
     out.position = vec4<f32>(vert.position, 0.0, 1.0);
     out.color = vert.color;
@@ -114,7 +114,6 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
   const shaderModule = device.createShaderModule({
     code: `${structs}\n${shaderCode}`,
   });
-
   // check for compilation failures and output any compile messages
   if (!(await outputMessages(shaderModule))) {
     console.log("Shader Compilation failed");
@@ -129,7 +128,7 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
   // allocate a buffer for up to 6 vertices
   const dataBuffer = device.createBuffer({
     size: 6 * 6 * 4,
-    usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    usage: GPUBufferUsage.VERTEX,
     mappedAtCreation: true,
   });
 
