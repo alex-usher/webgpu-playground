@@ -12,7 +12,7 @@ import { auth, firedb, firestorage } from "../firebase";
 import { v4 as uuidv4 } from "uuid";
 
 export class Shader {
-  readonly id: string;
+  id: string;
   readonly image: string; //http link to img src
   readonly title: string;
   isPublic: boolean;

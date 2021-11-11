@@ -8,6 +8,18 @@ import {
   getDocs,
   runTransaction,
 } from "@firebase/firestore/lite";
+import { setDoc } from "@firebase/firestore/lite";
+
+// import {
+//   OptionsObject,
+//   SnackbarKey,
+//   SnackbarMessage,
+//   // useSnackbar,
+// } from "notistack";
+
+// import SnackbarUtils from "./Snackbar";
+import SnackbarUtils from "./Snackbar";
+
 import {
   defaultShader,
   downloadShaderCode,
@@ -15,7 +27,6 @@ import {
   shaderConverter,
 } from "../objects/Shader";
 import { auth, firedb } from "../firebase";
-import { useSnackbar } from "notistack";
 
 const getShaders = async (
   collection: CollectionReference<DocumentData>
@@ -73,10 +84,19 @@ export const getUserPrivateShaders = async (): Promise<Shader[]> => {
   return privateShaders;
 };
 
-// eslint-disable-next-line
-export const getShaderCode = async (shader: any): Promise<Shader> => {
-  shader.shaderCode = await downloadShaderCode(shader.shader.id);
+export const getShaderCode = async (shader: Shader): Promise<Shader> => {
+  shader.shaderCode = await downloadShaderCode(shader.id);
   return shader;
+};
+
+export const isExampleShader = async (shader: Shader): Promise<boolean> => {
+  const d = (
+    await getDoc(
+      doc(firedb, "example-shaders", shader.id).withConverter(shaderConverter)
+    )
+  )?.data();
+  console.log("doc: ", d);
+  return d ? true : false;
 };
 
 export const getShaderById = async (id: string): Promise<Shader> => {
@@ -111,6 +131,112 @@ export const getShaderById = async (id: string): Promise<Shader> => {
   return data;
 };
 
+class nameErr extends Error {
+  dupedName: string;
+  constructor(dupedName: string) {
+    super();
+    this.dupedName = dupedName;
+  }
+}
+
+export const deleteShader = async (shader: Shader) => {
+  // delete shader document from users, public and it's code file
+  console.log(shader);
+};
+
+const deleteCodeFile = async (shader: Shader) => {
+  // delete shader's code file
+  console.log(shader);
+};
+
+export const overwriteShader = async (shader: Shader) => {
+  try {
+    await deleteCodeFile(shader);
+    const shaderDoc = shaderConverter.toFirestore(shader);
+    const user = auth.currentUser;
+    if (user) {
+      await setDoc(
+        doc(firedb, "users", user.uid, "shaders", shader.id),
+        shaderDoc
+      );
+    }
+    console.log("Saved shader: ", shaderDoc);
+    SnackbarUtils.success("Successfully saved!");
+    return shader;
+  } catch {
+    SnackbarUtils.error("Failed to save.");
+  }
+};
+
+export const saveNewShader = async (
+  shader: Shader
+): Promise<Shader | undefined> => {
+  try {
+    const user = auth.currentUser;
+    if (user) {
+      const existingShaders = await getUserShaders();
+      for (const existingShader of existingShaders) {
+        if (shader.title == existingShader.title) {
+          throw new nameErr(shader.title);
+        }
+      }
+    }
+
+    const shaderDoc = shaderConverter.toFirestore(shader);
+
+    if (shader.isPublic) {
+      shader.id = (
+        await addDoc(collection(firedb, "public-shaders"), shaderDoc)
+      ).id;
+    }
+
+    if (user) {
+      if (shader.id !== "") {
+        await setDoc(
+          doc(firedb, "users", user.uid, "shaders", shader.id),
+          shaderDoc
+        );
+      } else {
+        const usersShadersRef = collection(
+          firedb,
+          "users",
+          user.uid,
+          "shaders"
+        );
+        shader.id = (await addDoc(usersShadersRef, shaderDoc)).id;
+      }
+    }
+
+    // enqueueSnackbar("Successfully saved!", {
+    //   variant: "success",
+    //   autoHideDuration: 1000,
+    // });
+
+    SnackbarUtils.success("Successfully saved!");
+
+    return shader;
+  } catch (err) {
+    if (err instanceof nameErr) {
+      // enqueueSnackbar(
+      //   'A shader with name "' + err.dupedName + '" already exists!',
+      //   {
+      //     variant: "error",
+      //     autoHideDuration: 3000,
+      //   }
+      // );
+      SnackbarUtils.error(
+        'A shader with name "' + err.dupedName + '" already exists!'
+      );
+    } else {
+      // enqueueSnackbar("Failed to save!", {
+      //   variant: "error",
+      //   autoHideDuration: 2000,
+      // });
+      SnackbarUtils.error("Failed to save!");
+    }
+  }
+};
+
 class unsavedErr extends Error {
   constructor() {
     super();
@@ -127,11 +253,17 @@ class loggedOutErr extends Error {
 const toggleShaderPublicity = async (
   shader: Shader,
   makePublic: boolean
+  // enqueueSnackbar: {
+  //   (
+  //     message: SnackbarMessage,
+  //     options?: OptionsObject | undefined
+  //   ): SnackbarKey;
+  // }
 ): Promise<boolean> => {
   const success = false;
   const publicity = makePublic ? "public" : "private";
   const publicitied = makePublic ? "published" : "privated";
-  const { enqueueSnackbar } = useSnackbar();
+  // const { enqueueSnackbar } = useSnackbar();
   try {
     const user = auth.currentUser;
     if (user) {
@@ -167,31 +299,42 @@ const toggleShaderPublicity = async (
     }
   } catch (err) {
     if (success) {
-      enqueueSnackbar("Successfully " + publicitied + shader.title + "!", {
-        variant: "success",
-        autoHideDuration: 1000,
-      });
+      SnackbarUtils.success("Successfully " + publicitied + shader.title + "!");
+      // enqueueSnackbar("Successfully " + publicitied + shader.title + "!", {
+      //   variant: "success",
+      //   autoHideDuration: 1000,
+      // });
     } else {
       if (err instanceof unsavedErr) {
-        enqueueSnackbar(
+        SnackbarUtils.error(
           "Failed to publish shader - save your shader to make it " +
             publicity +
-            "!",
-          {
-            variant: "error",
-            autoHideDuration: 1000,
-          }
+            "!"
         );
+        // enqueueSnackbar(
+        //   "Failed to publish shader - save your shader to make it " +
+        //     publicity +
+        //     "!",
+        //   {
+        //     variant: "error",
+        //     autoHideDuration: 1000,
+        //   }
+        // );
       } else if (err instanceof loggedOutErr) {
-        enqueueSnackbar(
+        SnackbarUtils.error(
           "Failed to publish shader - log in to make your shaders " +
             publicity +
-            "!",
-          {
-            variant: "error",
-            autoHideDuration: 1000,
-          }
+            "!"
         );
+        // enqueueSnackbar(
+        //   "Failed to publish shader - log in to make your shaders " +
+        //     publicity +
+        //     "!",
+        //   {
+        //     variant: "error",
+        //     autoHideDuration: 1000,
+        //   }
+        // );
       }
     }
   }
@@ -224,7 +367,15 @@ export const uploadExample = async (): Promise<void> => {
   await addDoc(collection(firedb, "example-shaders"), data);
 };
 
-export const makeShaderPublic = async (shader: Shader): Promise<boolean> => {
+export const makeShaderPublic = async (
+  shader: Shader
+  // enqueueSnackbar: {
+  //   (
+  //     message: SnackbarMessage,
+  //     options?: OptionsObject | undefined
+  //   ): SnackbarKey;
+  // }
+): Promise<boolean> => {
   return await toggleShaderPublicity(shader, true);
 };
 

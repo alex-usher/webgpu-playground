@@ -4,7 +4,7 @@ import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Slider from "@mui/material/Slider";
 import Switch from "@mui/material/Switch";
-import TextField from "@mui/material/TextField";
+// import TextField from "@mui/material/TextField";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
 import { useEffect, useState } from "react";
@@ -19,16 +19,20 @@ import { defaultShader, Shader } from "../objects/Shader";
 
 import "../assets/style.css";
 import "../assets/codeEditorPage.css";
-import { getShaderCode } from "../utils/firebaseHelper";
+import {
+  getShaderCode,
+  overwriteShader,
+  isExampleShader,
+} from "../utils/firebaseHelper";
 import { useLocation } from "react-router-dom";
+// import { useSnackbar } from "notistack";
 
 const CodeEditorPage = () => {
-  const location = useLocation();
-  let shader = location.state as Shader;
-  if (shader === undefined) {
-    shader = defaultShader;
-  }
-
+  const [shader, setShader] = useState<Shader>(
+    useLocation().state
+      ? (useLocation().state as { shader: Shader }).shader
+      : defaultShader
+  );
   const [shaderCode, setShaderCode] = useState(shader.shaderCode);
   const [showCode, setShowCode] = useState(false);
   const [viewCodeText, setViewCodeText] = useState("View Code");
@@ -39,20 +43,29 @@ const CodeEditorPage = () => {
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [formOpen, setFormOpen] = React.useState(false);
 
-  const [shaderName, setShaderName] = useState("");
-
   useEffect(() => {
-    if (shader.shaderCode === undefined) {
+    if (shader.shaderCode === "") {
       getShaderCode(shader).then((shaderWithCode: Shader) => {
-        shader = shaderWithCode;
+        setShader(shaderWithCode);
         setShaderCode(shader.shaderCode);
         setRenderedShaderCode(shader.shaderCode);
       });
     }
-  }, [shader]);
+    console.log(shader);
+  }, []);
 
-  const handleFormOpen = () => {
-    setFormOpen(true);
+  useEffect(() => {
+    shader.shaderCode = shaderCode;
+  }, [shaderCode]);
+
+  const handleFormOpen = async () => {
+    if (!(await isExampleShader(shader)) && shader.id) {
+      console.log("overwriting");
+      overwriteShader(shader);
+    } else {
+      console.log("save as new");
+      setFormOpen(true);
+    }
   };
 
   const handleFormClose = () => {
@@ -131,7 +144,7 @@ const CodeEditorPage = () => {
                 <Grid item>
                   {showCode ? (
                     <Button
-                      id="save-button"
+                      id="save-as-button"
                       variant="outlined"
                       disableElevation
                       color="success"
@@ -146,48 +159,11 @@ const CodeEditorPage = () => {
                     open={formOpen}
                     handleClose={handleFormClose}
                     shaderCode={shaderCode}
+                    updateShader={(shader) => setShader(shader)}
                   />
                 </Grid>
                 <Grid item>
-                  {showCode ? (
-                    <Button
-                      id="save-as-button"
-                      variant="outlined"
-                      disableElevation
-                      color="success"
-                      onClick={handleFormOpen}
-                    >
-                      Save As
-                    </Button>
-                  ) : (
-                    <></>
-                  )}
-                  <FormDialog
-                    open={formOpen}
-                    handleClose={handleFormClose}
-                    shaderCode={shaderCode}
-                  />
-                </Grid>
-                <Grid item>
-                  {showCode ? (
-                    <TextField
-                      id="shader-name-box"
-                      label="Shader name"
-                      variant="outlined"
-                      // TODO: sort out focus - when you leave the text box the focus leaves too
-                      autoFocus
-                      // TODO: we need to make the text actually visible, right now it's black
-                      color="info"
-                      size="small"
-                      value={shaderName}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                        setShaderName(e.target.value);
-                      }}
-                      style={{ width: "30ch" }}
-                    />
-                  ) : (
-                    <></>
-                  )}
+                  <h1>{shader.title ? shader.title : "Untitled"}</h1>
                 </Grid>
                 <Grid item>
                   <Stack direction="row">
@@ -201,7 +177,7 @@ const CodeEditorPage = () => {
                       Public
                     </Button>
                     {/* TODO Set the default checked value and onClick*/}
-                    <Switch />
+                    <Switch onClick={(e) => console.log(e)} />
                   </Stack>
                 </Grid>
               </>
