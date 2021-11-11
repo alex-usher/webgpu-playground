@@ -72,7 +72,7 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
     if (editorRef.current && codeBlockRef.current) {
       editorRef.current.focus();
       editorRef.current.innerText = text;
-      codeBlockRef.current.innerText = text;
+      codeBlockRef.current.innerText = text; //+ "\n\r\n\r";
 
       window.Prism = window.Prism || {};
       Prism.highlight(
@@ -100,17 +100,15 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
 
       {/* code area */}
       <div className="editor scroll-text-style">
-        <div className="heightDiv">
-          <textarea
-            className="code-text-editor padding"
-            onChange={onChange}
-            onInput={() => update(value)}
-            onScroll={textAreaScroll}
-            spellCheck="false"
-            ref={editorRef as React.RefObject<HTMLTextAreaElement>}
-            value={value}
-          />
-        </div>
+        <textarea
+          className="code-text-editor padding"
+          onChange={onChange}
+          onInput={() => update(value)}
+          onScroll={textAreaScroll}
+          spellCheck="false"
+          ref={editorRef as React.RefObject<HTMLTextAreaElement>}
+          value={value}
+        />
         <pre className="language-javascript scroll-text-style padding">
           <code
             className="padding"
