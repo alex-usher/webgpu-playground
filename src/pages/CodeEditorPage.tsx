@@ -113,6 +113,16 @@ const CodeEditorPage = () => {
       Save
     </Button>,
     <Button
+      key={4}
+      id="save-as-button"
+      variant="outlined"
+      disableElevation
+      color="success"
+      onClick={handleFormOpen}
+    >
+      Save As
+    </Button>,
+    <Button
       key={3}
       id="export-button"
       variant="outlined"
@@ -133,17 +143,7 @@ const CodeEditorPage = () => {
       }}
       color={"primary"}
     >
-      Export as png
-    </Button>,
-    <Button
-      key={4}
-      id="save-as-button"
-      variant="outlined"
-      disableElevation
-      color="success"
-      onClick={handleFormOpen}
-    >
-      Save As
+      Export as PNG
     </Button>,
     <FormDialog
       key={5}
