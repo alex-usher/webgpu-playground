@@ -7,6 +7,7 @@ import {
   getDoc,
   getDocs,
   limit,
+  orderBy,
   query,
   runTransaction,
   startAt,
@@ -29,11 +30,12 @@ const getShaders = async (
 
   let querySnapshot;
 
-  if (pageLength && prevPage) {
+  if (pageLength && prevPage != undefined) {
     querySnapshot = await getDocs(
       query(
         collection,
-        startAt(prevPage),
+        orderBy("shader_name"),
+        startAt(prevPage * pageLength),
         limit(prevPage * pageLength + pageLength)
       )
     );
