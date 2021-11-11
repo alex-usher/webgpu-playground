@@ -89,14 +89,26 @@ export const getShaderCode = async (shader: Shader): Promise<Shader> => {
   return shader;
 };
 
-export const isExampleShader = async (shader: Shader): Promise<boolean> => {
-  const d = (
-    await getDoc(
-      doc(firedb, "example-shaders", shader.id).withConverter(shaderConverter)
-    )
-  )?.data();
-  console.log("doc: ", d);
-  return d ? true : false;
+export const isCurrentUsersShader = async (
+  shader: Shader
+): Promise<boolean> => {
+  try {
+    const user = auth.currentUser;
+    if (user) {
+      const data = (
+        await getDoc(
+          doc(firedb, "users", user.uid, "shaders", shader.id).withConverter(
+            shaderConverter
+          )
+        )
+      )?.data();
+      return data ? true : false;
+    }
+    SnackbarUtils.error("You must be logged in to save a shader.");
+    return false;
+  } catch {
+    return false;
+  }
 };
 
 export const getShaderById = async (id: string): Promise<Shader> => {

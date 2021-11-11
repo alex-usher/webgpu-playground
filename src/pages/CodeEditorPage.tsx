@@ -22,7 +22,7 @@ import "../assets/codeEditorPage.css";
 import {
   getShaderCode,
   overwriteShader,
-  isExampleShader,
+  isCurrentUsersShader,
 } from "../utils/firebaseHelper";
 import { useLocation } from "react-router-dom";
 // import { useSnackbar } from "notistack";
@@ -59,7 +59,7 @@ const CodeEditorPage = () => {
   }, [shaderCode]);
 
   const handleFormOpen = async () => {
-    if (!(await isExampleShader(shader)) && shader.id) {
+    if ((await isCurrentUsersShader(shader)) && shader.id) {
       console.log("overwriting");
       overwriteShader(shader);
     } else {
