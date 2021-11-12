@@ -8,6 +8,7 @@ import "../assets/homePage.css";
 import "../assets/shaderGallery.css";
 import { getExampleShaders, getPublicShaders } from "../utils/firebaseHelper";
 import HeaderComponent from "../components/HeaderComponent";
+import FooterComponent from "../components/FooterComponent";
 
 const HomePage = () => {
   const [exampleShaders, setExampleShaders] = useState<Shader[]>([]);
@@ -32,6 +33,7 @@ const HomePage = () => {
         spacing={2}
         className="container-grid"
         alignItems="center"
+        marginBottom="10px"
       >
         <HeaderComponent />
 
@@ -46,6 +48,7 @@ const HomePage = () => {
           shaderList={publicShaders}
         />
       </Grid>
+      <FooterComponent />
     </Container>
   );
 };
