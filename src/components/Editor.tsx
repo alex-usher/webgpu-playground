@@ -88,9 +88,10 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
       style={{ backgroundColor: `rgb(50, 50, 50, ${opacity})` }}
     >
       {/* line numbers */}
-      <div className="editor-gutter-container padding" onScroll={gutterScroll}>
+      <div className="editor-gutter-container padding">
         <div
           className="editor-gutter scroll-text-style"
+          onScroll={gutterScroll}
           ref={gutterRef as React.RefObject<HTMLDivElement>}
         >
           {lineNumbers}
