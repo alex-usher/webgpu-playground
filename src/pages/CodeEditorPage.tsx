@@ -37,10 +37,10 @@ const CodeEditorPage = () => {
   if (state && state.shader) {
     shader = state.shader;
   }
-
   const [shaderCode, setShaderCode] = useState(shader.shaderCode);
   const [showCode, setShowCode] = useState(false);
   const [viewCodeText, setViewCodeText] = useState("View Code");
+  const [viewConsole, setViewConsole] = useState(false);
   const [renderedShaderCode, setRenderedShaderCode] = useState(
     shader.shaderCode
   );
@@ -329,13 +329,46 @@ const CodeEditorPage = () => {
       <ShaderCanvas shaderCode={renderedShaderCode} />
       <div className="editors">
         {showCode ? (
-          <Editor
-            value={shaderCode}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-              setShaderCode(e.target.value);
-            }}
-            opacity={editorOpacity}
-          />
+          <div style={{ height: "100%" }}>
+            <Editor
+              value={shaderCode}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                setShaderCode(e.target.value);
+              }}
+              opacity={editorOpacity}
+            />
+            <div
+              className="view-console"
+              style={
+                viewConsole
+                  ? {
+                      backgroundColor: "rgba(0,0,0,0.2)",
+                      borderLeft: "1px solid rgba(200, 200, 200, 0.8)",
+                    }
+                  : {}
+              }
+            >
+              <Button
+                variant="outlined"
+                className="view-console-button"
+                onClick={() => setViewConsole(!viewConsole)}
+              >
+                {viewConsole ? "Hide Console" : "View Console"}
+              </Button>
+              {viewConsole ? (
+                <div>
+                  <textarea
+                    className="editor-console-area"
+                    disabled={true}
+                    value={""}
+                    spellCheck={false}
+                  />
+                </div>
+              ) : (
+                <></>
+              )}
+            </div>
+          </div>
         ) : (
           <></>
         )}
