@@ -62,8 +62,7 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
       codeBlockRef.current.focus();
       editorRef.current.focus();
       gutterRef.current.focus();
-      editorRef.current.scrollTop = gutterRef.current.scrollTop;
-      codeBlockRef.current.scrollTop = gutterRef.current.scrollTop;
+      gutterRef.current.scrollTop = editorRef.current.scrollTop;
     }
   };
 
