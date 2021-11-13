@@ -6,7 +6,7 @@ import { useLocation } from "react-router-dom";
 import "../assets/homePage.css";
 import {
   ExampleShaderType,
-  //Shader,
+  Shader,
   ShaderType,
   ShaderTypeEnum,
   shaderTypeMap,
@@ -17,40 +17,27 @@ import { Loading } from "react-loading-dot/lib";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useState } from "react";
 import { ShaderCard } from "../components/ShaderCard";
-import { DocumentSnapshot } from "@firebase/firestore/lite";
-import { GetShadersReturnType } from "../utils/firebaseHelper";
 
 interface ShadersPageProps {
   shaderTypeEnum: ShaderTypeEnum;
-  queryResultString: string;
+  shaderList: Shader[];
   pageLength: number;
 }
 
 const ShadersPage = () => {
   const location = useLocation();
-  const { shaderTypeEnum, queryResultString, pageLength } =
+  const { shaderTypeEnum, shaderList, pageLength } =
     location.state as ShadersPageProps;
-  const shaderQueryResult = JSON.parse(
-    queryResultString
-  ) as GetShadersReturnType;
   const [prevPage, setPrevPage] = useState(1);
-  const [currentShaders, setCurrentShaders] = useState(
-    shaderQueryResult.shaders
-  );
-  const [latestDoc, setLatestDoc] = useState<DocumentSnapshot | undefined>(
-    shaderQueryResult.newLatestDoc
-  );
+  const [currentShaders, setCurrentShaders] = useState(shaderList);
   const shaderType: ShaderType =
     shaderTypeMap.get(shaderTypeEnum) || ExampleShaderType;
 
   const fetchMoreShaders = () => {
-    console.log("fetcing");
-    console.log(latestDoc);
     shaderType
-      .fetch(pageLength, latestDoc)
+      .fetch(pageLength)
       .then((res) => {
-        setCurrentShaders([...currentShaders, ...res.shaders]);
-        setLatestDoc(res.newLatestDoc);
+        setCurrentShaders([...currentShaders, ...res]);
       })
       .catch((err) => {
         console.log(err);
