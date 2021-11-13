@@ -24,6 +24,7 @@ import "../assets/codeEditorPage.css";
 import { getShaderCode } from "../utils/firebaseHelper";
 import { useLocation } from "react-router-dom";
 
+import { RenderLogger } from "../objects/RenderLogger";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
@@ -33,6 +34,7 @@ const CodeEditorPage = () => {
   // The state cast to any is needed to stop typescript errors
   // eslint-disable-next-line
   const state = location.state as any;
+
   let shader = defaultShader;
   if (state && state.shader) {
     shader = state.shader;
@@ -44,6 +46,7 @@ const CodeEditorPage = () => {
   const [renderedShaderCode, setRenderedShaderCode] = useState(
     shader.shaderCode
   );
+  const [renderLogger, setRenderLogger] = useState(new RenderLogger());
   const [inFullscreen, setInFullscreen] = useState(false);
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [formOpen, setFormOpen] = React.useState(false);
@@ -56,11 +59,16 @@ const CodeEditorPage = () => {
         shader = shaderWithCode;
         setShaderCode(shader.shaderCode);
         setRenderedShaderCode(shader.shaderCode);
+        setRenderLogger(renderLogger);
         // Only set the name if getting an existing shader - new shaders will display "untitled"
         setShaderName(shader.title);
       });
     }
   }, [shader]);
+
+  useEffect(() => {
+    setRenderLogger(renderLogger);
+  }, [renderLogger]);
 
   const handleFormOpen = () => {
     setFormOpen(true);
@@ -98,6 +106,7 @@ const CodeEditorPage = () => {
       color="secondary"
       onClick={() => {
         setRenderedShaderCode(shaderCode);
+        setRenderLogger(renderLogger);
       }}
     >
       Compile
@@ -136,8 +145,6 @@ const CodeEditorPage = () => {
 
         canvas.toBlob(function (blob) {
           link.href = URL.createObjectURL(blob);
-          console.log(blob);
-          console.log(link.href);
           link.click();
         }, "image/png");
       }}
@@ -326,7 +333,10 @@ const CodeEditorPage = () => {
         </Stack>
       </div>
 
-      <ShaderCanvas shaderCode={renderedShaderCode} />
+      <ShaderCanvas
+        shaderCode={renderedShaderCode}
+        renderLogger={renderLogger}
+      />
       <div className="editors">
         {showCode ? (
           <div style={{ height: "100%" }}>
@@ -360,7 +370,7 @@ const CodeEditorPage = () => {
                   <textarea
                     className="editor-console-area"
                     disabled={true}
-                    value={""}
+                    value={renderLogger.getMessages()}
                     spellCheck={false}
                   />
                 </div>

@@ -3,6 +3,7 @@ import "../assets/shaderCanvas.css";
 import { checkWebGPU } from "../render";
 import { renderShader, updateCoordinates } from "../render";
 import Typography from "@mui/material/Typography";
+import { RenderLogger } from "../objects/RenderLogger";
 
 const WIDTH_ASPECT = 968;
 const HEIGHT_ASPECT = 720;
@@ -10,9 +11,10 @@ const ASPECT_RATIO = 0.9;
 
 interface ShaderCanvasInput {
   shaderCode: string;
+  renderLogger: RenderLogger;
 }
 
-const ShaderCanvas = ({ shaderCode }: ShaderCanvasInput) => {
+const ShaderCanvas = ({ shaderCode, renderLogger }: ShaderCanvasInput) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
   const aspectMultiple = Math.min(
@@ -22,7 +24,7 @@ const ShaderCanvas = ({ shaderCode }: ShaderCanvasInput) => {
 
   useEffect(() => {
     if (shaderCode !== "" && shaderCode !== undefined) {
-      renderShader(shaderCode);
+      renderShader(shaderCode, renderLogger);
     }
   }, [shaderCode]);
 
