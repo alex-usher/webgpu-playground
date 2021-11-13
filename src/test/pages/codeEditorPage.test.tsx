@@ -1,5 +1,5 @@
 import userEvent from "@testing-library/user-event";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import CodeEditorPage from "../../pages/CodeEditorPage";
 import { SnackbarProvider } from "notistack";
 import { Shader } from "../../objects/Shader";
@@ -18,17 +18,19 @@ const shader = new Shader(
   `${shaders.rectangleVertex}\n${shaders.rectangleFragment}`
 );
 
-const renderCodeEditorPage = () =>
-  render(
-    <SnackbarProvider>
-      <BrowserRouter>
-        {/* TODO - atm if we change the default shader the tests will fail - fix by setting any references to the shader to the new deafeult */}
-        {/* as we are using locations, to properly test this we should fix properly by setting the location to default shader in the test */}
-        {/* https://dev.to/wolverineks/react-router-testing-location-state-33fo */}
-        <CodeEditorPage />
-      </BrowserRouter>
-    </SnackbarProvider>
-  );
+const renderCodeEditorPage = async () =>
+  await act(async () => {
+    render(
+      <SnackbarProvider>
+        <BrowserRouter>
+          {/* TODO - atm if we change the default shader the tests will fail - fix by setting any references to the shader to the new deafeult */}
+          {/* as we are using locations, to properly test this we should fix properly by setting the location to default shader in the test */}
+          {/* https://dev.to/wolverineks/react-router-testing-location-state-33fo */}
+          <CodeEditorPage />
+        </BrowserRouter>
+      </SnackbarProvider>
+    );
+  });
 
 let checkWebGPUMock: jest.SpyInstance;
 let simpleShaderMock: jest.SpyInstance;
@@ -54,14 +56,16 @@ const doMocks = () => {
   checkWebGPUMock.mockImplementation(() => true);
   simpleShaderMock = jest.spyOn(shaders, "renderShader");
   simpleShaderMock.mockImplementation(() => {
-    return;
+    return new Promise((resolve) => {
+      resolve("");
+    });
   });
 };
 
 describe("Default render tests", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     doMocks();
-    renderCodeEditorPage();
+    await renderCodeEditorPage();
   });
 
   afterEach(jest.resetAllMocks);
@@ -75,9 +79,9 @@ describe("Default render tests", () => {
 describe("Button Click Tests", () => {
   let showCodeButton: HTMLElement | null;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     doMocks();
-    renderCodeEditorPage();
+    await renderCodeEditorPage();
     showCodeButton = document.getElementById(SHOW_CODE_ID);
   });
 
@@ -141,9 +145,9 @@ describe("Button Click Tests", () => {
 describe("Code editor tests", () => {
   let codeEditor: HTMLElement | null;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     doMocks();
-    renderCodeEditorPage();
+    await renderCodeEditorPage();
 
     document.getElementById(SHOW_CODE_ID)?.click();
     const textAreas: HTMLElement[] = screen.getAllByRole("textbox");
