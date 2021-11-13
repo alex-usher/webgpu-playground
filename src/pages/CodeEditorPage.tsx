@@ -8,7 +8,7 @@ import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
 import { useEffect, useState } from "react";
 import React from "react";
-import { Link } from "react-router-dom";
+//import { Link } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
 import Drawer from "@mui/material/Drawer";
 
@@ -28,7 +28,7 @@ import {
   overwriteShader,
   isCurrentUsersShader,
 } from "../utils/firebaseHelper";
-import { useLocation } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 
 import { auth } from "../firebase";
 
@@ -52,6 +52,7 @@ const CodeEditorPage = () => {
   const [formOpen, setFormOpen] = React.useState(false);
   const [actionDrawerOpen, setActionDrawerOpen] = React.useState(false);
   const [shaderName, setShaderName] = useState("Untitled");
+  const history = useHistory();
 
   useEffect(() => {
     if (shader.shaderCode === "") {
@@ -201,7 +202,6 @@ const CodeEditorPage = () => {
           justifyContent="space-between"
           alignItems="center"
         >
-          {/* Left aligned actions */}
           <Grid
             container
             direction="row"
@@ -214,15 +214,15 @@ const CodeEditorPage = () => {
                 id="home-button"
                 variant="outlined"
                 disableElevation
-                component={Link}
-                to={"/"}
+                onClick={() => {
+                  history.goBack();
+                }}
                 color="primary"
                 startIcon={<ArrowBackIcon />}
               >
-                {"Back to Home"}
+                {"Back"}
               </Button>
             </Grid>
-            {/* Show/hide code button */}
             <Grid item>
               <Button
                 id="show-code-button"
@@ -237,7 +237,6 @@ const CodeEditorPage = () => {
                 {viewCodeText}
               </Button>
             </Grid>
-            {/* Actions in showCode mode */}
             {showCode && !isSmallWidth ? (
               <Grid item>
                 <Stack direction="row" spacing={2}>
@@ -261,7 +260,6 @@ const CodeEditorPage = () => {
             </Grid>
           </Grid>
 
-          {/* Right aligned actions */}
           <Grid
             container
             direction="row"
