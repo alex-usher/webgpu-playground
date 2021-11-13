@@ -10,14 +10,6 @@ import {
 } from "@firebase/firestore/lite";
 import { setDoc } from "@firebase/firestore/lite";
 
-// import {
-//   OptionsObject,
-//   SnackbarKey,
-//   SnackbarMessage,
-//   // useSnackbar,
-// } from "notistack";
-
-// import SnackbarUtils from "./Snackbar";
 import SnackbarUtils from "./Snackbar";
 
 import {
@@ -218,32 +210,14 @@ export const saveNewShader = async (
         shader.id = (await addDoc(usersShadersRef, shaderDoc)).id;
       }
     }
-
-    // enqueueSnackbar("Successfully saved!", {
-    //   variant: "success",
-    //   autoHideDuration: 1000,
-    // });
-
     SnackbarUtils.success("Successfully saved!");
-
     return shader;
   } catch (err) {
     if (err instanceof nameErr) {
-      // enqueueSnackbar(
-      //   'A shader with name "' + err.dupedName + '" already exists!',
-      //   {
-      //     variant: "error",
-      //     autoHideDuration: 3000,
-      //   }
-      // );
       SnackbarUtils.error(
         'A shader with name "' + err.dupedName + '" already exists!'
       );
     } else {
-      // enqueueSnackbar("Failed to save!", {
-      //   variant: "error",
-      //   autoHideDuration: 2000,
-      // });
       SnackbarUtils.error("Failed to save!");
     }
   }
@@ -265,17 +239,10 @@ class loggedOutErr extends Error {
 const toggleShaderPublicity = async (
   shader: Shader,
   makePublic: boolean
-  // enqueueSnackbar: {
-  //   (
-  //     message: SnackbarMessage,
-  //     options?: OptionsObject | undefined
-  //   ): SnackbarKey;
-  // }
 ): Promise<boolean> => {
   const success = false;
   const publicity = makePublic ? "public" : "private";
   const publicitied = makePublic ? "published" : "privated";
-  // const { enqueueSnackbar } = useSnackbar();
   try {
     const user = auth.currentUser;
     if (user) {
@@ -312,10 +279,6 @@ const toggleShaderPublicity = async (
   } catch (err) {
     if (success) {
       SnackbarUtils.success("Successfully " + publicitied + shader.title + "!");
-      // enqueueSnackbar("Successfully " + publicitied + shader.title + "!", {
-      //   variant: "success",
-      //   autoHideDuration: 1000,
-      // });
     } else {
       if (err instanceof unsavedErr) {
         SnackbarUtils.error(
@@ -323,30 +286,12 @@ const toggleShaderPublicity = async (
             publicity +
             "!"
         );
-        // enqueueSnackbar(
-        //   "Failed to publish shader - save your shader to make it " +
-        //     publicity +
-        //     "!",
-        //   {
-        //     variant: "error",
-        //     autoHideDuration: 1000,
-        //   }
-        // );
       } else if (err instanceof loggedOutErr) {
         SnackbarUtils.error(
           "Failed to publish shader - log in to make your shaders " +
             publicity +
             "!"
         );
-        // enqueueSnackbar(
-        //   "Failed to publish shader - log in to make your shaders " +
-        //     publicity +
-        //     "!",
-        //   {
-        //     variant: "error",
-        //     autoHideDuration: 1000,
-        //   }
-        // );
       }
     }
   }
@@ -379,15 +324,7 @@ export const uploadExample = async (): Promise<void> => {
   await addDoc(collection(firedb, "example-shaders"), data);
 };
 
-export const makeShaderPublic = async (
-  shader: Shader
-  // enqueueSnackbar: {
-  //   (
-  //     message: SnackbarMessage,
-  //     options?: OptionsObject | undefined
-  //   ): SnackbarKey;
-  // }
-): Promise<boolean> => {
+export const makeShaderPublic = async (shader: Shader): Promise<boolean> => {
   return await toggleShaderPublicity(shader, true);
 };
 

@@ -3,17 +3,19 @@ import IconButton from "@mui/material/IconButton";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Slider from "@mui/material/Slider";
-import Switch from "@mui/material/Switch";
-// import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
 import { useEffect, useState } from "react";
 import React from "react";
 import { Link } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
+import Drawer from "@mui/material/Drawer";
 
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
 import { defaultShader, Shader } from "../objects/Shader";
 
@@ -26,6 +28,9 @@ import {
 } from "../utils/firebaseHelper";
 import { useLocation } from "react-router-dom";
 // import { useSnackbar } from "notistack";
+
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 const CodeEditorPage = () => {
   const [shader, setShader] = useState<Shader>(
@@ -42,6 +47,8 @@ const CodeEditorPage = () => {
   const [inFullscreen, setInFullscreen] = useState(false);
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [formOpen, setFormOpen] = React.useState(false);
+  const [actionDrawerOpen, setActionDrawerOpen] = React.useState(false);
+  const [shaderName, setShaderName] = useState("Untitled");
 
   useEffect(() => {
     if (shader.shaderCode === "") {
@@ -49,6 +56,8 @@ const CodeEditorPage = () => {
         setShader(shaderWithCode);
         setShaderCode(shader.shaderCode);
         setRenderedShaderCode(shader.shaderCode);
+        // Only set the name if getting an existing shader - new shaders will display "untitled"
+        setShaderName(shader.title);
       });
     }
     console.log(shader);
@@ -69,6 +78,7 @@ const CodeEditorPage = () => {
   };
 
   const handleFormClose = () => {
+    setShaderName(shader.title);
     setFormOpen(false);
   };
 
@@ -79,22 +89,117 @@ const CodeEditorPage = () => {
     }
   };
 
+  const isSmallWidth = useMediaQuery(useTheme().breakpoints.down("xl"));
+
+  const toggleActionDrawer = () => {
+    // Only allow the drawer to open if the code actions button is available
+    if (isSmallWidth) {
+      setActionDrawerOpen(!actionDrawerOpen);
+    } else {
+      setActionDrawerOpen(false);
+    }
+  };
+
+  const editorActionComponents = [
+    <Button
+      key={1}
+      id="compile-button"
+      variant="outlined"
+      disableElevation
+      color="secondary"
+      onClick={() => {
+        setRenderedShaderCode(shaderCode);
+      }}
+    >
+      Compile
+    </Button>,
+    <Button
+      key={2}
+      id="save-button"
+      variant="outlined"
+      disableElevation
+      color="success"
+      onClick={handleFormOpen}
+    >
+      Save
+    </Button>,
+    <Button
+      key={3}
+      id="export-button"
+      variant="outlined"
+      disableElevation
+      onClick={() => {
+        const canvas = document.getElementById(
+          "canvas-webgpu"
+        ) as HTMLCanvasElement;
+        const link = document.createElement("a");
+        link.download = "shader.png";
+
+        canvas.toBlob(function (blob) {
+          link.href = URL.createObjectURL(blob);
+          console.log(blob);
+          console.log(link.href);
+          link.click();
+        }, "image/png");
+      }}
+      color={"primary"}
+    >
+      Export as PNG
+    </Button>,
+    <FormDialog
+      key={5}
+      open={formOpen}
+      handleClose={handleFormClose}
+      shaderCode={shaderCode}
+      updateShader={(shader) => setShader(shader)}
+    />,
+  ];
+
+  const opacitySliderComponent = (
+    <Stack
+      key={6}
+      alignItems="center"
+      direction="row"
+      justifyContent="center"
+      spacing={1.5}
+    >
+      <Button
+        key={7}
+        variant="text"
+        disableRipple
+        disableElevation
+        color="primary"
+        style={{ backgroundColor: "transparent", paddingTop: "0.6em" }}
+      >
+        Opacity
+      </Button>
+      <Slider
+        key={8}
+        color="primary"
+        value={editorOpacity}
+        onChange={handleOpacitySlider}
+        min={0.3}
+        step={0.001}
+        max={1}
+        style={{ minWidth: "150px", maxWidth: "200px" }}
+      />
+    </Stack>
+  );
+
   return (
     <div id="body">
       <div className="paddedDiv">
-        <Grid
-          container
+        <Stack
           direction="row"
-          justifyContent="flex-start"
+          justifyContent="space-between"
           alignItems="center"
         >
+          {/* Left aligned actions */}
           <Grid
-            item
             container
             direction="row"
             spacing={2}
-            xs={12}
-            md={8}
+            style={{ minWidth: "55%", maxWidth: "55%" }}
             alignItems="center"
           >
             <Grid item>
@@ -105,8 +210,9 @@ const CodeEditorPage = () => {
                 component={Link}
                 to={"/"}
                 color="primary"
+                startIcon={<ArrowBackIcon />}
               >
-                {"< Back to Home"}
+                {"Back to Home"}
               </Button>
             </Grid>
             {/* Show/hide code button */}
@@ -125,81 +231,40 @@ const CodeEditorPage = () => {
               </Button>
             </Grid>
             {/* Actions in showCode mode */}
-            {showCode ? (
-              <>
-                {" "}
-                <Grid item>
-                  <Button
-                    id="compile-button"
-                    variant="outlined"
-                    disableElevation
-                    color="secondary"
-                    onClick={() => {
-                      setRenderedShaderCode(shaderCode);
-                    }}
-                  >
-                    Compile
-                  </Button>
-                </Grid>
-                <Grid item>
-                  {showCode ? (
-                    <Button
-                      id="save-as-button"
-                      variant="outlined"
-                      disableElevation
-                      color="success"
-                      onClick={handleFormOpen}
-                    >
-                      Save
-                    </Button>
-                  ) : (
-                    <></>
-                  )}
-                  <FormDialog
-                    open={formOpen}
-                    handleClose={handleFormClose}
-                    shaderCode={shaderCode}
-                    updateShader={(shader) => setShader(shader)}
-                  />
-                </Grid>
-                <Grid item>
-                  <h1>{shader.title ? shader.title : "Untitled"}</h1>
-                </Grid>
-                <Grid item>
-                  <Stack direction="row">
-                    <Button
-                      variant="text"
-                      disableRipple
-                      disableElevation
-                      color="primary"
-                      style={{ backgroundColor: "transparent" }}
-                    >
-                      Public
-                    </Button>
-                    {/* TODO Set the default checked value and onClick*/}
-                    <Switch onClick={(e) => console.log(e)} />
-                  </Stack>
-                </Grid>
-              </>
+            {showCode && !isSmallWidth ? (
+              <Grid item>
+                <Stack direction="row" spacing={2}>
+                  {editorActionComponents}
+                </Stack>
+              </Grid>
             ) : (
               <></>
             )}
           </Grid>
 
+          {/* Shader title (roughly spaced on either side) */}
+          <Grid container direction="row" justifyContent="left">
+            <Grid item>
+              <Typography
+                variant="h5"
+                style={{ color: "lightGrey", fontSize: "3vh" }}
+              >
+                {shaderName}
+              </Typography>
+            </Grid>
+          </Grid>
+
+          {/* Right aligned actions */}
           <Grid
-            item
             container
             direction="row"
-            justifyContent="flex-end"
-            spacing={1}
-            xs={12}
-            md={4}
             alignItems="center"
+            justifyContent="flex-end"
           >
             <Grid item>
               <IconButton
                 color="primary"
-                style={{ fontSize: "3vh" }}
+                style={{ fontSize: "3vh", paddingRight: "2vh" }}
                 onClick={() => {
                   setInFullscreen(!inFullscreen);
                   if (!inFullscreen) {
@@ -219,33 +284,48 @@ const CodeEditorPage = () => {
             </Grid>
             {showCode ? (
               <>
-                <Grid item style={{ paddingLeft: "1em" }}>
-                  <Button
-                    variant="text"
-                    disableRipple
-                    disableElevation
-                    color="primary"
-                    style={{ backgroundColor: "transparent" }}
-                  >
-                    Editor Opacity
-                  </Button>
-                </Grid>
-                <Grid item style={{ minWidth: "250px", paddingRight: "1.0em" }}>
-                  <Slider
-                    color="primary"
-                    value={editorOpacity}
-                    onChange={handleOpacitySlider}
-                    min={0.3}
-                    step={0.001}
-                    max={1}
-                  />
-                </Grid>
+                {/* Display editor opacity normally if screen is wide, hide in a drawer otherwise */}
+                {!isSmallWidth ? (
+                  <>{opacitySliderComponent}</>
+                ) : (
+                  <>
+                    <Button
+                      id="editor-action-dropdown"
+                      variant="outlined"
+                      disableElevation
+                      color="primary"
+                      endIcon={<ArrowDropDownIcon />}
+                      onClick={toggleActionDrawer}
+                    >
+                      {"Code Actions"}
+                    </Button>
+                    <Drawer
+                      anchor={"right"}
+                      open={actionDrawerOpen}
+                      onClose={toggleActionDrawer}
+                    >
+                      <Stack
+                        direction="column"
+                        spacing={5}
+                        style={{
+                          paddingTop: "5vh",
+                          paddingLeft: "2vh",
+                          paddingRight: "2vh",
+                        }}
+                      >
+                        {editorActionComponents.concat([
+                          opacitySliderComponent,
+                        ])}
+                      </Stack>
+                    </Drawer>
+                  </>
+                )}{" "}
               </>
             ) : (
               <></>
             )}
           </Grid>
-        </Grid>
+        </Stack>
       </div>
 
       <ShaderCanvas shaderCode={renderedShaderCode} />

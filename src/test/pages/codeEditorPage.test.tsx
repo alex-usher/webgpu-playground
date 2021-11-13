@@ -10,10 +10,21 @@ import { BrowserRouter } from "react-router-dom";
 
 import "@testing-library/jest-dom/extend-expect";
 
+const shader = new Shader(
+  uuidv4() + "example_triangle_shader",
+  "test",
+  "http://www.test.com",
+  false,
+  `${shaders.rectangleVertex}\n${shaders.rectangleFragment}`
+);
+
 const renderCodeEditorPage = () =>
   render(
     <SnackbarProvider>
       <BrowserRouter>
+        {/* TODO - atm if we change the default shader the tests will fail - fix by setting any references to the shader to the new deafeult */}
+        {/* as we are using locations, to properly test this we should fix properly by setting the location to default shader in the test */}
+        {/* https://dev.to/wolverineks/react-router-testing-location-state-33fo */}
         <CodeEditorPage />
       </BrowserRouter>
     </SnackbarProvider>
@@ -28,14 +39,6 @@ const COMPILE_ID = "compile-button";
 const EDITOR_CLASS = "editors";
 const SHOW_CODE_TEXT = "View Code";
 const HIDE_CODE_TEXT = "Hide Code";
-
-const shader = new Shader(
-  uuidv4() + "example_triangle_shader",
-  "test",
-  "http://www.test.com",
-  false,
-  `${shaders.shaderTriangleVertex}\n${shaders.shaderTriangleFragment}`
-);
 
 const mockLocation = {
   pathname: "/editor",
@@ -119,9 +122,8 @@ describe("Button Click Tests", () => {
     expect(codeEditorDiv?.hasChildNodes()).toBeTruthy();
 
     const textAreas: HTMLElement[] = screen.getAllByRole("textbox");
-    expect(textAreas.length).toBe(2); // contains shader name textbox, vertex editor and fragment editor
+    expect(textAreas.length).toBe(1); // contains shader name textbox, vertex editor and fragment editor
     expect(textAreas[0]).toBeInTheDocument();
-    expect(textAreas[1]).toBeInTheDocument();
   });
 
   test("Clicking the compile code button results in calling the WebGPU render function", () => {
@@ -145,7 +147,7 @@ describe("Code editor tests", () => {
 
     document.getElementById(SHOW_CODE_ID)?.click();
     const textAreas: HTMLElement[] = screen.getAllByRole("textbox");
-    codeEditor = textAreas[1];
+    codeEditor = textAreas[0];
   });
 
   afterEach(() => {
@@ -157,11 +159,11 @@ describe("Code editor tests", () => {
   test("Typing into the code editor updates its text content", () => {
     if (codeEditor) {
       expect(codeEditor.textContent).toEqual(
-        `${shaders.shaderTriangleVertex}\n${shaders.shaderTriangleFragment}`
+        `${shaders.rectangleVertex}\n${shaders.rectangleFragment}`
       );
       userEvent.type(codeEditor, "a");
       expect(codeEditor.textContent).toEqual(
-        `${shaders.shaderTriangleVertex}\n${shaders.shaderTriangleFragment}a`
+        `${shaders.rectangleVertex}\n${shaders.rectangleFragment}a`
       );
     } else {
       fail("Vertex editor null");
