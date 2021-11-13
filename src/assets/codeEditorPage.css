@@ -27,8 +27,10 @@
     position: absolute !important;
     right: 0;
     top: 5%;
-    width: 100%;
+    width: 90%;
     height: 94%;
+    padding: 1em;
+    color: #e1e1e1ee;
     background-color: rgba(0, 0, 0, 0);
     resize: none;
     border: none;

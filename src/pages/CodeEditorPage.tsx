@@ -24,7 +24,6 @@ import "../assets/codeEditorPage.css";
 import { getShaderCode } from "../utils/firebaseHelper";
 import { useLocation } from "react-router-dom";
 
-import { RenderLogger } from "../objects/RenderLogger";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
@@ -46,7 +45,7 @@ const CodeEditorPage = () => {
   const [renderedShaderCode, setRenderedShaderCode] = useState(
     shader.shaderCode
   );
-  const [renderLogger, setRenderLogger] = useState(new RenderLogger());
+  const [messages, setMessages] = useState("");
   const [inFullscreen, setInFullscreen] = useState(false);
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [formOpen, setFormOpen] = React.useState(false);
@@ -59,16 +58,11 @@ const CodeEditorPage = () => {
         shader = shaderWithCode;
         setShaderCode(shader.shaderCode);
         setRenderedShaderCode(shader.shaderCode);
-        setRenderLogger(renderLogger);
         // Only set the name if getting an existing shader - new shaders will display "untitled"
         setShaderName(shader.title);
       });
     }
   }, [shader]);
-
-  useEffect(() => {
-    setRenderLogger(renderLogger);
-  }, [renderLogger]);
 
   const handleFormOpen = () => {
     setFormOpen(true);
@@ -106,7 +100,6 @@ const CodeEditorPage = () => {
       color="secondary"
       onClick={() => {
         setRenderedShaderCode(shaderCode);
-        setRenderLogger(renderLogger);
       }}
     >
       Compile
@@ -333,10 +326,7 @@ const CodeEditorPage = () => {
         </Stack>
       </div>
 
-      <ShaderCanvas
-        shaderCode={renderedShaderCode}
-        renderLogger={renderLogger}
-      />
+      <ShaderCanvas shaderCode={renderedShaderCode} setMessages={setMessages} />
       <div className="editors">
         {showCode ? (
           <div style={{ height: "100%" }}>
@@ -370,7 +360,7 @@ const CodeEditorPage = () => {
                   <textarea
                     className="editor-console-area"
                     disabled={true}
-                    value={renderLogger.getMessages()}
+                    value={messages}
                     spellCheck={false}
                   />
                 </div>

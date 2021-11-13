@@ -25,6 +25,7 @@ struct ViewParams {
 [[group(0), binding(0)]]
 var<uniform> view_params: ViewParams;
 `;
+const structsLength = structs.split(/\r\n|\r|\n/).length + 1;
 
 export const rectangleVertex = `/*${structs}*/
 [[stage(vertex)]]
@@ -74,7 +75,9 @@ const outputMessages = async (
       for (let i = 0; i < messages.length; i++) {
         const message = messages[i];
         renderLogger.logMessage(
-          `(${message.lineNum}, ${message.linePos}): ${message.message}`
+          `(${message.lineNum - structsLength}, ${message.linePos}): ${
+            message.message
+          }`
         );
         error = error || message.type === "error";
       }
