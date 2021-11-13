@@ -12,6 +12,8 @@ import { Link } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
 import Drawer from "@mui/material/Drawer";
 
+import SnackbarUtils from "../utils/Snackbar";
+
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -21,23 +23,24 @@ import { defaultShader, Shader } from "../objects/Shader";
 
 import "../assets/style.css";
 import "../assets/codeEditorPage.css";
-import { getShaderCode } from "../utils/firebaseHelper";
+import {
+  getShaderCode,
+  overwriteShader,
+  isCurrentUsersShader,
+} from "../utils/firebaseHelper";
 import { useLocation } from "react-router-dom";
+
+import { auth } from "../firebase";
 
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
 const CodeEditorPage = () => {
-  const location = useLocation();
-
-  // The state cast to any is needed to stop typescript errors
-  // eslint-disable-next-line
-  const state = location.state as any;
-  let shader = defaultShader;
-  if (state && state.shader) {
-    shader = state.shader;
-  }
-
+  const [shader, setShader] = useState<Shader>(
+    useLocation().state
+      ? (useLocation().state as { shader: Shader }).shader
+      : defaultShader
+  );
   const [shaderCode, setShaderCode] = useState(shader.shaderCode);
   const [showCode, setShowCode] = useState(false);
   const [viewCodeText, setViewCodeText] = useState("View Code");
@@ -53,17 +56,32 @@ const CodeEditorPage = () => {
   useEffect(() => {
     if (shader.shaderCode === "") {
       getShaderCode(shader).then((shaderWithCode: Shader) => {
-        shader = shaderWithCode;
+        setShader(shaderWithCode);
         setShaderCode(shader.shaderCode);
         setRenderedShaderCode(shader.shaderCode);
         // Only set the name if getting an existing shader - new shaders will display "untitled"
         setShaderName(shader.title);
       });
     }
-  }, [shader]);
+    console.log(shader);
+  }, []);
 
-  const handleFormOpen = () => {
-    setFormOpen(true);
+  useEffect(() => {
+    shader.shaderCode = shaderCode;
+  }, [shaderCode]);
+
+  const handleFormOpen = async () => {
+    if (!auth.currentUser) {
+      SnackbarUtils.error("You must be logged in to save a shader.");
+      return;
+    }
+    if ((await isCurrentUsersShader(shader)) && shader.id) {
+      console.log("overwriting");
+      overwriteShader(shader);
+    } else {
+      console.log("save as new");
+      setFormOpen(true);
+    }
   };
 
   const handleFormClose = () => {
@@ -113,16 +131,6 @@ const CodeEditorPage = () => {
       Save
     </Button>,
     <Button
-      key={4}
-      id="save-as-button"
-      variant="outlined"
-      disableElevation
-      color="success"
-      onClick={handleFormOpen}
-    >
-      Save As
-    </Button>,
-    <Button
       key={3}
       id="export-button"
       variant="outlined"
@@ -150,6 +158,7 @@ const CodeEditorPage = () => {
       open={formOpen}
       handleClose={handleFormClose}
       shaderCode={shaderCode}
+      updateShader={(shader) => setShader(shader)}
     />,
   ];
 

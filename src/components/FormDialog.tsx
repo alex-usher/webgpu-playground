@@ -6,155 +6,37 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 
-import {
-  ref,
-  getDownloadURL,
-  uploadBytes,
-  uploadString,
-} from "@firebase/storage";
-import { collection, addDoc, doc, setDoc } from "@firebase/firestore/lite";
-import { auth, firestorage, firedb } from "../firebase";
-import { v4 as uuidv4 } from "uuid";
-
 import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 
 import { useState } from "react";
-import {
-  OptionsObject,
-  SnackbarKey,
-  SnackbarMessage,
-  useSnackbar,
-} from "notistack";
+// import { useSnackbar } from "notistack";
 
-import { getUserShaders } from "../utils/firebaseHelper";
+import { Shader } from "../objects/Shader";
+import { saveNewShader } from "../utils/firebaseHelper";
 
 interface FormDialogProps {
   open: boolean;
   handleClose: () => void;
   shaderCode: string;
+  updateShader: (shader: Shader) => void;
 }
 
-class nameErr extends Error {
-  dupedName: string;
-
-  constructor(dupedName: string) {
-    super();
-    this.dupedName = dupedName;
-  }
-}
-
-const saveShaderCode = async (
-  shaderCode: string,
-  shaderName: string,
-  isPublic: boolean,
-  enqueueSnackbar: {
-    (
-      message: SnackbarMessage,
-      options?: OptionsObject | undefined
-    ): SnackbarKey;
-  }
-) => {
-  const id = uuidv4();
-  const shaderFile = `${id}_${shaderName}.txt`;
-  const shaderRef = ref(firestorage, shaderFile);
-  const shaderImage = `${id}_${shaderName}.png`;
-  const shaderImageRef = ref(firestorage, shaderImage);
-
-  const canvas = document.getElementById("canvas-webgpu") as HTMLCanvasElement;
-
-  const downloadURL = await new Promise((resolve) =>
-    canvas.toBlob(async (blob) => {
-      if (blob) {
-        await uploadBytes(shaderImageRef, blob);
-      }
-
-      resolve(await getDownloadURL(shaderImageRef));
-    }, "image/png")
-  );
-
-  uploadString(shaderRef, shaderCode);
-
-  const shaderDoc = {
-    shader_name: shaderName,
-    shader_code: shaderFile,
-    image: downloadURL,
-    isPublic: isPublic,
-  };
-
-  let hasErred = false;
-
-  try {
-    const user = auth.currentUser;
-    if (user) {
-      const existingShaders = await getUserShaders();
-      for (const existingShader of existingShaders) {
-        if (shaderName == existingShader.title) {
-          throw new nameErr(shaderName);
-        }
-      }
-    }
-
-    let shaderId = null;
-    if (isPublic) {
-      shaderId = (await addDoc(collection(firedb, "public-shaders"), shaderDoc))
-        .id;
-    }
-
-    if (user) {
-      if (shaderId) {
-        await setDoc(
-          doc(firedb, "users", user.uid, "shaders", shaderId),
-          shaderDoc
-        );
-      } else {
-        const usersShadersRef = collection(
-          firedb,
-          "users",
-          user.uid,
-          "shaders"
-        );
-        await addDoc(usersShadersRef, shaderDoc);
-      }
-    }
-  } catch (err) {
-    hasErred = true;
-    if (err instanceof nameErr) {
-      enqueueSnackbar(
-        "A shader with name " + err.dupedName + " already exists!",
-        {
-          variant: "error",
-          autoHideDuration: 1000,
-        }
-      );
-    } else {
-      enqueueSnackbar("Failed to save!", {
-        variant: "error",
-        autoHideDuration: 1000,
-      });
-    }
-  } finally {
-    if (!hasErred) {
-      enqueueSnackbar("Successfully saved!", {
-        variant: "success",
-        autoHideDuration: 1000,
-      });
-    }
-  }
-};
-
-const FormDialog = ({ open, handleClose, shaderCode }: FormDialogProps) => {
-  const [fileName, setFileName] = useState("no name provided");
+const FormDialog = ({
+  open,
+  handleClose,
+  shaderCode,
+  updateShader,
+}: FormDialogProps) => {
+  const [fileName, setFileName] = useState("Untitled");
   const [isPublic, setIsPublic] = useState(false);
 
   const resetAndClose = () => {
     setIsPublic(false);
-    setFileName("no name provided");
+    setFileName("Untitled");
     handleClose();
   };
-
-  const { enqueueSnackbar } = useSnackbar();
 
   return (
     <Dialog open={open} onClose={resetAndClose}>
@@ -187,8 +69,13 @@ const FormDialog = ({ open, handleClose, shaderCode }: FormDialogProps) => {
       <DialogActions>
         <Button onClick={resetAndClose}>Cancel</Button>
         <Button
-          onClick={() => {
-            saveShaderCode(shaderCode, fileName, isPublic, enqueueSnackbar);
+          onClick={async () => {
+            const shader = await saveNewShader(
+              new Shader("", fileName, "", isPublic, shaderCode)
+            );
+            if (shader) {
+              updateShader(shader);
+            }
             resetAndClose();
           }}
         >
