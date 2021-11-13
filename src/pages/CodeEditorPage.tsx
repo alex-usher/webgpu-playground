@@ -12,6 +12,8 @@ import { Link } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
 import Drawer from "@mui/material/Drawer";
 
+import SnackbarUtils from "../utils/Snackbar";
+
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -27,7 +29,8 @@ import {
   isCurrentUsersShader,
 } from "../utils/firebaseHelper";
 import { useLocation } from "react-router-dom";
-// import { useSnackbar } from "notistack";
+
+import { auth } from "../firebase";
 
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -68,6 +71,10 @@ const CodeEditorPage = () => {
   }, [shaderCode]);
 
   const handleFormOpen = async () => {
+    if (!auth.currentUser) {
+      SnackbarUtils.error("You must be logged in to save a shader.");
+      return;
+    }
     if ((await isCurrentUsersShader(shader)) && shader.id) {
       console.log("overwriting");
       overwriteShader(shader);
