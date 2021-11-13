@@ -4,6 +4,7 @@ import Typography from "@mui/material/Typography";
 import { useLocation } from "react-router-dom";
 
 import "../assets/homePage.css";
+import "../assets/infiniteScroll.css";
 import {
   ExampleShaderType,
   Shader,
@@ -12,11 +13,13 @@ import {
   shaderTypeMap,
 } from "../objects/Shader";
 import HeaderComponent from "../components/HeaderComponent";
-//import ShaderContainerLarge from "../components/ShaderContainerLarge";
 import { Loading } from "react-loading-dot/lib";
 import InfiniteScroll from "react-infinite-scroll-component";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ShaderCard } from "../components/ShaderCard";
+
+import { DocumentSnapshot } from "@firebase/firestore/lite";
+import { fetchPaginatedShaders } from "../utils/firebaseHelper";
 
 interface ShadersPageProps {
   shaderTypeEnum: ShaderTypeEnum;
@@ -26,22 +29,25 @@ interface ShadersPageProps {
 
 const ShadersPage = () => {
   const location = useLocation();
-  const { shaderTypeEnum, shaderList, pageLength } =
-    location.state as ShadersPageProps;
-  const [prevPage, setPrevPage] = useState(1);
-  const [currentShaders, setCurrentShaders] = useState(shaderList);
+  const { shaderTypeEnum, pageLength } = location.state as ShadersPageProps;
+  const [prevPage, setPrevPage] = useState(0);
+  const [currentShaders, setCurrentShaders] = useState<Shader[]>([]);
   const shaderType: ShaderType =
     shaderTypeMap.get(shaderTypeEnum) || ExampleShaderType;
+  const [latestDoc, setLatestDoc] = useState<DocumentSnapshot | undefined>();
 
-  const fetchMoreShaders = () => {
-    shaderType
-      .fetch(pageLength)
-      .then((res) => {
-        setCurrentShaders([...currentShaders, ...res]);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+  useEffect(() => {
+    fetchMoreShaders();
+  }, []);
+
+  const fetchMoreShaders = async () => {
+    const newShaders = await fetchPaginatedShaders(
+      shaderTypeEnum,
+      pageLength,
+      latestDoc,
+      setLatestDoc
+    );
+    setCurrentShaders([...currentShaders, ...newShaders]);
     setPrevPage(prevPage + 1);
   };
 
@@ -60,29 +66,24 @@ const ShadersPage = () => {
             {shaderType.sectionName}
           </Typography>
         </Grid>
-        <Grid
-          container
-          spacing={2}
-          alignItems="center"
-          className="container-grid"
-          padding="2%"
-        >
-          <InfiniteScroll
-            dataLength={currentShaders.length}
-            next={() => {
-              fetchMoreShaders();
-            }}
-            hasMore={currentShaders.length >= pageLength * prevPage}
-            loader={<Loading />}
-          >
-            {currentShaders.map((shader) => (
-              <Grid item key={shader.id}>
-                <ShaderCard shader={shader} />
-              </Grid>
-            ))}
-          </InfiniteScroll>
-        </Grid>
       </Grid>
+      <InfiniteScroll
+        dataLength={currentShaders.length}
+        next={() => {
+          fetchMoreShaders();
+        }}
+        hasMore={currentShaders.length >= pageLength * prevPage}
+        loader={<Loading />}
+        style={{ paddingTop: "2%", paddingBottom: "5%" }}
+      >
+        <div className="image-grid">
+          {currentShaders.map((shader) => (
+            <div className="image-item">
+              <ShaderCard shader={shader} />
+            </div>
+          ))}
+        </div>
+      </InfiniteScroll>
     </Container>
   );
 };

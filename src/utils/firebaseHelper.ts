@@ -23,35 +23,47 @@ import {
 import { auth, firedb } from "../firebase";
 import { useSnackbar } from "notistack";
 
-let exampleLatestDoc: DocumentSnapshot;
-let publicLatestDoc: DocumentSnapshot;
+export const fetchPaginatedShaders = async (
+  shaderTypeEnum: ShaderTypeEnum,
+  pageLength: number,
+  latestDoc: DocumentSnapshot | undefined,
+  setLatestDoc: (newDoc: DocumentSnapshot) => void
+) => {
+  console.log(latestDoc);
+  const shaders = [];
+  const collect =
+    shaderTypeEnum == ShaderTypeEnum.PUBLIC
+      ? collection(firedb, "public-shaders")
+      : collection(firedb, "example-shaders");
+  const querySnapshot = await getDocs(
+    query(
+      collect,
+      orderBy("shader_code"),
+      startAfter(latestDoc || 0),
+      limit(pageLength)
+    )
+  );
+  setLatestDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
+  for (const doc of querySnapshot.docs) {
+    const shader = await shaderConverter.fromFirestore(doc);
+    if (shader) {
+      shaders.push(shader);
+    }
+  }
+
+  return shaders;
+};
 
 const getShaders = async (
   collection: CollectionReference<DocumentData>,
-  pageLength?: number,
-  shaderType?: ShaderTypeEnum
+  pageLength?: number
 ): Promise<Shader[]> => {
   const shaders: Shader[] = [];
 
   let querySnapshot;
 
-  if (pageLength && shaderType) {
-    querySnapshot = await getDocs(
-      query(
-        collection,
-        orderBy("shader_code"),
-        startAfter(
-          shaderType == ShaderTypeEnum.PUBLIC
-            ? publicLatestDoc || 0
-            : exampleLatestDoc || 0
-        ),
-        limit(pageLength)
-      )
-    );
-    const latestDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-    shaderType == ShaderTypeEnum.PUBLIC
-      ? (publicLatestDoc = latestDoc)
-      : (exampleLatestDoc = latestDoc);
+  if (pageLength) {
+    querySnapshot = await getDocs(query(collection, limit(pageLength)));
   } else {
     querySnapshot = await getDocs(collection);
   }
@@ -61,28 +73,19 @@ const getShaders = async (
       shaders.push(shader);
     }
   }
-  console.log("query", shaders);
   return shaders;
 };
 
 export const getExampleShaders = async (
   pageLength?: number
 ): Promise<Shader[]> => {
-  return await getShaders(
-    collection(firedb, "example-shaders"),
-    pageLength,
-    ShaderTypeEnum.EXAMPLE
-  );
+  return await getShaders(collection(firedb, "example-shaders"), pageLength);
 };
 
 export const getPublicShaders = async (
   pageLength?: number
 ): Promise<Shader[]> => {
-  return await getShaders(
-    collection(firedb, "public-shaders"),
-    pageLength,
-    ShaderTypeEnum.PUBLIC
-  );
+  return await getShaders(collection(firedb, "public-shaders"), pageLength);
 };
 
 export const getUserShaders = async (

@@ -10,7 +10,6 @@ import {
 import { getDownloadURL, ref, uploadString } from "@firebase/storage";
 import { auth, firedb, firestorage } from "../firebase";
 import { v4 as uuidv4 } from "uuid";
-import { getExampleShaders, getPublicShaders } from "../utils/firebaseHelper";
 
 export enum ShaderTypeEnum {
   EXAMPLE = "example",
@@ -19,21 +18,18 @@ export enum ShaderTypeEnum {
 export interface ShaderType {
   pageLink: string;
   sectionName: string;
-  fetch: (pageLength?: number, prevPage?: number) => Promise<Shader[]>;
   type: ShaderTypeEnum;
 }
 
 export const ExampleShaderType = {
   pageLink: "/examples",
   sectionName: "Examples",
-  fetch: getExampleShaders,
   type: ShaderTypeEnum.EXAMPLE,
 };
 
 export const PublicShaderType = {
   pageLink: "/public",
   sectionName: "Recent Public Shaders",
-  fetch: getPublicShaders,
   type: ShaderTypeEnum.PUBLIC,
 };
 

@@ -9,7 +9,7 @@ import "../assets/shaderGallery.css";
 import { getExampleShaders, getPublicShaders } from "../utils/firebaseHelper";
 import HeaderComponent from "../components/HeaderComponent";
 
-const PAGE_LENGTH = 3;
+const PAGE_LENGTH = 10;
 
 const HomePage = () => {
   const [exampleShaders, setExampleShaders] = useState<Shader[]>([]);
