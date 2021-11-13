@@ -1,23 +1,25 @@
-import { Shader, ShaderType } from "../objects/Shader";
+import { ShaderType } from "../objects/Shader";
 import { ShaderCard } from "./ShaderCard";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import { Link } from "react-router-dom";
 import "../assets/cardCarousel.css";
+import { GetShadersReturnType } from "../utils/firebaseHelper";
 
 interface CarouselProps {
   shaderType: ShaderType;
-  shaderList: Shader[];
+  shaderQueryResult: GetShadersReturnType;
   pageLength: number;
 }
 
 export const CardCarousel = ({
   shaderType,
-  shaderList,
+  shaderQueryResult,
   pageLength,
 }: CarouselProps) => {
   const shaderTypeEnum = shaderType.type;
+  const queryResultString = JSON.stringify(shaderQueryResult);
   return (
     <div className="row">
       <Grid
@@ -37,14 +39,14 @@ export const CardCarousel = ({
           component={Link}
           to={{
             pathname: shaderType.pageLink,
-            state: { shaderTypeEnum, shaderList, pageLength },
+            state: { shaderTypeEnum, queryResultString, pageLength },
           }}
         >
           See All
         </Button>
       </Grid>
       <div className="row__blocks">
-        {shaderList.map((shader) => (
+        {shaderQueryResult.shaders.map((shader) => (
           <li key={shader.id} className="row__tile">
             <ShaderCard shader={shader} />
           </li>

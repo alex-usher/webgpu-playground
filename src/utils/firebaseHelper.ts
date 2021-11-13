@@ -4,13 +4,14 @@ import {
   CollectionReference,
   doc,
   DocumentData,
+  DocumentSnapshot,
   getDoc,
   getDocs,
   limit,
   orderBy,
   query,
   runTransaction,
-  startAt,
+  startAfter,
 } from "@firebase/firestore/lite";
 import {
   defaultShader,
@@ -21,24 +22,34 @@ import {
 import { auth, firedb } from "../firebase";
 import { useSnackbar } from "notistack";
 
+export interface GetShadersReturnType {
+  shaders: Shader[];
+  newLatestDoc: DocumentSnapshot | undefined;
+}
+
 const getShaders = async (
   collection: CollectionReference<DocumentData>,
   pageLength?: number,
-  prevPage?: number
-): Promise<Shader[]> => {
+  latestDoc?: DocumentSnapshot
+): Promise<GetShadersReturnType> => {
   const shaders: Shader[] = [];
 
   let querySnapshot;
+  let newLatestDoc;
 
-  if (pageLength && prevPage != undefined) {
+  if (pageLength) {
+    console.log("cry");
     querySnapshot = await getDocs(
       query(
         collection,
-        orderBy("shader_name"),
-        startAt(prevPage * pageLength),
-        limit(prevPage * pageLength + pageLength)
+        orderBy("shader_code"),
+        startAfter(latestDoc || 0),
+        limit(pageLength)
       )
     );
+    newLatestDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+    console.log("new latest doc", newLatestDoc);
+    console.log("stringified", JSON.parse(JSON.stringify(newLatestDoc)));
   } else {
     querySnapshot = await getDocs(collection);
   }
@@ -48,42 +59,45 @@ const getShaders = async (
       shaders.push(shader);
     }
   }
-  return shaders;
+  console.log(shaders);
+  return { shaders, newLatestDoc };
 };
 
 export const getExampleShaders = async (
   pageLength?: number,
-  prevPage?: number
-): Promise<Shader[]> => {
+  latestDoc?: DocumentSnapshot
+): Promise<GetShadersReturnType> => {
   return await getShaders(
     collection(firedb, "example-shaders"),
     pageLength,
-    prevPage
+    latestDoc
   );
 };
 
 export const getPublicShaders = async (
   pageLength?: number,
-  prevPage?: number
-): Promise<Shader[]> => {
+  latestDoc?: DocumentSnapshot
+): Promise<GetShadersReturnType> => {
   return await getShaders(
     collection(firedb, "public-shaders"),
     pageLength,
-    prevPage
+    latestDoc
   );
 };
 
 export const getUserShaders = async (
   pageLength?: number,
-  prevPage?: number
+  latestDoc?: DocumentSnapshot
 ): Promise<Shader[]> => {
   const user = auth.currentUser;
   if (user) {
-    return await getShaders(
-      collection(firedb, "users", user.uid, "shaders"),
-      pageLength,
-      prevPage
-    );
+    return (
+      await getShaders(
+        collection(firedb, "users", user.uid, "shaders"),
+        pageLength,
+        latestDoc
+      )
+    ).shaders;
   } else {
     // user is not logged in. this should never be a problem, as getUserShaders should
     // never be invoked without the user being logged in.

@@ -1,29 +1,35 @@
 import Grid from "@mui/material/Grid";
 import Container from "@mui/material/Container";
 import { CardCarousel } from "../components/CardCarousel";
-import { ExampleShaderType, PublicShaderType, Shader } from "../objects/Shader";
+import { ExampleShaderType, PublicShaderType } from "../objects/Shader";
 import { useEffect, useState } from "react";
 
 import "../assets/homePage.css";
 import "../assets/shaderGallery.css";
-import { getExampleShaders, getPublicShaders } from "../utils/firebaseHelper";
+import {
+  getExampleShaders,
+  getPublicShaders,
+  GetShadersReturnType,
+} from "../utils/firebaseHelper";
 import HeaderComponent from "../components/HeaderComponent";
 
-const PAGE_LENGTH = 1;
+const PAGE_LENGTH = 3;
 
 const HomePage = () => {
-  const [exampleShaders, setExampleShaders] = useState<Shader[]>([]);
-  const [publicShaders, setPublicShaders] = useState<Shader[]>([]);
+  const [exampleShaderQueryResult, setExampleShaderQueryResult] =
+    useState<GetShadersReturnType>();
+  const [publicShaderQueryResult, setPublicShaderQueryResult] =
+    useState<GetShadersReturnType>();
 
   useEffect(() => {
-    getPublicShaders(PAGE_LENGTH, 0).then((shaders: Shader[]) => {
-      setPublicShaders(shaders);
+    getPublicShaders(PAGE_LENGTH).then((res: GetShadersReturnType) => {
+      setPublicShaderQueryResult(res);
     });
   }, []);
 
   useEffect(() => {
-    getExampleShaders(PAGE_LENGTH, 0).then((shaders: Shader[]) => {
-      setExampleShaders(shaders);
+    getExampleShaders(PAGE_LENGTH).then((res: GetShadersReturnType) => {
+      setExampleShaderQueryResult(res);
     });
   }, []);
 
@@ -37,16 +43,20 @@ const HomePage = () => {
       >
         <HeaderComponent />
 
-        <CardCarousel
-          shaderType={ExampleShaderType}
-          shaderList={exampleShaders}
-          pageLength={PAGE_LENGTH}
-        />
-        <CardCarousel
-          shaderType={PublicShaderType}
-          shaderList={publicShaders}
-          pageLength={PAGE_LENGTH}
-        />
+        {exampleShaderQueryResult && (
+          <CardCarousel
+            shaderType={ExampleShaderType}
+            shaderQueryResult={exampleShaderQueryResult}
+            pageLength={PAGE_LENGTH}
+          />
+        )}
+        {publicShaderQueryResult && (
+          <CardCarousel
+            shaderType={PublicShaderType}
+            shaderQueryResult={publicShaderQueryResult}
+            pageLength={PAGE_LENGTH}
+          />
+        )}
       </Grid>
     </Container>
   );

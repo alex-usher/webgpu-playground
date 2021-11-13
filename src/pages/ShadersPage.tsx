@@ -6,7 +6,7 @@ import { useLocation } from "react-router-dom";
 import "../assets/homePage.css";
 import {
   ExampleShaderType,
-  Shader,
+  //Shader,
   ShaderType,
   ShaderTypeEnum,
   shaderTypeMap,
@@ -17,33 +17,46 @@ import { Loading } from "react-loading-dot/lib";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useState } from "react";
 import { ShaderCard } from "../components/ShaderCard";
+import { DocumentSnapshot } from "@firebase/firestore/lite";
+import { GetShadersReturnType } from "../utils/firebaseHelper";
 
 interface ShadersPageProps {
   shaderTypeEnum: ShaderTypeEnum;
-  shaderList: Shader[];
+  queryResultString: string;
   pageLength: number;
 }
 
 const ShadersPage = () => {
   const location = useLocation();
-  const { shaderTypeEnum, shaderList, pageLength } =
+  const { shaderTypeEnum, queryResultString, pageLength } =
     location.state as ShadersPageProps;
+  const shaderQueryResult = JSON.parse(
+    queryResultString
+  ) as GetShadersReturnType;
   const [prevPage, setPrevPage] = useState(1);
-  const [currentShaders, setCurrentShaders] = useState(shaderList);
+  const [currentShaders, setCurrentShaders] = useState(
+    shaderQueryResult.shaders
+  );
+  const [latestDoc, setLatestDoc] = useState<DocumentSnapshot | undefined>(
+    shaderQueryResult.newLatestDoc
+  );
   const shaderType: ShaderType =
     shaderTypeMap.get(shaderTypeEnum) || ExampleShaderType;
 
-  const fetchMoreShaders = async () => {
-    console.log("fetching");
-    const res = await shaderType.fetch(pageLength, prevPage);
-    console.log(res);
-    setCurrentShaders(currentShaders.concat(res));
+  const fetchMoreShaders = () => {
+    console.log("fetcing");
+    console.log(latestDoc);
+    shaderType
+      .fetch(pageLength, latestDoc)
+      .then((res) => {
+        setCurrentShaders([...currentShaders, ...res.shaders]);
+        setLatestDoc(res.newLatestDoc);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
     setPrevPage(prevPage + 1);
   };
-
-  console.log("prev page", prevPage);
-  console.log("curr length", shaderList.length);
-  console.log(pageLength * prevPage);
 
   return (
     <Container>
@@ -69,7 +82,9 @@ const ShadersPage = () => {
         >
           <InfiniteScroll
             dataLength={currentShaders.length}
-            next={fetchMoreShaders}
+            next={() => {
+              fetchMoreShaders();
+            }}
             hasMore={currentShaders.length >= pageLength * prevPage}
             loader={<Loading />}
           >
