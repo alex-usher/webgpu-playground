@@ -157,6 +157,7 @@ export const overwriteShader = async (shader: Shader) => {
   try {
     await deleteCodeFile(shader);
     const shaderDoc = await shaderConverter.toFirestore(shader);
+
     const user = auth.currentUser;
     if (user) {
       await setDoc(
