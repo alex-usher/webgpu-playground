@@ -34,6 +34,7 @@ import { auth } from "../firebase";
 
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { Tooltip } from "@mui/material";
 
 const CodeEditorPage = () => {
   const [shader, setShader] = useState<Shader>(
@@ -53,6 +54,7 @@ const CodeEditorPage = () => {
   const [actionDrawerOpen, setActionDrawerOpen] = React.useState(false);
   const [shaderName, setShaderName] = useState("Untitled");
   const history = useHistory();
+  const isLoggedIn = auth.currentUser == null;
 
   useEffect(() => {
     if (shader.shaderCode === "") {
@@ -121,16 +123,36 @@ const CodeEditorPage = () => {
     >
       Compile
     </Button>,
-    <Button
-      key={2}
-      id="save-button"
-      variant="outlined"
-      disableElevation
-      color="success"
-      onClick={handleFormOpen}
-    >
-      Save
-    </Button>,
+    <div>
+      {isLoggedIn ? (
+        <Tooltip title="You must be logged in to be able to save shaders.">
+          <span>
+            <Button
+              key={2}
+              id="save-button"
+              variant="contained"
+              disabled
+              disableElevation
+              fullWidth
+            >
+              Save
+            </Button>
+          </span>
+        </Tooltip>
+      ) : (
+        <Button
+          key={2}
+          id="save-button"
+          variant="outlined"
+          disableElevation
+          fullWidth
+          color="success"
+          onClick={handleFormOpen}
+        >
+          Save
+        </Button>
+      )}
+    </div>,
     <Button
       key={3}
       id="export-button"
