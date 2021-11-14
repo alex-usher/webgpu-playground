@@ -156,7 +156,7 @@ const deleteCodeFile = async (shader: Shader) => {
 export const overwriteShader = async (shader: Shader) => {
   try {
     await deleteCodeFile(shader);
-    const shaderDoc = shaderConverter.toFirestore(shader);
+    const shaderDoc = await shaderConverter.toFirestore(shader);
     const user = auth.currentUser;
     if (user) {
       await setDoc(
@@ -186,7 +186,7 @@ export const saveNewShader = async (
       }
     }
 
-    const shaderDoc = shaderConverter.toFirestore(shader);
+    const shaderDoc = await shaderConverter.toFirestore(shader);
 
     if (shader.isPublic) {
       shader.id = (
@@ -320,7 +320,7 @@ export const getDefaultShader = async (): Promise<Shader> => {
 };
 
 export const uploadExample = async (): Promise<void> => {
-  const data = shaderConverter.toFirestore(defaultShader);
+  const data = await shaderConverter.toFirestore(defaultShader);
   await addDoc(collection(firedb, "example-shaders"), data);
 };
 
