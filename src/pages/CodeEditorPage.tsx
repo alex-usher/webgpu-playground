@@ -8,7 +8,7 @@ import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
 import { useEffect, useState } from "react";
 import React from "react";
-import { Link } from "react-router-dom";
+//import { Link } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
 import Drawer from "@mui/material/Drawer";
 
@@ -28,12 +28,13 @@ import {
   overwriteShader,
   isCurrentUsersShader,
 } from "../utils/firebaseHelper";
-import { useLocation } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 
 import { auth } from "../firebase";
 
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { Tooltip } from "@mui/material";
 
 const CodeEditorPage = () => {
   const [shader, setShader] = useState<Shader>(
@@ -54,6 +55,8 @@ const CodeEditorPage = () => {
   const [formOpen, setFormOpen] = React.useState(false);
   const [actionDrawerOpen, setActionDrawerOpen] = React.useState(false);
   const [shaderName, setShaderName] = useState("Untitled");
+  const history = useHistory();
+  const isLoggedIn = auth.currentUser == null;
 
   useEffect(() => {
     if (shader.shaderCode === "") {
@@ -122,16 +125,36 @@ const CodeEditorPage = () => {
     >
       Compile
     </Button>,
-    <Button
-      key={2}
-      id="save-button"
-      variant="outlined"
-      disableElevation
-      color="success"
-      onClick={handleFormOpen}
-    >
-      Save
-    </Button>,
+    <div>
+      {isLoggedIn ? (
+        <Tooltip title="You must be logged in to be able to save shaders.">
+          <span>
+            <Button
+              key={2}
+              id="save-button"
+              variant="contained"
+              disabled
+              disableElevation
+              fullWidth
+            >
+              Save
+            </Button>
+          </span>
+        </Tooltip>
+      ) : (
+        <Button
+          key={2}
+          id="save-button"
+          variant="outlined"
+          disableElevation
+          fullWidth
+          color="success"
+          onClick={handleFormOpen}
+        >
+          Save
+        </Button>
+      )}
+    </div>,
     <Button
       key={3}
       id="export-button"
@@ -201,7 +224,6 @@ const CodeEditorPage = () => {
           justifyContent="space-between"
           alignItems="center"
         >
-          {/* Left aligned actions */}
           <Grid
             container
             direction="row"
@@ -214,15 +236,15 @@ const CodeEditorPage = () => {
                 id="home-button"
                 variant="outlined"
                 disableElevation
-                component={Link}
-                to={"/"}
+                onClick={() => {
+                  history.goBack();
+                }}
                 color="primary"
                 startIcon={<ArrowBackIcon />}
               >
-                {"Back to Home"}
+                {"Back"}
               </Button>
             </Grid>
-            {/* Show/hide code button */}
             <Grid item>
               <Button
                 id="show-code-button"
@@ -237,7 +259,6 @@ const CodeEditorPage = () => {
                 {viewCodeText}
               </Button>
             </Grid>
-            {/* Actions in showCode mode */}
             {showCode && !isSmallWidth ? (
               <Grid item>
                 <Stack direction="row" spacing={2}>
@@ -261,7 +282,6 @@ const CodeEditorPage = () => {
             </Grid>
           </Grid>
 
-          {/* Right aligned actions */}
           <Grid
             container
             direction="row"
