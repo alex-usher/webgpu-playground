@@ -19,7 +19,7 @@ import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
-import { defaultShader, Shader } from "../objects/Shader";
+import { defaultShader, Shader, MeshType } from "../objects/Shader";
 
 import "../assets/style.css";
 import "../assets/codeEditorPage.css";
@@ -36,11 +36,21 @@ import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
 const CodeEditorPage = () => {
+  const state = useLocation().state as {
+    shader: Shader;
+    meshType: MeshType;
+  };
+  const isLoadedShader = state.shader;
+  // TODO - this has a default for now but in the future this should never be empty
+  // Firebase should always save the type of mesh a shader uses
+  const meshType = state.meshType ? state.meshType : MeshType.RECTANGLE;
+  // Get the loaded shader code if is a loaded shader, else get the default corresponding to the mesh
   const [shader, setShader] = useState<Shader>(
-    useLocation().state
+    isLoadedShader
       ? (useLocation().state as { shader: Shader }).shader
-      : defaultShader
+      : defaultShader(meshType)
   );
+
   const [shaderCode, setShaderCode] = useState(shader.shaderCode);
   const [showCode, setShowCode] = useState(false);
   const [viewCodeText, setViewCodeText] = useState("View Code");
@@ -51,7 +61,7 @@ const CodeEditorPage = () => {
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [formOpen, setFormOpen] = React.useState(false);
   const [actionDrawerOpen, setActionDrawerOpen] = React.useState(false);
-  const [shaderName, setShaderName] = useState("Untitled");
+  const [shaderName, setShaderName] = useState("Untitled " + meshType);
 
   useEffect(() => {
     if (shader.shaderCode === "") {
@@ -335,7 +345,7 @@ const CodeEditorPage = () => {
         </Stack>
       </div>
 
-      <ShaderCanvas shaderCode={renderedShaderCode} />
+      <ShaderCanvas shaderCode={renderedShaderCode} meshType={meshType} />
       <div className="editors">
         {showCode ? (
           <Editor

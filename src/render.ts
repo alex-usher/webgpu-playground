@@ -1,4 +1,5 @@
 import assert from "assert";
+import { MeshType } from "./objects/Shader";
 
 export const checkWebGPU = (): boolean => navigator.gpu != null;
 
@@ -94,10 +95,16 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
 
 let renderFrame = -1;
 
-export const renderShader = async (shaderCode: string): Promise<void> => {
+// TODO: Change the pipeline depending on the meshType passed in
+export const renderShader = async (
+  shaderCode: string,
+  meshType: MeshType
+): Promise<void> => {
   if (!checkWebGPU()) {
     return;
   }
+
+  console.log("Rendering as a " + meshType);
 
   const canvas = document.getElementById("canvas-webgpu") as HTMLCanvasElement;
 
@@ -306,8 +313,4 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
   };
 
   renderFrame = requestAnimationFrame(frame);
-};
-
-export const renderTriangle = (): void => {
-  renderShader(`${shaderTriangleVertex}\n${shaderTriangleFragment}`);
 };

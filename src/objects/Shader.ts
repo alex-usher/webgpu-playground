@@ -11,6 +11,23 @@ import { getDownloadURL, ref, uploadString } from "@firebase/storage";
 import { auth, firedb, firestorage } from "../firebase";
 import { v4 as uuidv4 } from "uuid";
 
+export enum MeshType {
+  RECTANGLE = "Rectangle",
+  CUBE = "Cube",
+}
+
+// TODO - find a neater way of handling parsing strings to enums
+// might be possible with the below
+// type MeshTypeStrings = keyof typeof MeshType;
+export const MeshTypeFromValue = (typeString: string) => {
+  switch (typeString) {
+    case "Rectangle":
+      return MeshType.RECTANGLE;
+    case "Cube":
+      return MeshType.CUBE;
+  }
+};
+
 export class Shader {
   id: string;
   readonly image: string; //http link to img src
@@ -95,10 +112,27 @@ export interface ShaderProps {
   shader: Shader;
 }
 
-export const defaultShader = new Shader(
-  uuidv4() + "example_rectangle_shader",
-  "Triangle",
-  "https://i.ibb.co/M5Z06wy/triangle.png",
-  false,
-  `${rectangleVertex}\n${rectangleFragment}`
-);
+export const defaultShader = (meshType: MeshType): Shader => {
+  // set shader to a default rectangle
+  let shader = new Shader(
+    uuidv4() + "example_rectangle_shader",
+    "Triangle",
+    "https://i.ibb.co/M5Z06wy/triangle.png",
+    false,
+    `${rectangleVertex}\n${rectangleFragment}`
+  );
+
+  if (meshType === MeshType.RECTANGLE) {
+    ("pass");
+  } else if (meshType === MeshType.CUBE) {
+    // TODO change to return a default cube shader
+    shader = new Shader(
+      uuidv4() + "example_rectangle_shader",
+      "Triangle",
+      "https://i.ibb.co/M5Z06wy/triangle.png",
+      false,
+      `${rectangleVertex}\n${rectangleFragment}`
+    );
+  }
+  return shader;
+};

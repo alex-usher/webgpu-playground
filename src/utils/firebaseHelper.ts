@@ -17,6 +17,7 @@ import {
   downloadShaderCode,
   Shader,
   shaderConverter,
+  MeshType,
 } from "../objects/Shader";
 import { auth, firedb } from "../firebase";
 
@@ -320,7 +321,7 @@ export const getDefaultShader = async (): Promise<Shader> => {
 };
 
 export const uploadExample = async (): Promise<void> => {
-  const data = shaderConverter.toFirestore(defaultShader);
+  const data = shaderConverter.toFirestore(defaultShader(MeshType.RECTANGLE));
   await addDoc(collection(firedb, "example-shaders"), data);
 };
 
