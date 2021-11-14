@@ -8,6 +8,10 @@ import {
   getDocs,
   runTransaction,
 } from "@firebase/firestore/lite";
+import { setDoc } from "@firebase/firestore/lite";
+
+import SnackbarUtils from "./Snackbar";
+
 import {
   defaultShader,
   downloadShaderCode,
@@ -15,7 +19,6 @@ import {
   shaderConverter,
 } from "../objects/Shader";
 import { auth, firedb } from "../firebase";
-import { useSnackbar } from "notistack";
 
 const getShaders = async (
   collection: CollectionReference<DocumentData>
@@ -23,7 +26,7 @@ const getShaders = async (
   const querySnapshot = await getDocs(collection);
   const shaders: Shader[] = [];
   for (const doc of querySnapshot.docs) {
-    const shader = await shaderConverter.fromFirestore(doc);
+    const shader = shaderConverter.fromFirestore(doc);
     if (shader) {
       shaders.push(shader);
     }
@@ -46,7 +49,7 @@ export const getUserShaders = async (): Promise<Shader[]> => {
   } else {
     // user is not logged in. this should never be a problem, as getUserShaders should
     // never be invoked without the user being logged in.
-    console.log("ERROR: user is not logged in");
+    throw new Error("User is not logged in.");
   }
   return [];
 };
@@ -73,10 +76,31 @@ export const getUserPrivateShaders = async (): Promise<Shader[]> => {
   return privateShaders;
 };
 
-// eslint-disable-next-line
-export const getShaderCode = async (shader: any): Promise<Shader> => {
+export const getShaderCode = async (shader: Shader): Promise<Shader> => {
   shader.shaderCode = await downloadShaderCode(shader.id);
   return shader;
+};
+
+export const isCurrentUsersShader = async (
+  shader: Shader
+): Promise<boolean> => {
+  try {
+    const user = auth.currentUser;
+    if (user) {
+      const data = (
+        await getDoc(
+          doc(firedb, "users", user.uid, "shaders", shader.id).withConverter(
+            shaderConverter
+          )
+        )
+      )?.data();
+      return data ? true : false;
+    }
+    SnackbarUtils.error("You must be logged in to save a shader.");
+    return false;
+  } catch {
+    return false;
+  }
 };
 
 export const getShaderById = async (id: string): Promise<Shader> => {
@@ -111,6 +135,94 @@ export const getShaderById = async (id: string): Promise<Shader> => {
   return data;
 };
 
+class nameErr extends Error {
+  dupedName: string;
+  constructor(dupedName: string) {
+    super();
+    this.dupedName = dupedName;
+  }
+}
+
+export const deleteShader = async (shader: Shader) => {
+  // delete shader document from users, public and it's code file
+  console.log(shader);
+};
+
+const deleteCodeFile = async (shader: Shader) => {
+  // delete shader's code file
+  console.log(shader);
+};
+
+export const overwriteShader = async (shader: Shader) => {
+  try {
+    await deleteCodeFile(shader);
+    const shaderDoc = shaderConverter.toFirestore(shader);
+    const user = auth.currentUser;
+    if (user) {
+      await setDoc(
+        doc(firedb, "users", user.uid, "shaders", shader.id),
+        shaderDoc
+      );
+    }
+    console.log("Saved shader: ", shaderDoc);
+    SnackbarUtils.success("Successfully saved!");
+    return shader;
+  } catch {
+    SnackbarUtils.error("Failed to save.");
+  }
+};
+
+export const saveNewShader = async (
+  shader: Shader
+): Promise<Shader | undefined> => {
+  try {
+    const user = auth.currentUser;
+    if (user) {
+      const existingShaders = await getUserShaders();
+      for (const existingShader of existingShaders) {
+        if (shader.title == existingShader.title) {
+          throw new nameErr(shader.title);
+        }
+      }
+    }
+
+    const shaderDoc = shaderConverter.toFirestore(shader);
+
+    if (shader.isPublic) {
+      shader.id = (
+        await addDoc(collection(firedb, "public-shaders"), shaderDoc)
+      ).id;
+    }
+
+    if (user) {
+      if (shader.id !== "") {
+        await setDoc(
+          doc(firedb, "users", user.uid, "shaders", shader.id),
+          shaderDoc
+        );
+      } else {
+        const usersShadersRef = collection(
+          firedb,
+          "users",
+          user.uid,
+          "shaders"
+        );
+        shader.id = (await addDoc(usersShadersRef, shaderDoc)).id;
+      }
+    }
+    SnackbarUtils.success("Successfully saved!");
+    return shader;
+  } catch (err) {
+    if (err instanceof nameErr) {
+      SnackbarUtils.error(
+        'A shader with name "' + err.dupedName + '" already exists!'
+      );
+    } else {
+      SnackbarUtils.error("Failed to save!");
+    }
+  }
+};
+
 class unsavedErr extends Error {
   constructor() {
     super();
@@ -131,7 +243,6 @@ const toggleShaderPublicity = async (
   const success = false;
   const publicity = makePublic ? "public" : "private";
   const publicitied = makePublic ? "published" : "privated";
-  const { enqueueSnackbar } = useSnackbar();
   try {
     const user = auth.currentUser;
     if (user) {
@@ -167,30 +278,19 @@ const toggleShaderPublicity = async (
     }
   } catch (err) {
     if (success) {
-      enqueueSnackbar("Successfully " + publicitied + shader.title + "!", {
-        variant: "success",
-        autoHideDuration: 1000,
-      });
+      SnackbarUtils.success("Successfully " + publicitied + shader.title + "!");
     } else {
       if (err instanceof unsavedErr) {
-        enqueueSnackbar(
+        SnackbarUtils.error(
           "Failed to publish shader - save your shader to make it " +
             publicity +
-            "!",
-          {
-            variant: "error",
-            autoHideDuration: 1000,
-          }
+            "!"
         );
       } else if (err instanceof loggedOutErr) {
-        enqueueSnackbar(
+        SnackbarUtils.error(
           "Failed to publish shader - log in to make your shaders " +
             publicity +
-            "!",
-          {
-            variant: "error",
-            autoHideDuration: 1000,
-          }
+            "!"
         );
       }
     }

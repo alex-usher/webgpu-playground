@@ -46,7 +46,7 @@ const mockLocation = {
   pathname: "/editor",
   hash: "",
   search: "",
-  state: shader,
+  state: { shader },
 };
 
 const doMocks = () => {

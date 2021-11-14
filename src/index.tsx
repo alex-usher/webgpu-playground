@@ -7,12 +7,14 @@ import CodeEditorPage from "./pages/CodeEditorPage";
 import UserPage from "./pages/UserPage";
 import ShadersPage from "./pages/ShadersPage";
 import { SnackbarProvider } from "notistack";
+import { SnackbarUtilsConfigurator } from "./utils/Snackbar";
 
 import "./assets/style.css";
 
 ReactDOM.render(
   <React.StrictMode>
     <SnackbarProvider maxSnack={1}>
+      <SnackbarUtilsConfigurator />
       <div id="body">
         <Router>
           <Switch>
