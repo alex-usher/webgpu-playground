@@ -127,7 +127,7 @@ describe("Button Click Tests", () => {
 
     const textAreas: HTMLElement[] = screen.getAllByRole("textbox");
     expect(textAreas.length).toBe(2); // contains shader name textbox, vertex editor and fragment editor
-    expect(textAreas[0]).toBeInTheDocument();
+    expect(textAreas[1]).toBeInTheDocument();
   });
 
   test("Clicking the compile code button results in calling the WebGPU render function", () => {
@@ -151,7 +151,7 @@ describe("Code editor tests", () => {
 
     document.getElementById(SHOW_CODE_ID)?.click();
     const textAreas: HTMLElement[] = screen.getAllByRole("textbox");
-    codeEditor = textAreas[0];
+    codeEditor = textAreas[1];
   });
 
   afterEach(() => {
@@ -162,10 +162,14 @@ describe("Code editor tests", () => {
 
   test("Typing into the code editor updates its text content", () => {
     if (codeEditor) {
-      expect(codeEditor.textContent).toEqual(shader.shaderCode);
+      expect(codeEditor.textContent).toEqual(
+        `${shaders.rectangleVertex}\n${shaders.rectangleFragment}`
+      );
       console.log(codeEditor.textContent);
       userEvent.type(codeEditor, "a");
-      expect(codeEditor.textContent).toEqual(`${shader.shaderCode}a`);
+      expect(codeEditor.textContent).toEqual(
+        `${shaders.rectangleVertex}\n${shaders.rectangleFragment}a`
+      );
       console.log(codeEditor.textContent);
     } else {
       fail("Vertex editor null");
