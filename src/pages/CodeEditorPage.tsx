@@ -63,7 +63,6 @@ const CodeEditorPage = () => {
         setShaderName(shader.title);
       });
     }
-    console.log(shader);
   }, []);
 
   useEffect(() => {
@@ -76,10 +75,8 @@ const CodeEditorPage = () => {
       return;
     }
     if ((await isCurrentUsersShader(shader)) && shader.id) {
-      console.log("overwriting");
       overwriteShader(shader);
     } else {
-      console.log("save as new");
       setFormOpen(true);
     }
   };
