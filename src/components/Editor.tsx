@@ -62,8 +62,7 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
       codeBlockRef.current.focus();
       editorRef.current.focus();
       gutterRef.current.focus();
-      editorRef.current.scrollTop = gutterRef.current.scrollTop;
-      codeBlockRef.current.scrollTop = gutterRef.current.scrollTop;
+      gutterRef.current.scrollTop = editorRef.current.scrollTop;
     }
   };
 
@@ -72,7 +71,7 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
     if (editorRef.current && codeBlockRef.current) {
       editorRef.current.focus();
       editorRef.current.innerText = text;
-      codeBlockRef.current.innerText = text;
+      codeBlockRef.current.innerText = text; //+ "\n\r\n\r";
 
       window.Prism = window.Prism || {};
       Prism.highlight(
@@ -89,9 +88,10 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
       style={{ backgroundColor: `rgb(50, 50, 50, ${opacity})` }}
     >
       {/* line numbers */}
-      <div className="editor-gutter-container padding" onScroll={gutterScroll}>
+      <div className="editor-gutter-container padding">
         <div
           className="editor-gutter scroll-text-style"
+          onScroll={gutterScroll}
           ref={gutterRef as React.RefObject<HTMLDivElement>}
         >
           {lineNumbers}
@@ -100,17 +100,15 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
 
       {/* code area */}
       <div className="editor scroll-text-style">
-        <div className="heightDiv">
-          <textarea
-            className="code-text-editor padding"
-            onChange={onChange}
-            onInput={() => update(value)}
-            onScroll={textAreaScroll}
-            spellCheck="false"
-            ref={editorRef as React.RefObject<HTMLTextAreaElement>}
-            value={value}
-          />
-        </div>
+        <textarea
+          className="code-text-editor padding"
+          onChange={onChange}
+          onInput={() => update(value)}
+          onScroll={textAreaScroll}
+          spellCheck="false"
+          ref={editorRef as React.RefObject<HTMLTextAreaElement>}
+          value={value}
+        />
         <pre className="language-javascript scroll-text-style padding">
           <code
             className="padding"

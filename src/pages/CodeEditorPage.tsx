@@ -1,34 +1,31 @@
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Slider from "@mui/material/Slider";
 import Typography from "@mui/material/Typography";
+import { defaultShader, Shader } from "../objects/Shader";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
-import { useEffect, useState } from "react";
 import React from "react";
 //import { Link } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
 import Drawer from "@mui/material/Drawer";
-
-import SnackbarUtils from "../utils/Snackbar";
-
-import FullscreenIcon from "@mui/icons-material/Fullscreen";
-import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-
-import { defaultShader, Shader } from "../objects/Shader";
-
-import "../assets/style.css";
-import "../assets/codeEditorPage.css";
 import {
   getShaderCode,
   overwriteShader,
   isCurrentUsersShader,
 } from "../utils/firebaseHelper";
+import { useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
+import SnackbarUtils from "../utils/Snackbar";
+
+import "../assets/style.css";
+import "../assets/codeEditorPage.css";
 
 import { auth } from "../firebase";
 

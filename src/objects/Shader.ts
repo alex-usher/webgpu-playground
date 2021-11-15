@@ -7,7 +7,12 @@ import {
   QueryDocumentSnapshot,
   WithFieldValue,
 } from "@firebase/firestore/lite";
-import { getDownloadURL, ref, uploadString } from "@firebase/storage";
+import {
+  getDownloadURL,
+  ref,
+  uploadBytes,
+  uploadString,
+} from "@firebase/storage";
 import { auth, firedb, firestorage } from "../firebase";
 import { v4 as uuidv4 } from "uuid";
 
@@ -34,15 +39,32 @@ export class Shader {
 }
 
 export const shaderConverter = {
-  toFirestore(shader: WithFieldValue<Shader>): DocumentData {
-    const shaderFile = `${uuidv4()}_${shader.title}.txt`;
+  async toFirestore(shader: WithFieldValue<Shader>): Promise<DocumentData> {
+    const id = uuidv4();
+    const shaderFile = `${id}_${shader.title}.txt`;
     const shaderRef = ref(firestorage, shaderFile);
+    const imageFile = `${id}_${shader.title}.png`;
+    const imageRef = ref(firestorage, imageFile);
+
+    const canvas = document.getElementById(
+      "canvas-webgpu"
+    ) as HTMLCanvasElement;
+
+    const downloadUrl = await new Promise((resolve) =>
+      canvas.toBlob(async (blob) => {
+        if (blob) {
+          await uploadBytes(imageRef, blob);
+        }
+        resolve(await getDownloadURL(imageRef));
+      }, "image/png")
+    );
 
     uploadString(shaderRef, shader.shaderCode.toString());
 
     return {
       shader_name: shader.title,
       shader_code: shaderFile,
+      image: downloadUrl,
       isPublic: shader.isPublic,
     };
   },
