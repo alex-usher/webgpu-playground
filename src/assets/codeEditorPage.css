@@ -6,36 +6,6 @@
     height: 88%;
 }
 
-.view-console {
-    position: fixed;
-    display: block;
-
-    right: 2%;
-    top: 9%;
-    width: 20%;
-    height: 88%;
-}
-
-.view-console-button {
-    position: absolute !important;
-    right: 0;
-    padding: 1em;
-    z-index: 30;
-}
-
-.editor-console-area {
-    position: absolute !important;
-    right: 0;
-    top: 5%;
-    width: 90%;
-    height: 94%;
-    padding: 1em;
-    color: #e1e1e1ee;
-    background-color: rgba(0, 0, 0, 0);
-    resize: none;
-    border: none;
-}
-
 .css-1yjjitx-MuiSwitch-track {
     background-color: lightgray !important;
 }

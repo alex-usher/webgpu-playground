@@ -35,6 +35,7 @@ import { auth } from "../firebase";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { Tooltip } from "@mui/material";
+import { ConsoleOutput } from "../components/ConsoleOutput";
 
 const CodeEditorPage = () => {
   const [shader, setShader] = useState<Shader>(
@@ -45,7 +46,6 @@ const CodeEditorPage = () => {
   const [shaderCode, setShaderCode] = useState(shader.shaderCode);
   const [showCode, setShowCode] = useState(false);
   const [viewCodeText, setViewCodeText] = useState("View Code");
-  const [viewConsole, setViewConsole] = useState(false);
   const [renderedShaderCode, setRenderedShaderCode] = useState(
     shader.shaderCode
   );
@@ -68,7 +68,6 @@ const CodeEditorPage = () => {
         setShaderName(shader.title);
       });
     }
-    console.log(shader);
   }, []);
 
   useEffect(() => {
@@ -356,6 +355,8 @@ const CodeEditorPage = () => {
       </div>
 
       <ShaderCanvas shaderCode={renderedShaderCode} setMessages={setMessages} />
+      {showCode ? <ConsoleOutput messages={messages} /> : <></>}
+
       <div className="editors">
         {showCode ? (
           <div style={{ height: "100%" }}>
@@ -366,37 +367,6 @@ const CodeEditorPage = () => {
               }}
               opacity={editorOpacity}
             />
-            <div
-              className="view-console"
-              style={
-                viewConsole
-                  ? {
-                      backgroundColor: "rgba(0,0,0,0.2)",
-                      borderLeft: "1px solid rgba(200, 200, 200, 0.8)",
-                    }
-                  : {}
-              }
-            >
-              <Button
-                variant="outlined"
-                className="view-console-button"
-                onClick={() => setViewConsole(!viewConsole)}
-              >
-                {viewConsole ? "Hide Console" : "View Console"}
-              </Button>
-              {viewConsole ? (
-                <div>
-                  <textarea
-                    className="editor-console-area"
-                    disabled={true}
-                    value={messages}
-                    spellCheck={false}
-                  />
-                </div>
-              ) : (
-                <></>
-              )}
-            </div>
           </div>
         ) : (
           <></>

@@ -126,7 +126,7 @@ describe("Button Click Tests", () => {
     expect(codeEditorDiv?.hasChildNodes()).toBeTruthy();
 
     const textAreas: HTMLElement[] = screen.getAllByRole("textbox");
-    expect(textAreas.length).toBe(1); // contains shader name textbox, vertex editor and fragment editor
+    expect(textAreas.length).toBe(2); // contains shader name textbox, vertex editor and fragment editor
     expect(textAreas[0]).toBeInTheDocument();
   });
 
@@ -162,13 +162,11 @@ describe("Code editor tests", () => {
 
   test("Typing into the code editor updates its text content", () => {
     if (codeEditor) {
-      expect(codeEditor.textContent).toEqual(
-        `${shaders.rectangleVertex}\n${shaders.rectangleFragment}`
-      );
+      expect(codeEditor.textContent).toEqual(shader.shaderCode);
+      console.log(codeEditor.textContent);
       userEvent.type(codeEditor, "a");
-      expect(codeEditor.textContent).toEqual(
-        `${shaders.rectangleVertex}\n${shaders.rectangleFragment}a`
-      );
+      expect(codeEditor.textContent).toEqual(`${shader.shaderCode}a`);
+      console.log(codeEditor.textContent);
     } else {
       fail("Vertex editor null");
     }
