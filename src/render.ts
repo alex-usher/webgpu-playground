@@ -2,7 +2,7 @@ import assert from "assert";
 
 export const checkWebGPU = (): boolean => navigator.gpu != null;
 
-const structs = `struct VertexInput {
+export const structs = `struct VertexInput {
     [[location(0)]] position: vec2<f32>;
     [[location(1)]] color: vec4<f32>;
 };
@@ -25,7 +25,9 @@ struct ViewParams {
 var<uniform> view_params: ViewParams;
 `;
 
-export const rectangleVertex = `/*${structs}*/
+const structsMessage =
+  "To see the predefined uniforms that you have available to you, click the help button above";
+export const rectangleVertex = `/*${structsMessage}*/
 [[stage(vertex)]]
 fn vertex_main(vert: VertexInput) -> VertexOutput {
 

@@ -31,8 +31,9 @@ import { auth } from "../firebase";
 
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { Tooltip } from "@mui/material";
-
+import { Card, Tooltip } from "@mui/material";
+import { structs } from "../render";
+import { Close } from "@mui/icons-material";
 const CodeEditorPage = () => {
   const [shader, setShader] = useState<Shader>(
     useLocation().state
@@ -52,6 +53,8 @@ const CodeEditorPage = () => {
   const [shaderName, setShaderName] = useState("Untitled");
   const history = useHistory();
   const isLoggedIn = auth.currentUser == null;
+  const [helpBoxVisable, setHelpBoxVisable] = React.useState(false);
+  const [editorWidth, setEditorWidth] = useState("100%");
 
   useEffect(() => {
     if (shader.shaderCode === "") {
@@ -98,6 +101,13 @@ const CodeEditorPage = () => {
 
   const isSmallWidth = useMediaQuery(useTheme().breakpoints.down("xl"));
 
+  const toggleHelpVisable = () => {
+    setHelpBoxVisable(!helpBoxVisable);
+    {
+      helpBoxVisable ? setEditorWidth("100%") : setEditorWidth("75%");
+    }
+  };
+
   const toggleActionDrawer = () => {
     // Only allow the drawer to open if the code actions button is available
     if (isSmallWidth) {
@@ -138,7 +148,7 @@ const CodeEditorPage = () => {
         </Tooltip>
       ) : (
         <Button
-          key={2}
+          key={21}
           id="save-button"
           variant="outlined"
           disableElevation
@@ -173,6 +183,17 @@ const CodeEditorPage = () => {
     >
       Export as PNG
     </Button>,
+    <Button
+      key={42}
+      id="help-button"
+      variant="outlined"
+      disableElevation
+      onClick={toggleHelpVisable}
+      color={"secondary"}
+    >
+      Help
+    </Button>,
+
     <FormDialog
       key={5}
       open={formOpen}
@@ -353,19 +374,65 @@ const CodeEditorPage = () => {
       </div>
 
       <ShaderCanvas shaderCode={renderedShaderCode} />
-      <div className="editors">
-        {showCode ? (
-          <Editor
-            value={shaderCode}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-              setShaderCode(e.target.value);
+
+      {showCode ? (
+        <div className="editors">
+          <div className="editor" style={{ width: editorWidth, float: "left" }}>
+            <Editor
+              value={shaderCode}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                setShaderCode(e.target.value);
+              }}
+              opacity={editorOpacity}
+            />
+          </div>
+          <div
+            className="help-card"
+            style={{
+              width: "25%",
+              height: "97.5%",
+              float: "left",
             }}
-            opacity={editorOpacity}
-          />
-        ) : (
-          <></>
-        )}
-      </div>
+          >
+            {helpBoxVisable ? (
+              <Card
+                sx={{
+                  height: "100%",
+                  fontFamily: "monospace",
+                  whiteSpace: "pre-wrap",
+                  backgroundColor: `rgb(50, 50, 50, ${editorOpacity})`,
+                  borderRadius: "0.35em",
+
+                  scrollBehavior: "smooth",
+                  overflow: "auto",
+                  color: "rgba(208, 208, 208, 0.9)",
+                  pr: "0.75em",
+                }}
+              >
+                <Grid container>
+                  <Grid item xs={11} sx={{ padding: "0.75em" }}>
+                    <Typography variant="body2">
+                      These are the predefined uniforms that you can use in your
+                      code. Have a look at our example shaders to get an idea of
+                      how to use them.
+                    </Typography>
+                    {structs}
+                  </Grid>
+                  <Grid item xs={1}>
+                    <IconButton onClick={toggleHelpVisable}>
+                      <Close />
+                    </IconButton>
+                  </Grid>
+                </Grid>
+              </Card>
+            ) : (
+              <></>
+            )}
+          </div>
+        </div>
+      ) : (
+        <></>
+      )}
     </div>
   );
 };
