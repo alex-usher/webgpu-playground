@@ -9,6 +9,7 @@ import routeData from "react-router";
 import { BrowserRouter } from "react-router-dom";
 
 import "@testing-library/jest-dom/extend-expect";
+import assert from "assert";
 
 const shader = new Shader(
   uuidv4() + "example_triangle_shader",
@@ -160,17 +161,20 @@ describe("Code editor tests", () => {
     codeEditor = null;
   });
 
-  test("Typing into the code editor updates its text content", () => {
+  test("Typing into the code editor updates its text content", async () => {
     if (codeEditor) {
       expect(codeEditor.textContent).toEqual(
         `${shaders.rectangleVertex}\n${shaders.rectangleFragment}`
       );
-      console.log(codeEditor.textContent);
-      userEvent.type(codeEditor, "a");
+
+      await act(async () => {
+        // the non-null assertion doesn't work in the inner scope
+        assert(codeEditor);
+        await userEvent.type(codeEditor, "a");
+      });
       expect(codeEditor.textContent).toEqual(
         `${shaders.rectangleVertex}\n${shaders.rectangleFragment}a`
       );
-      console.log(codeEditor.textContent);
     } else {
       fail("Vertex editor null");
     }
