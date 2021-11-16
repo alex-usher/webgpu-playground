@@ -1,0 +1,31 @@
+.view-console {
+    position: fixed;
+    display: block;
+
+    right: 2.75%;
+    top: 9%;
+    width: 20%;
+    height: 25%;
+    margin: 1em;
+    z-index: 30;
+}
+
+.view-console-button {
+    position: absolute !important;
+    right: 0;
+    padding: 1em;
+    z-index: 30;
+}
+
+.editor-console-area {
+    position: absolute !important;
+    right: 0;
+    top: 10%;
+    width: 90%;
+    height: 85%;
+    padding: 1em;
+    color: #e1e1e1ee;
+    background-color: rgba(0, 0, 0, 0);
+    resize: none;
+    border: none;
+}

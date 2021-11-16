@@ -32,6 +32,7 @@ import { auth } from "../firebase";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { Tooltip } from "@mui/material";
+import { ConsoleOutput } from "../components/ConsoleOutput";
 
 const CodeEditorPage = () => {
   const [shader, setShader] = useState<Shader>(
@@ -45,6 +46,7 @@ const CodeEditorPage = () => {
   const [renderedShaderCode, setRenderedShaderCode] = useState(
     shader.shaderCode
   );
+  const [messages, setMessages] = useState("");
   const [inFullscreen, setInFullscreen] = useState(false);
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [formOpen, setFormOpen] = React.useState(false);
@@ -161,8 +163,6 @@ const CodeEditorPage = () => {
 
         canvas.toBlob(function (blob) {
           link.href = URL.createObjectURL(blob);
-          console.log(blob);
-          console.log(link.href);
           link.click();
         }, "image/png");
       }}
@@ -349,16 +349,20 @@ const CodeEditorPage = () => {
         </Stack>
       </div>
 
-      <ShaderCanvas shaderCode={renderedShaderCode} />
+      <ShaderCanvas shaderCode={renderedShaderCode} setMessages={setMessages} />
+      {showCode ? <ConsoleOutput messages={messages} /> : <></>}
+
       <div className="editors">
         {showCode ? (
-          <Editor
-            value={shaderCode}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-              setShaderCode(e.target.value);
-            }}
-            opacity={editorOpacity}
-          />
+          <div style={{ height: "100%" }}>
+            <Editor
+              value={shaderCode}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                setShaderCode(e.target.value);
+              }}
+              opacity={editorOpacity}
+            />
+          </div>
         ) : (
           <></>
         )}
