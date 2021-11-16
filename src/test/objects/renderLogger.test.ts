@@ -24,4 +24,14 @@ describe("Render logger tests", () => {
       `${testMessageWarning}\n\r${testMessageError}`
     );
   });
+
+  it("Empties the messages list on clearLog()", () => {
+    renderLogger.logMessage(testMessageSuccess);
+
+    expect(renderLogger.getMessages()).not.toEqual("");
+
+    renderLogger.clearLog();
+
+    expect(renderLogger.getMessages()).toEqual("");
+  });
 });
