@@ -33,8 +33,11 @@ import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { Tooltip } from "@mui/material";
 import { ConsoleOutput } from "../components/ConsoleOutput";
+import { RenderLogger } from "../objects/RenderLogger";
 
 const CodeEditorPage = () => {
+  const renderLogger = new RenderLogger();
+
   const [shader, setShader] = useState<Shader>(
     useLocation().state
       ? (useLocation().state as { shader: Shader }).shader
@@ -46,12 +49,25 @@ const CodeEditorPage = () => {
   const [renderedShaderCode, setRenderedShaderCode] = useState(
     shader.shaderCode
   );
-  const [messages, setMessages] = useState("");
   const [inFullscreen, setInFullscreen] = useState(false);
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [formOpen, setFormOpen] = React.useState(false);
   const [actionDrawerOpen, setActionDrawerOpen] = React.useState(false);
   const [shaderName, setShaderName] = useState("Untitled");
+  /* states relating to error messages, warnings */
+  const [messages, setMessages] = useState("");
+  const [hasErrors, setHasErrors] = useState(false);
+  const [hasWarnings, setHasWarnings] = useState(false);
+
+  /*
+   * messages change each recompile - we want to
+   * update our errors/warnings states accordingly
+   */
+  useEffect(() => {
+    setHasWarnings(renderLogger.hasWarnings());
+    setHasErrors(renderLogger.hasErrors());
+  }, [messages]);
+
   const history = useHistory();
   const isLoggedIn = auth.currentUser == null;
 
@@ -112,7 +128,7 @@ const CodeEditorPage = () => {
       id="compile-button"
       variant="outlined"
       disableElevation
-      color="secondary"
+      color={hasErrors ? "error" : hasWarnings ? "warning" : "success"}
       onClick={() => {
         setRenderedShaderCode(shaderCode);
       }}
@@ -349,7 +365,11 @@ const CodeEditorPage = () => {
         </Stack>
       </div>
 
-      <ShaderCanvas shaderCode={renderedShaderCode} setMessages={setMessages} />
+      <ShaderCanvas
+        shaderCode={renderedShaderCode}
+        renderLogger={renderLogger}
+        setMessages={setMessages}
+      />
       {showCode ? <ConsoleOutput messages={messages} /> : <></>}
 
       <div className="editors">
@@ -359,6 +379,7 @@ const CodeEditorPage = () => {
               value={shaderCode}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                 setShaderCode(e.target.value);
+                setRenderedShaderCode(e.target.value); // live recompile
               }}
               opacity={editorOpacity}
             />

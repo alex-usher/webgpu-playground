@@ -11,13 +11,16 @@ const ASPECT_RATIO = 0.9;
 
 interface ShaderCanvasInput {
   shaderCode: string;
+  renderLogger: RenderLogger;
   setMessages: (messages: string) => void;
 }
 
-const ShaderCanvas = ({ shaderCode, setMessages }: ShaderCanvasInput) => {
+const ShaderCanvas = ({
+  shaderCode,
+  renderLogger,
+  setMessages,
+}: ShaderCanvasInput) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
-
-  const renderLogger = new RenderLogger();
 
   const aspectMultiple = Math.min(
     window.innerWidth / WIDTH_ASPECT,
