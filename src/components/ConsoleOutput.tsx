@@ -24,7 +24,7 @@ export const ConsoleOutput = ({ messages }: ConsoleOutputProps) => {
     >
       <Button
         variant="outlined"
-        className="view-console-button"
+        id="view-console-button"
         onClick={() => setViewConsole(!viewConsole)}
       >
         {viewConsole ? "Hide Console" : "View Console"}

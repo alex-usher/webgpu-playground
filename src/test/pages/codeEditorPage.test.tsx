@@ -165,12 +165,10 @@ describe("Code editor tests", () => {
       expect(codeEditor.textContent).toEqual(
         `${shaders.rectangleVertex}\n${shaders.rectangleFragment}`
       );
-      console.log(codeEditor.textContent);
       userEvent.type(codeEditor, "a");
       expect(codeEditor.textContent).toEqual(
         `${shaders.rectangleVertex}\n${shaders.rectangleFragment}a`
       );
-      console.log(codeEditor.textContent);
     } else {
       fail("Vertex editor null");
     }
