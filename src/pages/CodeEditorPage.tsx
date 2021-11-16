@@ -36,8 +36,6 @@ import { ConsoleOutput } from "../components/ConsoleOutput";
 import { RenderLogger } from "../objects/RenderLogger";
 
 const CodeEditorPage = () => {
-  const renderLogger = new RenderLogger();
-
   const [shader, setShader] = useState<Shader>(
     useLocation().state
       ? (useLocation().state as { shader: Shader }).shader
@@ -55,18 +53,7 @@ const CodeEditorPage = () => {
   const [actionDrawerOpen, setActionDrawerOpen] = React.useState(false);
   const [shaderName, setShaderName] = useState("Untitled");
   /* states relating to error messages, warnings */
-  const [messages, setMessages] = useState("");
-  const [hasErrors, setHasErrors] = useState(false);
-  const [hasWarnings, setHasWarnings] = useState(false);
-
-  /*
-   * messages change each recompile - we want to
-   * update our errors/warnings states accordingly
-   */
-  useEffect(() => {
-    setHasWarnings(renderLogger.hasWarnings());
-    setHasErrors(renderLogger.hasErrors());
-  }, [messages]);
+  const [renderLogger, setRenderLogger] = useState(new RenderLogger());
 
   const history = useHistory();
   const isLoggedIn = auth.currentUser == null;
@@ -128,7 +115,13 @@ const CodeEditorPage = () => {
       id="compile-button"
       variant="outlined"
       disableElevation
-      color={hasErrors ? "error" : hasWarnings ? "warning" : "success"}
+      color={
+        renderLogger.hasErrors()
+          ? "error"
+          : renderLogger.hasWarnings()
+          ? "warning"
+          : "success"
+      }
       onClick={() => {
         setRenderedShaderCode(shaderCode);
       }}
@@ -367,10 +360,13 @@ const CodeEditorPage = () => {
 
       <ShaderCanvas
         shaderCode={renderedShaderCode}
-        renderLogger={renderLogger}
-        setMessages={setMessages}
+        setRenderLogger={setRenderLogger}
       />
-      {showCode ? <ConsoleOutput messages={messages} /> : <></>}
+      {showCode ? (
+        <ConsoleOutput messages={renderLogger.getMessages()} />
+      ) : (
+        <></>
+      )}
 
       <div className="editors">
         {showCode ? (
