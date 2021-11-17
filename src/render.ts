@@ -40,8 +40,8 @@ fn vertex_main(vert: VertexInput) -> VertexOutput {
 };`;
 
 export const rectangleFragment = `[[stage(fragment)]]
-fn fragment_main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
-    return sin(view_params.time * 0.01) * color;
+fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+    return sin(view_params.time * 0.01) * in.color;
 };`;
 
 export const shaderTriangleFragment = `[[stage(fragment)]]
@@ -266,6 +266,7 @@ export const renderShader = async (
       });
 
       new Float32Array(timeBuffer.getMappedRange()).set([time]);
+      console.log(timeBuffer);
       timeBuffer.unmap();
 
       new Float32Array(xBuffer.getMappedRange()).set([x]);
@@ -302,7 +303,6 @@ export const renderShader = async (
       commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
       commandEncoder.copyBufferToBuffer(resXBuffer, 0, viewParamsBuffer, 12, 4);
       commandEncoder.copyBufferToBuffer(resYBuffer, 0, viewParamsBuffer, 16, 4);
-
       const renderPass = commandEncoder.beginRenderPass(
         renderPassDescription as GPURenderPassDescriptor
       );
@@ -314,6 +314,7 @@ export const renderShader = async (
       renderPass.endPass();
       device.queue.submit([commandEncoder.finish()]);
       time++;
+      console.log(time);
     }
 
     renderFrame = requestAnimationFrame(frame);
