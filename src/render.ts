@@ -41,7 +41,18 @@ fn vertex_main(vert: VertexInput) -> VertexOutput {
 
 export const rectangleFragment = `[[stage(fragment)]]
 fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-    return sin(view_params.time * 0.01) * in.color;
+  var res = vec2<f32>(view_params.res_x, view_params.res_y);
+  var pos = vec2<f32>(in.position[0], in.position[1]);
+  var mouse = vec2<f32>(view_params.x, view_params.y);
+
+  var out = sin(view_params.time * 0.01) * in.color;
+  if (pos[0] < res[0]/2.0) {
+      out = sin(view_params.time * 0.01 + 3.14) * in.color;
+  }
+  if (length(mouse - pos) < 10.0) {
+      out = vec4<f32>(1.0, 1.0, 1.0, 1.0);
+  } 
+  return out;
 };`;
 
 export const shaderTriangleFragment = `[[stage(fragment)]]
@@ -266,7 +277,6 @@ export const renderShader = async (
       });
 
       new Float32Array(timeBuffer.getMappedRange()).set([time]);
-      console.log(timeBuffer);
       timeBuffer.unmap();
 
       new Float32Array(xBuffer.getMappedRange()).set([x]);
@@ -314,7 +324,6 @@ export const renderShader = async (
       renderPass.endPass();
       device.queue.submit([commandEncoder.finish()]);
       time++;
-      console.log(time);
     }
 
     renderFrame = requestAnimationFrame(frame);
