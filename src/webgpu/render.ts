@@ -18,10 +18,7 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
   y = position.y;
 };
 
-export const renderShader = async (
-  vertex: string,
-  fragment: string
-): Promise<void> => {
+export const renderShader = async (shaderCode: string): Promise<void> => {
   if (!checkWebGPU()) {
     return;
   }
@@ -48,11 +45,11 @@ export const renderShader = async (
   // --------------------------------------------------------------------------------------
   // Load Shader Code
   const vertexShaderModule = device.createShaderModule({
-    code: `${structs}\n${vertex}`,
+    code: `${structs}`,
   });
 
   const fragmentShaderModule = device.createShaderModule({
-    code: `${structs}\n${fragment}`,
+    code: `${structs}\n${shaderCode}`,
   });
 
   // check for compilation failures and output any compile messages
@@ -213,8 +210,8 @@ export const renderShader = async (
 
       const commandEncoder = device.createCommandEncoder();
       // commandEncoder.copyBufferToBuffer(upload, 0, viewParamsBuffer, 0, 4);
-      commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
-      commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
+      // commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
+      // commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
 
       const renderPass = commandEncoder.beginRenderPass(
         renderPassDescription as GPURenderPassDescriptor

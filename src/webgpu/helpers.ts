@@ -2,7 +2,9 @@ import { vec3, mat4 } from "gl-matrix";
 
 export const checkWebGPU = (): boolean => navigator.gpu != null;
 
-export const outputMessages = async (shaderModule: GPUShaderModule) => {
+export const outputMessages = async (
+  shaderModule: GPUShaderModule
+): Promise<boolean> => {
   if (shaderModule.compilationInfo) {
     const messages = (await shaderModule.compilationInfo()).messages;
     if (messages.length > 0) {
@@ -29,7 +31,7 @@ export const CreateGPUBuffer = (
   data: Float32Array,
   usageFlag: GPUBufferUsageFlags = GPUBufferUsage.VERTEX |
     GPUBufferUsage.COPY_DST
-) => {
+): GPUBuffer => {
   const buffer = device.createBuffer({
     size: data.byteLength,
     usage: usageFlag,
@@ -45,7 +47,7 @@ export const CreateTransforms = (
   translation: vec3 = [0, 0, 0],
   rotation: vec3 = [0, 0, 0],
   scaling: vec3 = [1, 1, 1]
-) => {
+): void => {
   const rotateXMat = mat4.create();
   const rotateYMat = mat4.create();
   const rotateZMat = mat4.create();
@@ -71,7 +73,8 @@ export const CreateViewProjection = (
   cameraPosition: vec3 = [2, 2, 4],
   lookDirection: vec3 = [0, 0, 0],
   upDirection: vec3 = [0, 1, 0]
-) => {
+  // eslint-disable-next-line
+): any => {
   const viewMatrix = mat4.create();
   const projectionMatrix = mat4.create();
   const viewProjectionMatrix = mat4.create();

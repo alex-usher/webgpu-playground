@@ -45,6 +45,7 @@
         "@testing-library/user-event": "^12.8.3",
         "@types/jest": "^27.0.2",
         "@types/prismjs": "^1.16.6",
+        "@types/react": "^17.0.34",
         "@types/react-scroll-sync": "^0.8.3",
         "@typescript-eslint/eslint-plugin": "^5.2.0",
         "@typescript-eslint/parser": "^5.2.0",

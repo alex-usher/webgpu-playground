@@ -1,22 +1,9 @@
 .editors {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.vertex-editor {
     position: fixed;
     left: 3%;
-    top: 10%;
-    width: 62%;
-    height: 85%;
-}
-.fragment-editor {
-    position: fixed;
-    right: 3%;
-    top: 10%;
-    width: 30%;
-    height: 85%;
+    top: 9%;
+    width: 95%;
+    height: 88%;
 }
 
 .css-1yjjitx-MuiSwitch-track {
@@ -25,4 +12,9 @@
 
 .css-5ryogn-MuiButtonBase-root-MuiSwitch-switchBase.Mui-checked+.MuiSwitch-track {
     background-color: #1976d2 !important;
+}
+
+.css-1160xiw-MuiPaper-root-MuiDrawer-paper {
+    background-color: #101e27 !important;
+    width: 20%;
 }

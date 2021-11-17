@@ -2,19 +2,9 @@
   "compilerOptions": {
     "rootDir": "src",
     "target": "es6",
-    "lib": [
-      "es2021",
-      "dom"
-    ],
-    "types": [
-      "node",
-      "@webgpu/types",
-      "jest"
-    ],
-    "typeRoots": [
-      "./node_modules/@webgpu/types",
-      "./node_modules/@types"
-    ],
+    "lib": ["es2021", "dom"],
+    "types": ["node", "@webgpu/types", "jest"],
+    "typeRoots": ["./node_modules/@webgpu/types", "./node_modules/@types"],
     "module": "esnext",
     "sourceMap": true,
     "esModuleInterop": true,
@@ -33,7 +23,5 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

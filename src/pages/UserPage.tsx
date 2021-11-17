@@ -1,28 +1,29 @@
-import { useState } from "react";
-import { Redirect } from "react-router-dom";
-import Grid from "@mui/material/Grid";
-import Stack from "@mui/material/Stack";
-import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
-import SignInButton from "../components/SignInButton";
-import { defaultShader } from "../objects/Shader";
-import { Link } from "react-router-dom";
+import Grid from "@mui/material/Grid";
+import { Shader } from "../objects/Shader";
 import { getAuth, onAuthStateChanged } from "@firebase/auth";
+import { Redirect } from "react-router-dom";
+import { useEffect, useState } from "react";
+
 import "../assets/style.css";
-import { CardCarousel } from "../components/CardCarousel";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { getUserShaders } from "../utils/firebaseHelper";
+import ShaderContainerLarge from "../components/ShaderContainerLarge";
+import { Typography } from "@mui/material";
+import HeaderComponent from "../components/HeaderComponent";
 
-// eslint-disable-next-line
-const UserPage = ({ match }: any) => {
-  // TOOD - use uid to get a user's shaders from firebase
-  const uid = match.params.uid;
-  console.log(uid);
-
+const UserPage = () => {
   const auth = getAuth();
+
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
+  const [shaders, setShaders] = useState<Shader[]>([]);
+
   onAuthStateChanged(auth, (user) => {
     setIsLoggedIn(user != null);
   });
+
+  useEffect(() => {
+    getUserShaders().then((shaders: Shader[]) => setShaders(shaders));
+  }, []);
 
   // Redirect to the homepage if the user logs out
   if (!isLoggedIn) {
@@ -36,63 +37,15 @@ const UserPage = ({ match }: any) => {
         spacing={2}
         className="container-grid"
         alignItems="center"
-        justifyContent="flex-end"
+        justifyContent="space-between"
       >
-        <Grid
-          item
-          container
-          justifyContent="space-between"
-          alignItems="center"
-          spacing={2}
-          className="title-header"
-        >
-          <Grid item>
-            <Button
-              variant="outlined"
-              disableElevation
-              component={Link}
-              startIcon={<ArrowBackIcon />}
-              className="header-button"
-              to="/"
-            >
-              {"Back to home"}
-            </Button>
-          </Grid>
-
-          <Stack direction="row" spacing={3}>
-            <Grid item>
-              <Button
-                variant="outlined"
-                disableElevation
-                component={Link}
-                to="/editor"
-                className="header-button"
-              >
-                New Shader Sandbox
-              </Button>
-            </Grid>
-            <SignInButton />
-          </Stack>
+        <HeaderComponent />
+        <Grid item>
+          <Typography variant="h4" color="white" align="left">
+            My Shaders
+          </Typography>
         </Grid>
-
-        <CardCarousel
-          sectionName="My public shaders"
-          shaderList={[
-            defaultShader,
-            defaultShader,
-            defaultShader,
-            defaultShader,
-          ]}
-        />
-        <CardCarousel
-          sectionName="My private shaders"
-          shaderList={[
-            defaultShader,
-            defaultShader,
-            defaultShader,
-            defaultShader,
-          ]}
-        />
+        <ShaderContainerLarge shaderList={shaders} />
       </Grid>
     </Container>
   );

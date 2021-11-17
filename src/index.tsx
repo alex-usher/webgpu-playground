@@ -5,28 +5,43 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import CodeEditorPage from "./pages/CodeEditorPage";
 import UserPage from "./pages/UserPage";
+import ShadersPage from "./pages/ShadersPage";
 import { SnackbarProvider } from "notistack";
+import { SnackbarUtilsConfigurator } from "./utils/Snackbar";
 
 import "./assets/style.css";
-import { defaultShader } from "./objects/Shader";
+import { createTheme, ThemeProvider } from "@mui/material";
+
+const darkTheme = createTheme({
+  palette: {
+    mode: "dark",
+  },
+});
 
 ReactDOM.render(
   <React.StrictMode>
-    <SnackbarProvider maxSnack={1}>
-      <div id="body">
-        <Router>
-          <Switch>
-            <Route path="/" exact>
-              <HomePage />
-            </Route>
-            <Route path="/editor">
-              <CodeEditorPage shader={defaultShader} />
-            </Route>
-            <Route path="/user/:uid" component={UserPage} />
-          </Switch>
-        </Router>
-      </div>
-    </SnackbarProvider>
+    <ThemeProvider theme={darkTheme}>
+      <SnackbarProvider maxSnack={1}>
+        <SnackbarUtilsConfigurator />
+        <div id="body">
+          <Router>
+            <Switch>
+              <Route path="/" exact>
+                <HomePage />
+              </Route>
+              <Route path="/editor">
+                <CodeEditorPage />
+              </Route>
+              <Route path="/user" component={UserPage} />
+              <Route path="/examples" component={ShadersPage} />
+              <Route path="/public" component={ShadersPage} />
+              <Route path="/mypublicshaders" component={ShadersPage} />
+              <Route path="/myprivateshaders" component={ShadersPage} />
+            </Switch>
+          </Router>
+        </div>
+      </SnackbarProvider>
+    </ThemeProvider>
   </React.StrictMode>,
   document.getElementById("root")
 );

@@ -10,8 +10,7 @@ import * as shaders from "../../webgpu/helpers";
 const renderShaderCanvas = () =>
   render(
     <ShaderCanvas
-      vertexCode={shaderTriangleVertex}
-      fragmentCode={shaderTriangleFragment}
+      shaderCode={`${shaderTriangleVertex}\n${shaderTriangleFragment}`}
     />
   );
 

@@ -1,97 +1,116 @@
 import axios from "axios";
-import { cubeFragment, cubeVertex } from "../webgpu/shaders";
+import { rectangleFragment, rectangleVertex } from "../webgpu/shaders";
 import {
+  doc,
+  getDoc,
   DocumentData,
-  WithFieldValue,
   QueryDocumentSnapshot,
+  WithFieldValue,
 } from "@firebase/firestore/lite";
 import {
-  ref,
-  uploadString,
   getDownloadURL,
-  StorageReference,
+  ref,
+  uploadBytes,
+  uploadString,
 } from "@firebase/storage";
-import { firestorage } from "../firebase";
+import { auth, firedb, firestorage } from "../firebase";
 import { v4 as uuidv4 } from "uuid";
+
 export class Shader {
+  id: string;
   readonly image: string; //http link to img src
-  fragmentCode: string;
   readonly title: string;
-  vertexCode: string;
   isPublic: boolean;
+  shaderCode: string;
 
   constructor(
+    id: string,
     title: string,
     image: string,
     isPublic: boolean,
-    vertexCode: string,
-    fragmentCode: string
+    shaderCode: string
   ) {
+    this.id = id;
     this.title = title;
     this.image = image;
     this.isPublic = isPublic;
-    this.vertexCode = vertexCode;
-    this.fragmentCode = fragmentCode;
+    this.shaderCode = shaderCode;
   }
 }
 
 export const shaderConverter = {
-  toFirestore(shader: WithFieldValue<Shader>): DocumentData {
-    const vertexFile = uuidv4() + "_" + shader.title + "_vertex.txt";
-    const fragmentFile = uuidv4() + "_" + shader.title + "_fragment.txt";
+  async toFirestore(shader: WithFieldValue<Shader>): Promise<DocumentData> {
+    const id = uuidv4();
+    const shaderFile = `${id}_${shader.title}.txt`;
+    const shaderRef = ref(firestorage, shaderFile);
+    const imageFile = `${id}_${shader.title}.png`;
+    const imageRef = ref(firestorage, imageFile);
 
-    const vertexRef = ref(firestorage, vertexFile);
-    const fragmentRef = ref(firestorage, fragmentFile);
-    console.log(shader.fragmentCode.toString());
-    uploadString(vertexRef, shader.vertexCode.toString());
-    uploadString(fragmentRef, shader.fragmentCode.toString());
+    const canvas = document.getElementById(
+      "canvas-webgpu"
+    ) as HTMLCanvasElement;
 
-    const shaderDoc = {
+    const downloadUrl = await new Promise((resolve) =>
+      canvas.toBlob(async (blob) => {
+        if (blob) {
+          await uploadBytes(imageRef, blob);
+        }
+        resolve(await getDownloadURL(imageRef));
+      }, "image/png")
+    );
+
+    uploadString(shaderRef, shader.shaderCode.toString());
+
+    return {
       shader_name: shader.title,
-      vertex_code: vertexFile,
-      fragment_code: fragmentFile,
+      shader_code: shaderFile,
+      image: downloadUrl,
       isPublic: shader.isPublic,
     };
-
-    return shaderDoc;
   },
-  async fromFirestore(snapshot: QueryDocumentSnapshot): Promise<Shader | void> {
-    if (!snapshot.data()) {
-      return;
-    }
+  fromFirestore(snapshot: QueryDocumentSnapshot): Shader {
     const data = snapshot.data();
     if (!data) {
       throw new Error("shader data could not be retrieved from Firebase");
     }
-
-    try {
-      const vertexCode = await downloadStorageRef(
-        ref(firestorage, data.vertex_code)
-      );
-      const fragmentCode = await downloadStorageRef(
-        ref(firestorage, data.fragment_code)
-      );
-
-      const shader = new Shader(
-        data.shader_name,
-        "", // image of shader
-        data.isPublic,
-        vertexCode,
-        fragmentCode
-      );
-      return shader;
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log("ERROR: " + err.message);
-      }
-      return;
-    }
+    return new Shader(
+      snapshot.id,
+      data.shader_name,
+      data.image ? data.image : "https://i.ibb.co/M5Z06wy/triangle.png", // image of shader
+      data.isPublic,
+      ""
+    );
   },
 };
 
-const downloadStorageRef = async (ref: StorageReference): Promise<string> => {
-  const url = await getDownloadURL(ref);
-  return (await axios.get(url)).data;
+export const downloadShaderCode = async (id: string): Promise<string> => {
+  const user = auth.currentUser;
+  let querySnapshot;
+
+  if (user !== null) {
+    querySnapshot = await getDoc(doc(firedb, "users", user.uid, "shaders", id));
+  }
+
+  let data = querySnapshot?.data();
+  if (!data) {
+    querySnapshot = await getDoc(doc(firedb, "example-shaders", id));
+
+    data = querySnapshot?.data();
+    if (!data) {
+      querySnapshot = await getDoc(doc(firedb, "public-shaders", id));
+
+      data = querySnapshot?.data();
+      if (!data) {
+        throw new Error("Shader data could not be retrieved from Firebase");
+      }
+    }
+  }
+
+  const shaderCodeURL = await getDownloadURL(
+    ref(firestorage, data.shader_code)
+  );
+
+  return (await axios.get(shaderCodeURL)).data;
 };
 
 export interface ShaderProps {
@@ -99,9 +118,9 @@ export interface ShaderProps {
 }
 
 export const defaultShader = new Shader(
+  uuidv4() + "example_rectangle_shader",
   "Triangle",
   "https://i.ibb.co/M5Z06wy/triangle.png",
   false,
-  cubeVertex,
-  cubeFragment
+  `${rectangleVertex}\n${rectangleFragment}`
 );
