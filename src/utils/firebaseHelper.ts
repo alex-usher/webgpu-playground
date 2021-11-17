@@ -143,19 +143,19 @@ class nameErr extends Error {
   }
 }
 
-export const deleteShader = async (shader: Shader) => {
-  // delete shader document from users, public and it's code file
-  console.log(shader);
-};
+// export const deleteShader = async (shader: Shader) => {
+//   // delete shader document from users, public and it's code file
+//   console.log(shader);
+// };
 
-const deleteCodeFile = async (shader: Shader) => {
-  // delete shader's code file
-  console.log(shader);
-};
+// const deleteCodeFile = async (shader: Shader) => {
+//   // delete shader's code file
+//   console.log(shader);
+// };
 
 export const overwriteShader = async (shader: Shader) => {
   try {
-    await deleteCodeFile(shader);
+    // await deleteCodeFile(shader);
     const shaderDoc = await shaderConverter.toFirestore(shader);
 
     const user = auth.currentUser;
@@ -165,7 +165,6 @@ export const overwriteShader = async (shader: Shader) => {
         shaderDoc
       );
     }
-    console.log("Saved shader: ", shaderDoc);
     SnackbarUtils.success("Successfully saved!");
     return shader;
   } catch {

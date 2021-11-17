@@ -9,6 +9,7 @@ import {
 } from "./helpers";
 import { cubeColours, cubePositions } from "./meshes";
 import { mat4 } from "gl-matrix";
+import { RenderLogger } from "../objects/RenderLogger";
 
 let x = 0;
 let y = 0;
@@ -18,7 +19,12 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
   y = position.y;
 };
 
-export const renderShader = async (shaderCode: string): Promise<void> => {
+let renderFrame = -1;
+
+export const renderShader = async (
+  shaderCode: string,
+  renderLogger: RenderLogger
+): Promise<void> => {
   if (!checkWebGPU()) {
     return;
   }
@@ -42,25 +48,20 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
     format: stateFormat,
     usage: GPUTextureUsage.RENDER_ATTACHMENT,
   });
-  // --------------------------------------------------------------------------------------
-  // Load Shader Code
-  const vertexShaderModule = device.createShaderModule({
-    code: `${structs}`,
-  });
-
-  const fragmentShaderModule = device.createShaderModule({
+  const shaderModule = device.createShaderModule({
     code: `${structs}\n${shaderCode}`,
   });
-
   // check for compilation failures and output any compile messages
-  if (!(await outputMessages(vertexShaderModule))) {
-    console.log("Vertex Shader Compilation failed");
+  if (!(await outputMessages(shaderModule, renderLogger))) {
+    renderLogger.logMessage("Shader Compilation failed");
     return;
   }
 
-  if (!(await outputMessages(fragmentShaderModule))) {
-    console.log("Fragment Shader Compilation failed");
-    return;
+  renderLogger.logMessage("Shader Compilation successful");
+
+  // cancel the previous render once we know the next render will compile
+  if (renderFrame != -1) {
+    cancelAnimationFrame(renderFrame);
   }
   // --------------------------------------------------------------------------------------
   // create buffers
@@ -70,6 +71,24 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
 
   // --------------------------------------------------------------------------------------
   // Define  layouts
+
+  // // allocate a buffer for up to 6 vertices
+  // const dataBuffer = device.createBuffer({
+  //   size: 6 * 6 * 4,
+  //   usage: GPUBufferUsage.VERTEX,
+  //   mappedAtCreation: true,
+  // });
+
+  // // this float 32 array is not necessary,
+  // // but with it you can do some cool things using the
+  // // VertexInput in the shader
+  // new Float32Array(dataBuffer.getMappedRange()).set([
+  //   1, 1, 1, 0, 0, 1, 1, -1, 0, 1, 0, 1, -1, -1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1,
+  //   -1, 1, 0, 1, 0, 1, -1, -1, 0, 0, 1, 1,
+  // ]);
+
+  // dataBuffer.unmap();
+
   const depthTexture = device.createTexture({
     size: [canvas.width, canvas.height, 1],
     format: depthFormat,
@@ -93,8 +112,8 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
   const renderPipeline = device.createRenderPipeline({
     layout: layout,
     vertex: {
-      module: vertexShaderModule,
-      entryPoint: "main",
+      module: shaderModule,
+      entryPoint: "vertex_main",
       buffers: [
         {
           arrayStride: 12,
@@ -114,13 +133,15 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
               format: "float32x3",
               offset: 0,
             },
+            // { format: "float32x2", offset: 0, shaderLocation: 0 },
+            // { format: "float32x4", offset: 2 * 4, shaderLocation: 1 },
           ],
         },
       ],
     },
     fragment: {
-      module: fragmentShaderModule,
-      entryPoint: "main",
+      module: shaderModule,
+      entryPoint: "fragment_main",
       targets: [{ format: stateFormat }],
     },
     depthStencil: {
@@ -132,6 +153,7 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
 
   const viewParamsBuffer = device.createBuffer({
     size: 64,
+    // size: 4 * 5,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
@@ -151,9 +173,11 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
   observer.observe(canvas);
 
   let time = 0;
+  const res_x = canvas.width;
+  const res_y = canvas.height;
   const frame = () => {
     if (canvasVisible) {
-      const upload = device.createBuffer({
+      const timeBuffer = device.createBuffer({
         size: 4,
         usage: GPUBufferUsage.COPY_SRC,
         mappedAtCreation: true,
@@ -171,8 +195,20 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
         mappedAtCreation: true,
       });
 
-      new Float32Array(upload.getMappedRange()).set([time]);
-      upload.unmap();
+      const resXBuffer = device.createBuffer({
+        size: 4,
+        usage: GPUBufferUsage.COPY_SRC,
+        mappedAtCreation: true,
+      });
+
+      const resYBuffer = device.createBuffer({
+        size: 4,
+        usage: GPUBufferUsage.COPY_SRC,
+        mappedAtCreation: true,
+      });
+
+      new Float32Array(timeBuffer.getMappedRange()).set([time]);
+      timeBuffer.unmap();
 
       new Float32Array(xBuffer.getMappedRange()).set([x]);
       xBuffer.unmap();
@@ -180,11 +216,17 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
       new Float32Array(yBuffer.getMappedRange()).set([y]);
       yBuffer.unmap();
 
+      new Float32Array(resXBuffer.getMappedRange()).set([res_x]);
+      resXBuffer.unmap();
+
+      new Float32Array(resYBuffer.getMappedRange()).set([res_y]);
+      resYBuffer.unmap();
+
       const renderPassDescription = {
         colorAttachments: [
           {
             view: context.getCurrentTexture().createView(),
-            loadValue: [0.0, 0.0, 0.0, 0.0],
+            loadValue: [0.0, 0.0, 0.0, 1.0],
             storeOp: "store",
           },
         ],
@@ -209,9 +251,11 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
       device.queue.writeBuffer(viewParamsBuffer, 0, mvpMatrix as ArrayBuffer);
 
       const commandEncoder = device.createCommandEncoder();
-      // commandEncoder.copyBufferToBuffer(upload, 0, viewParamsBuffer, 0, 4);
-      // commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
-      // commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
+      commandEncoder.copyBufferToBuffer(timeBuffer, 0, viewParamsBuffer, 0, 4);
+      commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
+      commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
+      commandEncoder.copyBufferToBuffer(resXBuffer, 0, viewParamsBuffer, 12, 4);
+      commandEncoder.copyBufferToBuffer(resYBuffer, 0, viewParamsBuffer, 16, 4);
 
       const renderPass = commandEncoder.beginRenderPass(
         renderPassDescription as GPURenderPassDescriptor
@@ -226,8 +270,9 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
       device.queue.submit([commandEncoder.finish()]);
       time++;
     }
-    requestAnimationFrame(frame);
+
+    renderFrame = requestAnimationFrame(frame);
   };
 
-  requestAnimationFrame(frame);
+  renderFrame = requestAnimationFrame(frame);
 };

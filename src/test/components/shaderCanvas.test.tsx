@@ -5,23 +5,31 @@ import {
   shaderTriangleVertex,
 } from "../sample_shaders/triangle";
 
-import * as shaders from "../../webgpu/helpers";
+import * as helpers from "../../webgpu/helpers";
+import * as renders from "../../webgpu/render";
 
-const renderShaderCanvas = () =>
+const renderShaderCanvas = (setMessages: (messages: string) => void) =>
   render(
     <ShaderCanvas
       shaderCode={`${shaderTriangleVertex}\n${shaderTriangleFragment}`}
+      setMessages={setMessages}
     />
   );
 
 let checkWebGPUMock: jest.SpyInstance;
 let simpleShaderMock: jest.SpyInstance;
+
+const setMessages = jest.fn(() => {
+  undefined;
+});
+
 describe("Shader Canvas component tests", () => {
   beforeEach(() => {
-    checkWebGPUMock = jest.spyOn(shaders, "checkWebGPU");
-    simpleShaderMock = jest.spyOn(shaders, "renderShader");
+    checkWebGPUMock = jest.spyOn(helpers, "checkWebGPU");
+    simpleShaderMock = jest.spyOn(renders, "renderShader");
+
     simpleShaderMock.mockImplementation(() => {
-      undefined;
+      return new Promise((resolve) => resolve(""));
     });
   });
 
@@ -32,7 +40,7 @@ describe("Shader Canvas component tests", () => {
   it("Should not render the canvas when WebGPU is disabled", async () => {
     checkWebGPUMock.mockReturnValue(false);
 
-    renderShaderCanvas();
+    renderShaderCanvas(setMessages);
 
     expect(document.getElementById("canvas-webgpu")).toBeNull();
   });
@@ -40,7 +48,7 @@ describe("Shader Canvas component tests", () => {
   it("Should render the canvas when WebGPU is enabled", async () => {
     checkWebGPUMock.mockReturnValue(true);
 
-    renderShaderCanvas();
+    renderShaderCanvas(setMessages);
 
     expect(document.getElementById("canvas-webgpu")).not.toBeNull();
   });
@@ -48,7 +56,7 @@ describe("Shader Canvas component tests", () => {
   it("Should make calls to renderShader to render onto the canvas", () => {
     checkWebGPUMock.mockReturnValue(true);
 
-    renderShaderCanvas();
+    renderShaderCanvas(setMessages);
 
     expect(simpleShaderMock).toHaveBeenCalledTimes(1);
   });
