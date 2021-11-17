@@ -12,7 +12,6 @@ import { defaultShader, Shader } from "../objects/Shader";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
 import HelpBanner from "../components/HelpBanner";
-import React from "react";
 //import { Link } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
 import Drawer from "@mui/material/Drawer";
@@ -34,6 +33,7 @@ import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { Tooltip } from "@mui/material";
 import { ConsoleOutput } from "../components/ConsoleOutput";
+import React from "react";
 
 const CodeEditorPage = () => {
   const [shader, setShader] = useState<Shader>(
@@ -100,7 +100,7 @@ const CodeEditorPage = () => {
 
   const isSmallWidth = useMediaQuery(useTheme().breakpoints.down("xl"));
 
-  const toggleHelpVisable = () => {
+  const toggleHelpVisible = () => {
     setHelpBoxVisable(!helpBoxVisable);
     {
       helpBoxVisable ? setEditorWidth("100%") : setEditorWidth("75%");
@@ -186,7 +186,7 @@ const CodeEditorPage = () => {
       variant="outlined"
       disableElevation
       onClick={() => {
-        toggleHelpVisable();
+        toggleHelpVisible();
         toggleActionDrawer();
       }}
       color={"secondary"}
@@ -373,14 +373,20 @@ const CodeEditorPage = () => {
         </Stack>
       </div>
 
-
       <ShaderCanvas shaderCode={renderedShaderCode} setMessages={setMessages} />
       {showCode ? <ConsoleOutput messages={messages} /> : <></>}
 
       <div className="editors">
-        {helpBoxVisable ? <HelpBanner opacity={editorOpacity} /> : <></>}
+        {helpBoxVisable ? (
+          <HelpBanner
+            opacity={editorOpacity}
+            toggleVisibility={toggleHelpVisible}
+          />
+        ) : (
+          <></>
+        )}
         {showCode ? (
-          <div style={{ height: "100%",  width: editorWidth, float: "left"}}>
+          <div style={{ height: "100%", width: editorWidth, float: "left" }}>
             <Editor
               value={shaderCode}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -389,7 +395,6 @@ const CodeEditorPage = () => {
               opacity={editorOpacity}
             />
           </div>
-
         ) : (
           <></>
         )}

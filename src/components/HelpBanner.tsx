@@ -2,9 +2,16 @@ import { Close } from "@mui/icons-material";
 import { Card, Grid, Typography, IconButton } from "@mui/material";
 
 import { structs } from "../render";
-import toggleHelpVisable from "../pages/CodeEditorPage";
 
-export const HelpBanner = ({ opacity = 0.5 }) => {
+interface BannerProps {
+  opacity?: number;
+  toggleVisibility: () => void;
+}
+
+export const HelpBanner = ({
+  opacity = 0.5,
+  toggleVisibility,
+}: BannerProps) => {
   return (
     <div
       className="help-card"
@@ -44,7 +51,7 @@ export const HelpBanner = ({ opacity = 0.5 }) => {
           </Grid>
           <Grid item xs={1}>
             <IconButton
-              onClick={toggleHelpVisable}
+              onClick={toggleVisibility}
               style={{
                 fontSize: "3vh",
               }}
