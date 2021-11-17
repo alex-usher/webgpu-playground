@@ -1,18 +1,23 @@
 import { vec3, mat4 } from "gl-matrix";
+import { RenderLogger } from "../objects/RenderLogger";
+import { structsLength } from "./shaders";
 
 export const checkWebGPU = (): boolean => navigator.gpu != null;
 
 export const outputMessages = async (
-  shaderModule: GPUShaderModule
-): Promise<boolean> => {
+  shaderModule: GPUShaderModule,
+  renderLogger: RenderLogger
+) => {
   if (shaderModule.compilationInfo) {
     const messages = (await shaderModule.compilationInfo()).messages;
     if (messages.length > 0) {
       let error = false;
       for (let i = 0; i < messages.length; i++) {
         const message = messages[i];
-        console.log(
-          `(${message.lineNum}, ${message.linePos}): ${message.message}`
+        renderLogger.logMessage(
+          `(${message.lineNum - structsLength}, ${message.linePos}): ${
+            message.message
+          }`
         );
         error = error || message.type === "error";
       }
