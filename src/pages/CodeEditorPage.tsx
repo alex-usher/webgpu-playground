@@ -11,6 +11,7 @@ import Typography from "@mui/material/Typography";
 import { defaultShader, Shader } from "../objects/Shader";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
+import HelpBanner from "../components/HelpBanner";
 import React from "react";
 //import { Link } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
@@ -31,9 +32,8 @@ import { auth } from "../firebase";
 
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { Card, Tooltip } from "@mui/material";
-import { structs } from "../render";
-import { Close } from "@mui/icons-material";
+import { Tooltip } from "@mui/material";
+
 const CodeEditorPage = () => {
   const [shader, setShader] = useState<Shader>(
     useLocation().state
@@ -380,60 +380,7 @@ const CodeEditorPage = () => {
 
       {showCode ? (
         <div className="editors">
-          {helpBoxVisable ? (
-            <div
-              className="help-card"
-              style={{
-                width: "25%",
-                height: "100%",
-                float: "left",
-              }}
-            >
-              <Card
-                sx={{
-                  height: "100%",
-
-                  whiteSpace: "pre-wrap",
-                  backgroundColor: `rgb(50, 50, 50, ${editorOpacity})`,
-                  borderRadius: "0.35em",
-                  scrollBehavior: "smooth",
-                  overflowY: "auto",
-                  overflowX: "hidden",
-                }}
-              >
-                <Grid container>
-                  <Grid item xs={11} sx={{ padding: "0.5em" }}>
-                    <Typography variant="h6" color="white">
-                      Predefined Uniforms:
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontFamily: "monospace",
-                        padding: "0.2em",
-                        fontSize: "0.86em",
-                        color: "rgba(208, 208, 208, 0.9)",
-                      }}
-                    >
-                      {structs}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={1}>
-                    <IconButton
-                      onClick={toggleHelpVisable}
-                      style={{
-                        fontSize: "3vh",
-                      }}
-                      edge="start"
-                    >
-                      <Close />
-                    </IconButton>
-                  </Grid>
-                </Grid>
-              </Card>
-            </div>
-          ) : (
-            <></>
-          )}
+          {helpBoxVisable ? <HelpBanner opacity={editorOpacity} /> : <></>}
 
           <div className="editor" style={{ width: editorWidth, float: "left" }}>
             <Editor
