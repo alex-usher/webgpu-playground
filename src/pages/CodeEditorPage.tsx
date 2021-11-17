@@ -130,7 +130,7 @@ const CodeEditorPage = () => {
     >
       Compile
     </Button>,
-    <div>
+    <div key={9}>
       {isLoggedIn ? (
         <Tooltip title="You must be logged in to be able to save shaders.">
           <span>
@@ -148,7 +148,7 @@ const CodeEditorPage = () => {
         </Tooltip>
       ) : (
         <Button
-          key={21}
+          key={2}
           id="save-button"
           variant="outlined"
           disableElevation
@@ -184,11 +184,14 @@ const CodeEditorPage = () => {
       Export as PNG
     </Button>,
     <Button
-      key={42}
+      key={4}
       id="help-button"
       variant="outlined"
       disableElevation
-      onClick={toggleHelpVisable}
+      onClick={() => {
+        toggleHelpVisable();
+        toggleActionDrawer();
+      }}
       color={"secondary"}
     >
       Help
@@ -377,6 +380,61 @@ const CodeEditorPage = () => {
 
       {showCode ? (
         <div className="editors">
+          {helpBoxVisable ? (
+            <div
+              className="help-card"
+              style={{
+                width: "25%",
+                height: "100%",
+                float: "left",
+              }}
+            >
+              <Card
+                sx={{
+                  height: "100%",
+
+                  whiteSpace: "pre-wrap",
+                  backgroundColor: `rgb(50, 50, 50, ${editorOpacity})`,
+                  borderRadius: "0.35em",
+                  scrollBehavior: "smooth",
+                  overflowY: "auto",
+                  overflowX: "hidden",
+                }}
+              >
+                <Grid container>
+                  <Grid item xs={11} sx={{ padding: "0.5em" }}>
+                    <Typography variant="h6" color="white">
+                      Predefined Uniforms:
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "monospace",
+                        padding: "0.2em",
+                        fontSize: "0.86em",
+                        color: "rgba(208, 208, 208, 0.9)",
+                      }}
+                    >
+                      {structs}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={1}>
+                    <IconButton
+                      onClick={toggleHelpVisable}
+                      style={{
+                        fontSize: "3vh",
+                      }}
+                      edge="start"
+                    >
+                      <Close />
+                    </IconButton>
+                  </Grid>
+                </Grid>
+              </Card>
+            </div>
+          ) : (
+            <></>
+          )}
+
           <div className="editor" style={{ width: editorWidth, float: "left" }}>
             <Editor
               value={shaderCode}
@@ -385,49 +443,6 @@ const CodeEditorPage = () => {
               }}
               opacity={editorOpacity}
             />
-          </div>
-          <div
-            className="help-card"
-            style={{
-              width: "25%",
-              height: "97.5%",
-              float: "left",
-            }}
-          >
-            {helpBoxVisable ? (
-              <Card
-                sx={{
-                  height: "100%",
-                  fontFamily: "monospace",
-                  whiteSpace: "pre-wrap",
-                  backgroundColor: `rgb(50, 50, 50, ${editorOpacity})`,
-                  borderRadius: "0.35em",
-
-                  scrollBehavior: "smooth",
-                  overflow: "auto",
-                  color: "rgba(208, 208, 208, 0.9)",
-                  pr: "0.75em",
-                }}
-              >
-                <Grid container>
-                  <Grid item xs={11} sx={{ padding: "0.75em" }}>
-                    <Typography variant="body2">
-                      These are the predefined uniforms that you can use in your
-                      code. Have a look at our example shaders to get an idea of
-                      how to use them.
-                    </Typography>
-                    {structs}
-                  </Grid>
-                  <Grid item xs={1}>
-                    <IconButton onClick={toggleHelpVisable}>
-                      <Close />
-                    </IconButton>
-                  </Grid>
-                </Grid>
-              </Card>
-            ) : (
-              <></>
-            )}
           </div>
         </div>
       ) : (
