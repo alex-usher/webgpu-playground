@@ -13,7 +13,7 @@ import Switch from "@mui/material/Switch";
 import { useState } from "react";
 // import { useSnackbar } from "notistack";
 
-import { Shader } from "../objects/Shader";
+import { MeshType, Shader } from "../objects/Shader";
 import { saveNewShader } from "../utils/firebaseHelper";
 
 interface FormDialogProps {
@@ -21,6 +21,7 @@ interface FormDialogProps {
   handleClose: () => void;
   shaderCode: string;
   updateShader: (shader: Shader) => void;
+  meshType: MeshType;
 }
 
 const FormDialog = ({
@@ -28,6 +29,7 @@ const FormDialog = ({
   handleClose,
   shaderCode,
   updateShader,
+  meshType,
 }: FormDialogProps) => {
   const [fileName, setFileName] = useState("Untitled");
   const [isPublic, setIsPublic] = useState(false);
@@ -71,7 +73,7 @@ const FormDialog = ({
         <Button
           onClick={async () => {
             const shader = await saveNewShader(
-              new Shader("", fileName, "", isPublic, shaderCode)
+              new Shader("", fileName, "", isPublic, shaderCode, meshType)
             );
             if (shader) {
               updateShader(shader);

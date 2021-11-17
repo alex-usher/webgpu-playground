@@ -6,6 +6,8 @@ import { getAuth, onAuthStateChanged } from "@firebase/auth";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 
+import NewShaderButton from "./NewShaderButton";
+
 import "../assets/homePage.css";
 import "../assets/shaderGallery.css";
 
@@ -35,17 +37,8 @@ const HeaderComponent = () => {
         spacing={3}
       >
         <Grid item>
-          <Button
-            variant="outlined"
-            disableElevation
-            component={Link}
-            to="/editor"
-            className="header-button"
-          >
-            New Shader Sandbox
-          </Button>
+          <NewShaderButton />
         </Grid>
-
         {isLoggedIn ? (
           <Grid item>
             <Button

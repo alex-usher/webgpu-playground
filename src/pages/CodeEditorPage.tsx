@@ -33,13 +33,26 @@ import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { Tooltip } from "@mui/material";
 import { ConsoleOutput } from "../components/ConsoleOutput";
+import { MeshType } from "../objects/Shader";
 
 const CodeEditorPage = () => {
+  const state = useLocation().state as {
+    shader: Shader;
+    meshType: MeshType;
+  };
+  const isLoadedShader = state.shader;
+  // TODO - this has a default for now but in the future this should never be empty
+  // Firebase should always save the type of mesh a shader uses
+  const meshType = state.meshType ? state.meshType : isLoadedShader.meshType;
+
+  // console.log(isLoadedShader, isLoadedShader.meshType);
+  // Get the loaded shader code if is a loaded shader, else get the default corresponding to the mesh
   const [shader, setShader] = useState<Shader>(
-    useLocation().state
+    isLoadedShader
       ? (useLocation().state as { shader: Shader }).shader
-      : defaultShader
+      : defaultShader(meshType)
   );
+
   const [shaderCode, setShaderCode] = useState(shader.shaderCode);
   const [showCode, setShowCode] = useState(false);
   const [viewCodeText, setViewCodeText] = useState("View Code");
@@ -51,7 +64,7 @@ const CodeEditorPage = () => {
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [formOpen, setFormOpen] = React.useState(false);
   const [actionDrawerOpen, setActionDrawerOpen] = React.useState(false);
-  const [shaderName, setShaderName] = useState("Untitled");
+  const [shaderName, setShaderName] = useState("Untitled" + meshType);
   const history = useHistory();
   const isLoggedIn = auth.currentUser == null;
 
@@ -176,6 +189,7 @@ const CodeEditorPage = () => {
       handleClose={handleFormClose}
       shaderCode={shaderCode}
       updateShader={(shader) => setShader(shader)}
+      meshType={shader.meshType}
     />,
   ];
 
@@ -349,7 +363,11 @@ const CodeEditorPage = () => {
         </Stack>
       </div>
 
-      <ShaderCanvas shaderCode={renderedShaderCode} setMessages={setMessages} />
+      <ShaderCanvas
+        shaderCode={renderedShaderCode}
+        meshType={meshType}
+        setMessages={setMessages}
+      />
       {showCode ? <ConsoleOutput messages={messages} /> : <></>}
 
       <div className="editors">

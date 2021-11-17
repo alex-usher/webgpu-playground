@@ -10,6 +10,7 @@ import {
 import { cubeColours, cubePositions } from "./meshes";
 import { mat4 } from "gl-matrix";
 import { RenderLogger } from "../objects/RenderLogger";
+import { MeshType } from "../objects/Shader";
 
 let x = 0;
 let y = 0;
@@ -23,6 +24,7 @@ let renderFrame = -1;
 
 export const renderShader = async (
   shaderCode: string,
+  meshType: MeshType,
   renderLogger: RenderLogger
 ): Promise<void> => {
   if (!checkWebGPU()) {
@@ -152,14 +154,23 @@ export const renderShader = async (
   });
 
   const viewParamsBuffer = device.createBuffer({
-    size: 64,
-    // size: 4 * 5,
+    size: 4 * 5,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
   const viewParamsBindGroup = device.createBindGroup({
     layout: bindGroupLayout,
     entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
+  });
+
+  const uniformBuffer = device.createBuffer({
+    size: 64,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+
+  const uniformBindGroup = device.createBindGroup({
+    layout: bindGroupLayout,
+    entries: [{ binding: 0, resource: { buffer: uniformBuffer } }],
   });
 
   // track when canvas is visible and only render when true
@@ -248,20 +259,46 @@ export const renderShader = async (
 
       CreateTransforms(modelMatrix);
       mat4.multiply(mvpMatrix, vpMatrix, modelMatrix);
-      device.queue.writeBuffer(viewParamsBuffer, 0, mvpMatrix as ArrayBuffer);
+      device.queue.writeBuffer(uniformBuffer, 0, mvpMatrix as ArrayBuffer);
 
       const commandEncoder = device.createCommandEncoder();
-      commandEncoder.copyBufferToBuffer(timeBuffer, 0, viewParamsBuffer, 0, 4);
-      commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
-      commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
-      commandEncoder.copyBufferToBuffer(resXBuffer, 0, viewParamsBuffer, 12, 4);
-      commandEncoder.copyBufferToBuffer(resYBuffer, 0, viewParamsBuffer, 16, 4);
+
+      if (meshType === MeshType.RECTANGLE) {
+        console.log("WIHNODIAHNOd");
+        commandEncoder.copyBufferToBuffer(
+          timeBuffer,
+          0,
+          viewParamsBuffer,
+          0,
+          4
+        );
+        commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
+        commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
+        commandEncoder.copyBufferToBuffer(
+          resXBuffer,
+          0,
+          viewParamsBuffer,
+          12,
+          4
+        );
+        commandEncoder.copyBufferToBuffer(
+          resYBuffer,
+          0,
+          viewParamsBuffer,
+          16,
+          4
+        );
+      }
 
       const renderPass = commandEncoder.beginRenderPass(
         renderPassDescription as GPURenderPassDescriptor
       );
       renderPass.setPipeline(renderPipeline);
-      renderPass.setBindGroup(0, viewParamsBindGroup);
+      if (meshType === MeshType.RECTANGLE) {
+        renderPass.setBindGroup(0, viewParamsBindGroup);
+      } else if (meshType === MeshType.CUBE) {
+        renderPass.setBindGroup(0, uniformBindGroup);
+      }
       renderPass.setVertexBuffer(0, vertexBuffer);
       renderPass.setVertexBuffer(1, colorBuffer);
       renderPass.draw(numberOfVertices);

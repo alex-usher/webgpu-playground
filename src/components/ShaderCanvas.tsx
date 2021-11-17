@@ -4,6 +4,7 @@ import { checkWebGPU } from "../webgpu/helpers";
 import { renderShader, updateCoordinates } from "../webgpu/render";
 import Typography from "@mui/material/Typography";
 import { RenderLogger } from "../objects/RenderLogger";
+import { MeshType } from "../objects/Shader";
 
 const WIDTH_ASPECT = 968;
 const HEIGHT_ASPECT = 720;
@@ -12,9 +13,14 @@ const ASPECT_RATIO = 0.9;
 interface ShaderCanvasInput {
   shaderCode: string;
   setMessages: (messages: string) => void;
+  meshType: MeshType;
 }
 
-const ShaderCanvas = ({ shaderCode, setMessages }: ShaderCanvasInput) => {
+const ShaderCanvas = ({
+  shaderCode,
+  setMessages,
+  meshType,
+}: ShaderCanvasInput) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
   const renderLogger = new RenderLogger();
@@ -26,7 +32,7 @@ const ShaderCanvas = ({ shaderCode, setMessages }: ShaderCanvasInput) => {
 
   useEffect(() => {
     if (shaderCode !== "" && shaderCode !== undefined) {
-      renderShader(shaderCode, renderLogger).then(() => {
+      renderShader(shaderCode, meshType, renderLogger).then(() => {
         setMessages(renderLogger.getMessages());
       });
     }
