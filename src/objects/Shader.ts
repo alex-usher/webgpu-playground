@@ -16,6 +16,35 @@ import {
 import { auth, firedb, firestorage } from "../firebase";
 import { v4 as uuidv4 } from "uuid";
 
+export enum ShaderTypeEnum {
+  EXAMPLE = "example",
+  PUBLIC = "public",
+}
+export interface ShaderType {
+  pageLink: string;
+  sectionName: string;
+  type: ShaderTypeEnum;
+}
+
+export const ExampleShaderType = {
+  pageLink: "/examples",
+  sectionName: "Examples",
+  type: ShaderTypeEnum.EXAMPLE,
+};
+
+export const PublicShaderType = {
+  pageLink: "/public",
+  sectionName: "Recent Public Shaders",
+  type: ShaderTypeEnum.PUBLIC,
+};
+
+//export type ShaderType = ExampleShaderType || PublicShaderType
+
+export const shaderTypeMap = new Map([
+  [ShaderTypeEnum.EXAMPLE, ExampleShaderType],
+  [ShaderTypeEnum.PUBLIC, PublicShaderType],
+]);
+
 export class Shader {
   id: string;
   readonly image: string; //http link to img src

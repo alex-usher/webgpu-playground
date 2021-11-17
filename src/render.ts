@@ -1,4 +1,5 @@
 import assert from "assert";
+import { RenderLogger } from "./objects/RenderLogger";
 
 export const checkWebGPU = (): boolean => navigator.gpu != null;
 
@@ -24,6 +25,7 @@ struct ViewParams {
 [[group(0), binding(0)]]
 var<uniform> view_params: ViewParams;
 `;
+const structsLength = structs.split(/\r\n|\r|\n/).length + 1;
 
 const structsMessage =
   "To see the predefined uniforms that you have available to you, click the help button above";
@@ -64,15 +66,20 @@ fn vertex_main([[builtin(vertex_index)]] index: u32) -> Output {
 }
 `;
 
-const outputMessages = async (shaderModule: GPUShaderModule) => {
+const outputMessages = async (
+  shaderModule: GPUShaderModule,
+  renderLogger: RenderLogger
+) => {
   if (shaderModule.compilationInfo) {
     const messages = (await shaderModule.compilationInfo()).messages;
     if (messages.length > 0) {
       let error = false;
       for (let i = 0; i < messages.length; i++) {
         const message = messages[i];
-        console.log(
-          `(${message.lineNum}, ${message.linePos}): ${message.message}`
+        renderLogger.logMessage(
+          `(${message.lineNum - structsLength}, ${message.linePos}): ${
+            message.message
+          }`
         );
         error = error || message.type === "error";
       }
@@ -96,7 +103,10 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
 
 let renderFrame = -1;
 
-export const renderShader = async (shaderCode: string): Promise<void> => {
+export const renderShader = async (
+  shaderCode: string,
+  renderLogger: RenderLogger
+): Promise<void> => {
   if (!checkWebGPU()) {
     return;
   }
@@ -117,10 +127,12 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
     code: `${structs}\n${shaderCode}`,
   });
   // check for compilation failures and output any compile messages
-  if (!(await outputMessages(shaderModule))) {
-    console.log("Shader Compilation failed");
+  if (!(await outputMessages(shaderModule, renderLogger))) {
+    renderLogger.logMessage("Shader Compilation failed");
     return;
   }
+
+  renderLogger.logMessage("Shader Compilation successful");
 
   // cancel the previous render once we know the next render will compile
   if (renderFrame != -1) {
@@ -311,5 +323,8 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
 };
 
 export const renderTriangle = (): void => {
-  renderShader(`${shaderTriangleVertex}\n${shaderTriangleFragment}`);
+  renderShader(
+    `${shaderTriangleVertex}\n${shaderTriangleFragment}`,
+    new RenderLogger()
+  );
 };

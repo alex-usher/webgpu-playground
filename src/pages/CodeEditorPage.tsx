@@ -33,6 +33,7 @@ import { auth } from "../firebase";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { Tooltip } from "@mui/material";
+import { ConsoleOutput } from "../components/ConsoleOutput";
 
 const CodeEditorPage = () => {
   const [shader, setShader] = useState<Shader>(
@@ -46,6 +47,7 @@ const CodeEditorPage = () => {
   const [renderedShaderCode, setRenderedShaderCode] = useState(
     shader.shaderCode
   );
+  const [messages, setMessages] = useState("");
   const [inFullscreen, setInFullscreen] = useState(false);
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [formOpen, setFormOpen] = React.useState(false);
@@ -66,7 +68,6 @@ const CodeEditorPage = () => {
         setShaderName(shader.title);
       });
     }
-    console.log(shader);
   }, []);
 
   useEffect(() => {
@@ -79,10 +80,8 @@ const CodeEditorPage = () => {
       return;
     }
     if ((await isCurrentUsersShader(shader)) && shader.id) {
-      console.log("overwriting");
       overwriteShader(shader);
     } else {
-      console.log("save as new");
       setFormOpen(true);
     }
   };
@@ -174,8 +173,6 @@ const CodeEditorPage = () => {
 
         canvas.toBlob(function (blob) {
           link.href = URL.createObjectURL(blob);
-          console.log(blob);
-          console.log(link.href);
           link.click();
         }, "image/png");
       }}
@@ -376,13 +373,14 @@ const CodeEditorPage = () => {
         </Stack>
       </div>
 
-      <ShaderCanvas shaderCode={renderedShaderCode} />
 
-      {showCode ? (
-        <div className="editors">
-          {helpBoxVisable ? <HelpBanner opacity={editorOpacity} /> : <></>}
+      <ShaderCanvas shaderCode={renderedShaderCode} setMessages={setMessages} />
+      {showCode ? <ConsoleOutput messages={messages} /> : <></>}
 
-          <div className="editor" style={{ width: editorWidth, float: "left" }}>
+      <div className="editors">
+        {helpBoxVisable ? <HelpBanner opacity={editorOpacity} /> : <></>}
+        {showCode ? (
+          <div style={{ height: "100%",  width: editorWidth, float: "left"}}>
             <Editor
               value={shaderCode}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -391,10 +389,11 @@ const CodeEditorPage = () => {
               opacity={editorOpacity}
             />
           </div>
-        </div>
-      ) : (
-        <></>
-      )}
+
+        ) : (
+          <></>
+        )}
+      </div>
     </div>
   );
 };
