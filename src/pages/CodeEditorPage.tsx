@@ -5,7 +5,7 @@ import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import { defaultShader, Shader } from "../objects/Shader";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
-import React from "react";
+import HelpBanner from "../components/HelpBanner";
 import FormDialog from "../components/FormDialog";
 import {
   Drawer,
@@ -34,6 +34,8 @@ import { auth } from "../firebase";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { Tooltip } from "@mui/material";
+import { ConsoleOutput } from "../components/ConsoleOutput";
+import React from "react";
 
 const CodeEditorPage = () => {
   const [shader, setShader] = useState<Shader>(
@@ -47,6 +49,7 @@ const CodeEditorPage = () => {
   const [renderedShaderCode, setRenderedShaderCode] = useState(
     shader.shaderCode
   );
+  const [messages, setMessages] = useState("");
   const [inFullscreen, setInFullscreen] = useState(false);
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [formOpen, setFormOpen] = React.useState(false);
@@ -54,6 +57,8 @@ const CodeEditorPage = () => {
   const [shaderName, setShaderName] = useState("Untitled");
   const history = useHistory();
   const isLoggedIn = auth.currentUser == null;
+  const [helpBoxVisable, setHelpBoxVisable] = React.useState(false);
+  const [editorWidth, setEditorWidth] = useState("100%");
 
   useEffect(() => {
     if (shader.shaderCode === "") {
@@ -97,6 +102,13 @@ const CodeEditorPage = () => {
 
   const isSmallWidth = useMediaQuery(useTheme().breakpoints.down("xl"));
 
+  const toggleHelpVisible = () => {
+    setHelpBoxVisable(!helpBoxVisable);
+    {
+      helpBoxVisable ? setEditorWidth("100%") : setEditorWidth("75%");
+    }
+  };
+
   const toggleActionDrawer = () => {
     // Only allow the drawer to open if the code actions button is available
     if (isSmallWidth) {
@@ -119,7 +131,7 @@ const CodeEditorPage = () => {
     >
       Compile
     </Button>,
-    <div>
+    <div key={9}>
       {isLoggedIn ? (
         <Tooltip title="You must be logged in to be able to save shaders.">
           <span>
@@ -172,6 +184,19 @@ const CodeEditorPage = () => {
     >
       Export as PNG
     </Button>,
+    <Button
+      key={4}
+      id="help-button"
+      variant="outlined"
+      disableElevation
+      onClick={() => {
+        toggleHelpVisible();
+        toggleActionDrawer();
+      }}
+      color={"secondary"}
+    >
+      Help
+    </Button>,
     <FormDialog
       key={5}
       open={formOpen}
@@ -180,7 +205,7 @@ const CodeEditorPage = () => {
       updateShader={(shader) => setShader(shader)}
     />,
     <Button
-      key={1}
+      key={10}
       id="delete-button"
       variant="outlined"
       disableElevation
@@ -366,16 +391,28 @@ const CodeEditorPage = () => {
         </Stack>
       </div>
 
-      <ShaderCanvas shaderCode={renderedShaderCode} />
+      <ShaderCanvas shaderCode={renderedShaderCode} setMessages={setMessages} />
+      {showCode ? <ConsoleOutput messages={messages} /> : <></>}
+
       <div className="editors">
-        {showCode ? (
-          <Editor
-            value={shaderCode}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-              setShaderCode(e.target.value);
-            }}
+        {helpBoxVisable ? (
+          <HelpBanner
             opacity={editorOpacity}
+            toggleVisibility={toggleHelpVisible}
           />
+        ) : (
+          <></>
+        )}
+        {showCode ? (
+          <div style={{ height: "100%", width: editorWidth, float: "left" }}>
+            <Editor
+              value={shaderCode}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                setShaderCode(e.target.value);
+              }}
+              opacity={editorOpacity}
+            />
+          </div>
         ) : (
           <></>
         )}
