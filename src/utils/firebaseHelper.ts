@@ -224,15 +224,7 @@ class nameErr extends Error {
 }
 
 export const deleteShader = async (shader: Shader): Promise<boolean> => {
-  // delete shader 
-  
-  
-  
-  
-  
-  
-  
-  from users, public and it's code file
+  // delete shader
   try {
     const user = auth.currentUser;
     if (!user) {
