@@ -37,7 +37,7 @@ const HomePage = () => {
         alignItems="center"
         marginBottom="10px"
       >
-        <HeaderComponent />
+        <HeaderComponent usersPage={false} />
 
         <CardCarousel
           shaderType={ExampleShaderType}

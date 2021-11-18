@@ -11,7 +11,6 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 
 import { useState } from "react";
-// import { useSnackbar } from "notistack";
 
 import { Shader } from "../objects/Shader";
 import { saveNewShader } from "../utils/firebaseHelper";
