@@ -1,22 +1,24 @@
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
-import Grid from "@mui/material/Grid";
-import Stack from "@mui/material/Stack";
-import Slider from "@mui/material/Slider";
-import Typography from "@mui/material/Typography";
 import { defaultShader, Shader } from "../objects/Shader";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
 import React from "react";
-//import { Link } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
-import Drawer from "@mui/material/Drawer";
+import {
+  Drawer,
+  Grid,
+  Stack,
+  Slider,
+  Typography,
+  Button,
+  IconButton,
+} from "@mui/material";
 import {
   getShaderCode,
+  deleteShader,
   overwriteShader,
   isCurrentUsersShader,
 } from "../utils/firebaseHelper";
@@ -177,6 +179,21 @@ const CodeEditorPage = () => {
       shaderCode={shaderCode}
       updateShader={(shader) => setShader(shader)}
     />,
+    <Button
+      key={1}
+      id="delete-button"
+      variant="outlined"
+      disableElevation
+      color="error"
+      onClick={async () => {
+        if (await deleteShader(shader)) {
+          SnackbarUtils.success("Successfully deleted " + shaderName + ".");
+          history.goBack();
+        }
+      }}
+    >
+      Delete
+    </Button>,
   ];
 
   const opacitySliderComponent = (
