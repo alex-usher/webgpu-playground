@@ -25,11 +25,11 @@ struct ViewParams {
 [[group(0), binding(0)]]
 var<uniform> view_params: ViewParams;
 
-AVAILABLE UNIFORMS (pre-declared, available globally):
-- res (resolution): vec2<f32>(width, height);
-- pos (pixel position): vec2<f32>(x, y);
-- time (elapsed since render): f32;
-- mouse (mouse position): vec2<f32>(x, y);
+// AVAILABLE UNIFORMS (pre-declared, available globally):
+// - res (resolution): vec2<f32>(width, height);
+// - pos (pixel position): vec2<f32>(x, y);
+// - time (elapsed since render): f32;
+// - mouse (mouse position): vec2<f32>(x, y);
 `;
 const structsLength = structs.split(/\r\n|\r|\n/).length + 1;
 
