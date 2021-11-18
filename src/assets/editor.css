@@ -1,184 +1,178 @@
-/* div for alll elements of the editor */
+/* div for all elements of the editor */
 .editor-container {
-    scroll-behavior: smooth;
-    overflow: auto;
-    border-radius: 0.35em;
-    width: 100%;    
-    display: flex;
-    height: 100%;
-    justify-content: center;
-    border: none;
-    outline: none;
-    z-index: 0;
+  scroll-behavior: smooth;
+  overflow: auto;
+  border-radius: 0.35em;
+  width: 100%;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  border: none;
+  outline: none;
+  z-index: 0;
 }
 
-.padding {  
-    box-sizing: border-box;
-    padding-top: 0.5em;
-    /* padding-bottom: 0.5em; */
+.padding {
+  box-sizing: border-box;
+  padding-top: 0.5em;
+  /* padding-bottom: 0.5em; */
 }
 
 /* keeps editor and line number formatting consistent */
 .scroll-text-style {
-    line-height: 1.8em;
-    font-size: 1.1em;
-    font-family: monospace;
+  line-height: 1.8em;
+  font-size: 1.1em;
+  font-family: monospace;
 }
 
 /* div for the text components of the editor */
-.editor { 
-    box-sizing: border-box;
-    overflow: hidden;
-    z-index: 0;
-    display: flex;
-    position:relative;
+.editor {
+  box-sizing: border-box;
+  overflow: hidden;
+  z-index: 0;
+  display: flex;
+  position: relative;
 
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 
-    color: rgba(208, 208, 208, 0.9);
+  color: rgba(208, 208, 208, 0.9);
 }
 
 .editor textarea {
-    box-sizing: border-box;
-    display: flex;
-    overflow: auto;
-    position: absolute;
-    white-space: pre;
+  box-sizing: border-box;
+  display: flex;
+  overflow: auto;
+  position: absolute;
+  white-space: pre;
 
-    resize: none;
-    background-color: transparent;
-    color: transparent;
-    caret-color: rgba(200, 200, 200, 0.9);
-    font-size: inherit;
-    font-family: inherit;
-    line-height: inherit;
-    
-    width: inherit;
-    height: inherit;
-    max-width: inherit;
-    max-height: inherit;    
+  resize: none;
+  background-color: transparent;
+  color: transparent;
+  caret-color: rgba(200, 200, 200, 0.9);
+  font-size: inherit;
+  font-family: inherit;
+  line-height: inherit;
 
-    /* padding-bottom:0.5em; */
-    padding-right: 0.5em;
-    padding-left: 1em;
-    border: none;
-    outline: none;
-    width: 100%;
-    height: 100%;
-    z-index: 2000;
+  width: inherit;
+  height: inherit;
+  max-width: inherit;
+  max-height: inherit;
+
+  /* padding-bottom:0.5em; */
+  padding-right: 0.5em;
+  padding-left: 1em;
+  border: none;
+  outline: none;
+  width: 100%;
+  height: 100%;
+  z-index: 2000;
 }
 
 .editor pre {
-    box-sizing: border-box;
-    display: flex;
-    position: relative;
+  box-sizing: border-box;
+  display: flex;
+  position: relative;
 
-    white-space: pre;
-    word-wrap: normal;
+  white-space: pre;
+  word-wrap: normal;
 
+  overflow: auto;
+  overflow-x: auto;
+  font-size: inherit;
+  font-family: inherit;
+  line-height: inherit;
+  border-radius: 0;
+  background-color: transparent;
 
-    overflow: auto;
-    overflow-x: auto;
-    font-size: inherit;
-    font-family: inherit;
-    line-height: inherit;
-    border-radius: 0;
-    background-color: transparent;
-
-    margin:0;
-    padding-right: 0.5em;
-    padding-left: 1em;
-    border: none;
-    outline: none;
-    width: 100%;
-    height: 100%;
-    padding-bottom: 0em;
+  margin: 0;
+  padding-right: 0.5em;
+  padding-left: 1em;
+  border: none;
+  outline: none;
+  width: 100%;
+  height: 100%;
+  padding-bottom: 0em;
 }
 
 .editor code {
-    box-sizing: border-box;
-    word-wrap: normal;
-    overflow: hidden;
-    pointer-events: none;
-    padding: 0;
-    position: sticky;
-    font-size: inherit;
-    font-family: inherit;
-    line-height: inherit;
-    background-color: transparent;
-    border: none;
-    outline: none;
-    width: 100%;
-    height: 100%;
-    padding-bottom: 2em;
+  box-sizing: border-box;
+  word-wrap: normal;
+  overflow: hidden;
+  pointer-events: none;
+  padding: 0;
+  position: sticky;
+  font-size: inherit;
+  font-family: inherit;
+  line-height: inherit;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  width: 100%;
+  height: 100%;
+  padding-bottom: 2em;
 }
 
 .editor-gutter-container {
-    z-index: 100;
-    overflow: hidden;
-    width: 2.5em;
-    display: flex;
-    height: 100%;
-    justify-content: right;
-    background-color: rgba(25, 25, 25, 0.6);
-    color: rgba(150, 150, 150, 0.7);
+  z-index: 100;
+  overflow: hidden;
+  width: 2.5em;
+  display: flex;
+  height: 100%;
+  justify-content: right;
+  background-color: rgba(25, 25, 25, 0.6);
+  color: rgba(150, 150, 150, 0.7);
 }
 
 .editor-gutter {
-    box-sizing: border-box;
-    overflow-y: auto;
-    padding-right: 0.5em;
-    width: 100%;
-    padding-bottom:1.0em;
-    justify-content: right;
-    text-align: right;
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding-right: 0.5em;
+  width: 100%;
+  padding-bottom: 1em;
+  justify-content: right;
+  text-align: right;
 }
 
 /* Hide scrollbars but allow scrolling */
-.editor-container::-webkit-scrollbar { 
-    display: none;  /* Safari and Chrome */
+.editor-container::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
 }
 
-
-.editor-gutter-container::-webkit-scrollbar { 
-    display: none;  /* Safari and Chrome */
+.editor-gutter-container::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
 }
 
-
-.editor-gutter::-webkit-scrollbar { 
-    display: none;  /* Safari and Chrome */
+.editor-gutter::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
 }
 
-
-.textarea::-webkit-scrollbar { 
-    display: none;  /* Safari and Chrome */
+.textarea::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
 }
 
-
-.pre::-webkit-scrollbar { 
-    display: none;  /* Safari and Chrome */
+.pre::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
 }
 
-.code::-webkit-scrollbar { 
-    display: none;  /* Safari and Chrome */
+.code::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
 }
-
 
 /* SCROLLBAR STYLING */
 
 ::-webkit-scrollbar {
-    z-index: 2;
-    width: 0.7em;
-    height: 0.7em;
+  z-index: 2;
+  width: 0.7em;
+  height: 0.7em;
 }
- 
+
 ::-webkit-scrollbar-thumb {
-    border-radius: 0.4em;
-    background-clip: padding-box;
-    background-color: rgba(85, 85, 85, 0.5);
+  border-radius: 0.4em;
+  background-clip: padding-box;
+  background-color: rgba(85, 85, 85, 0.5);
 }
 
 ::-webkit-scrollbar-corner {
-    background-color: rgba(0, 0, 0, 0);
-} 
+  background-color: rgba(0, 0, 0, 0);
+}

@@ -1,8 +1,9 @@
 import assert from "assert";
+import { RenderLogger } from "./objects/RenderLogger";
 
 export const checkWebGPU = (): boolean => navigator.gpu != null;
 
-const structs = `struct VertexInput {
+export const structs = `struct VertexInput {
     [[location(0)]] position: vec2<f32>;
     [[location(1)]] color: vec4<f32>;
 };
@@ -23,12 +24,20 @@ struct ViewParams {
 
 [[group(0), binding(0)]]
 var<uniform> view_params: ViewParams;
-`;
 
-export const rectangleVertex = `/*${structs}*/
+// AVAILABLE UNIFORMS (pre-declared, available globally):
+// - res (resolution): vec2<f32>(width, height);
+// - pos (pixel position): vec2<f32>(x, y);
+// - time (elapsed since render): f32;
+// - mouse (mouse position): vec2<f32>(x, y);
+`;
+const structsLength = structs.split(/\r\n|\r|\n/).length + 1;
+
+const structsMessage =
+  "To see the predefined uniforms that you have available to you, click the help button above";
+export const rectangleVertex = `/*${structsMessage}*/
 [[stage(vertex)]]
 fn vertex_main(vert: VertexInput) -> VertexOutput {
-
     var out: VertexOutput;
     out.position = vec4<f32>(vert.position, 0.0, 1.0);
     out.color = vert.color;
@@ -36,8 +45,15 @@ fn vertex_main(vert: VertexInput) -> VertexOutput {
 };`;
 
 export const rectangleFragment = `[[stage(fragment)]]
-fn fragment_main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
-    return sin(view_params.time * 0.01) * color;
+fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+  var out = sin(time * 0.01) * in.color;
+  if (pos[0] < res[0]/2.0) {
+      out = sin(time * 0.01 + 3.14) * in.color;
+  }
+  if (length(mouse - pos) < 10.0) {
+      out = vec4<f32>(1.0, 1.0, 1.0, 1.0);
+  } 
+  return out;
 };`;
 
 export const shaderTriangleFragment = `[[stage(fragment)]]
@@ -53,24 +69,58 @@ export const shaderTriangleVertex = `struct Output {
 
 [[stage(vertex)]]
 fn vertex_main([[builtin(vertex_index)]] index: u32) -> Output {
-    
     var output: Output;
     output.Position = vec4<f32>(pos[index], 0.0, 1.0);
     output.vColor = vec4<f32>(color[index], 1.0);
-    
     return output;
 }
 `;
 
-const outputMessages = async (shaderModule: GPUShaderModule) => {
+const addUniformCode = (shaderCode: string): string => {
+  const splitOnFragmentDecl = shaderCode.split("[[stage(fragment)]]");
+  const splitInFragmentDecl = splitOnFragmentDecl[1].split(
+    RegExp(/{([\s\S]*)/),
+    2
+  );
+  const globalVars =
+    "\nvar<private> res: vec2<f32>;\n" +
+    "var<private> pos: vec2<f32>;\n" +
+    "var<private> time: f32;\n" +
+    "var<private> mouse: vec2<f32>;\n";
+  const uniformBoilerplate =
+    "\nres = vec2<f32>(view_params.res_x, view_params.res_y);\n" +
+    "pos = vec2<f32>(in.position[0], in.position[1]);\n" +
+    "time = view_params.time;\n" +
+    "mouse = vec2<f32>(view_params.x, view_params.y);\n";
+
+  console.log(splitInFragmentDecl[0]);
+  console.log(splitInFragmentDecl[1]);
+
+  return (
+    globalVars +
+    splitOnFragmentDecl[0] +
+    "[[stage(fragment)]]" +
+    splitInFragmentDecl[0] +
+    "{" +
+    uniformBoilerplate +
+    splitInFragmentDecl[1]
+  );
+};
+
+const outputMessages = async (
+  shaderModule: GPUShaderModule,
+  renderLogger: RenderLogger
+) => {
   if (shaderModule.compilationInfo) {
     const messages = (await shaderModule.compilationInfo()).messages;
     if (messages.length > 0) {
       let error = false;
       for (let i = 0; i < messages.length; i++) {
         const message = messages[i];
-        console.log(
-          `(${message.lineNum}, ${message.linePos}): ${message.message}`
+        renderLogger.logMessage(
+          `(${message.lineNum - structsLength}, ${message.linePos}): ${
+            message.message
+          }`
         );
         error = error || message.type === "error";
       }
@@ -94,7 +144,10 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
 
 let renderFrame = -1;
 
-export const renderShader = async (shaderCode: string): Promise<void> => {
+export const renderShader = async (
+  shaderCode: string,
+  renderLogger: RenderLogger
+): Promise<void> => {
   if (!checkWebGPU()) {
     return;
   }
@@ -111,14 +164,19 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
   const stateFormat = "bgra8unorm";
   const depthFormat = "depth24plus-stencil8";
 
+  // add in uniform constant code in fragment shader
+  shaderCode = addUniformCode(shaderCode);
+
   const shaderModule = device.createShaderModule({
     code: `${structs}\n${shaderCode}`,
   });
   // check for compilation failures and output any compile messages
-  if (!(await outputMessages(shaderModule))) {
-    console.log("Shader Compilation failed");
+  if (!(await outputMessages(shaderModule, renderLogger))) {
+    renderLogger.logMessage("Shader Compilation failed");
     return;
   }
+
+  renderLogger.logMessage("Shader Compilation successful");
 
   // cancel the previous render once we know the next render will compile
   if (renderFrame != -1) {
@@ -288,7 +346,6 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
       commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
       commandEncoder.copyBufferToBuffer(resXBuffer, 0, viewParamsBuffer, 12, 4);
       commandEncoder.copyBufferToBuffer(resYBuffer, 0, viewParamsBuffer, 16, 4);
-
       const renderPass = commandEncoder.beginRenderPass(
         renderPassDescription as GPURenderPassDescriptor
       );
@@ -309,5 +366,8 @@ export const renderShader = async (shaderCode: string): Promise<void> => {
 };
 
 export const renderTriangle = (): void => {
-  renderShader(`${shaderTriangleVertex}\n${shaderTriangleFragment}`);
+  renderShader(
+    `${shaderTriangleVertex}\n${shaderTriangleFragment}`,
+    new RenderLogger()
+  );
 };

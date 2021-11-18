@@ -3,6 +3,7 @@ import "../assets/shaderCanvas.css";
 import { checkWebGPU } from "../render";
 import { renderShader, updateCoordinates } from "../render";
 import Typography from "@mui/material/Typography";
+import { RenderLogger } from "../objects/RenderLogger";
 
 const WIDTH_ASPECT = 968;
 const HEIGHT_ASPECT = 720;
@@ -10,10 +11,13 @@ const ASPECT_RATIO = 0.9;
 
 interface ShaderCanvasInput {
   shaderCode: string;
+  setMessages: (messages: string) => void;
 }
 
-const ShaderCanvas = ({ shaderCode }: ShaderCanvasInput) => {
+const ShaderCanvas = ({ shaderCode, setMessages }: ShaderCanvasInput) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  const renderLogger = new RenderLogger();
 
   const aspectMultiple = Math.min(
     window.innerWidth / WIDTH_ASPECT,
@@ -22,7 +26,9 @@ const ShaderCanvas = ({ shaderCode }: ShaderCanvasInput) => {
 
   useEffect(() => {
     if (shaderCode !== "" && shaderCode !== undefined) {
-      renderShader(shaderCode);
+      renderShader(shaderCode, renderLogger).then(() => {
+        setMessages(renderLogger.getMessages());
+      });
     }
   }, [shaderCode]);
 
@@ -31,19 +37,12 @@ const ShaderCanvas = ({ shaderCode }: ShaderCanvasInput) => {
       const canvas = document.getElementById(
         "canvas-webgpu"
       ) as HTMLCanvasElement;
-      const offsetLeft = canvas.getBoundingClientRect().left;
-      const offsetTop = canvas.getBoundingClientRect().top;
-      const xCoord =
-        ((e.pageX - offsetLeft) /
-          (ASPECT_RATIO * aspectMultiple * WIDTH_ASPECT)) *
-          2 -
-        1;
-      const yCoord = -(
-        ((e.pageY - offsetTop) /
-          (ASPECT_RATIO * aspectMultiple * HEIGHT_ASPECT)) *
-          2 -
-        1
-      );
+      const offsetLeft =
+        canvas != null ? canvas.getBoundingClientRect().left : 0.0;
+      const offsetTop =
+        canvas != null ? canvas.getBoundingClientRect().top : 0.0;
+      const xCoord = (e.pageX - offsetLeft) / ASPECT_RATIO;
+      const yCoord = (e.pageY - offsetTop) / ASPECT_RATIO;
       setPosition({ x: xCoord, y: yCoord });
       updateCoordinates(position);
     };
