@@ -12,11 +12,15 @@ const renderEditor = () =>
     />
   );
 
+let editorArea: HTMLTextAreaElement;
 describe("Editor Component Tests", () => {
-  it("Should initialise the text area with the given value", () => {
-    const textarea =
-      renderEditor().container.getElementsByTagName("textarea")[0];
+  beforeEach(() => {
+    editorArea = renderEditor().container.getElementsByTagName(
+      "textarea"
+    )[0] as HTMLTextAreaElement;
+  });
 
-    expect(textarea).toHaveProperty("value", testValue);
+  test("It should initialise the text area with the given value", () => {
+    expect(editorArea.value).toEqual(testValue);
   });
 });

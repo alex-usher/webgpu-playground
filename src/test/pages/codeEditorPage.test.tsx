@@ -172,6 +172,7 @@ describe("Code editor tests", () => {
         assert(codeEditor);
         await userEvent.type(codeEditor, "a");
       });
+
       expect(codeEditor.textContent).toEqual(
         `${shaders.rectangleVertex}\n${shaders.rectangleFragment}a`
       );
