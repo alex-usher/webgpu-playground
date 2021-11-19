@@ -11,10 +11,20 @@ import { SnackbarUtilsConfigurator } from "./utils/Snackbar";
 
 import "./assets/style.css";
 import { createTheme, ThemeProvider } from "@mui/material";
+import { green, red, yellow } from "@mui/material/colors";
 
 const darkTheme = createTheme({
   palette: {
     mode: "dark",
+    error: {
+      main: red["A100"],
+    },
+    warning: {
+      main: yellow[200],
+    },
+    success: {
+      main: green[300],
+    },
   },
 });
 

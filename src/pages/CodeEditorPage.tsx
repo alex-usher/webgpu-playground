@@ -33,6 +33,7 @@ import { Dialog, DialogContent, DialogTitle } from "@mui/material";
 import { ConsoleOutput } from "../components/ConsoleOutput";
 import React from "react";
 import SignInButton from "../components/SignInButton";
+import { RenderLogger } from "../objects/RenderLogger";
 
 const CodeEditorPage = () => {
   const [shader, setShader] = useState<Shader>(
@@ -46,7 +47,7 @@ const CodeEditorPage = () => {
   const [renderedShaderCode, setRenderedShaderCode] = useState(
     shader.shaderCode
   );
-  const [messages, setMessages] = useState("");
+  const [renderLogger, setRenderLogger] = useState(new RenderLogger());
   const [inFullscreen, setInFullscreen] = useState(false);
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [saveFormOpen, setSaveFormOpen] = useState(false);
@@ -120,7 +121,13 @@ const CodeEditorPage = () => {
       id="compile-button"
       variant="outlined"
       disableElevation
-      color="secondary"
+      color={
+        renderLogger.hasErrors()
+          ? "error"
+          : renderLogger.hasWarnings()
+          ? "warning"
+          : "success"
+      }
       onClick={() => {
         setRenderedShaderCode(shaderCode);
       }}
@@ -354,8 +361,15 @@ const CodeEditorPage = () => {
         </Stack>
       </div>
 
-      <ShaderCanvas shaderCode={renderedShaderCode} setMessages={setMessages} />
-      {showCode ? <ConsoleOutput messages={messages} /> : <></>}
+      <ShaderCanvas
+        shaderCode={renderedShaderCode}
+        setRenderLogger={setRenderLogger}
+      />
+      {showCode ? (
+        <ConsoleOutput messages={renderLogger.getMessages()} />
+      ) : (
+        <></>
+      )}
 
       <div className="editors">
         {helpBoxVisible ? (
@@ -372,6 +386,7 @@ const CodeEditorPage = () => {
               value={shaderCode}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                 setShaderCode(e.target.value);
+                setRenderedShaderCode(e.target.value);
               }}
               opacity={editorOpacity}
             />
