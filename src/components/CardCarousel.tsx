@@ -1,4 +1,4 @@
-import { Shader } from "../objects/Shader";
+import { Shader, ShaderType } from "../objects/Shader";
 import { ShaderCard } from "./ShaderCard";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
@@ -7,16 +7,17 @@ import { Link } from "react-router-dom";
 import "../assets/cardCarousel.css";
 
 interface CarouselProps {
-  sectionName: string;
+  shaderType: ShaderType;
   shaderList: Shader[];
-  pageLink: string;
+  pageLength: number;
 }
 
 export const CardCarousel = ({
-  sectionName,
+  shaderType,
   shaderList,
-  pageLink,
+  pageLength,
 }: CarouselProps) => {
+  const shaderTypeEnum = shaderType.type;
   return (
     <div className="row">
       <Grid
@@ -28,15 +29,15 @@ export const CardCarousel = ({
         className="header"
       >
         <Typography variant="h4" className="title">
-          {sectionName}
+          {shaderType.sectionName}
         </Typography>
         <Button
           variant="outlined"
           disableElevation
           component={Link}
           to={{
-            pathname: pageLink,
-            state: { sectionName, shaderList },
+            pathname: shaderType.pageLink,
+            state: { shaderTypeEnum, shaderList, pageLength },
           }}
         >
           See All

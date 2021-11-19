@@ -9,7 +9,11 @@ import { useState } from "react";
 import "../assets/homePage.css";
 import "../assets/shaderGallery.css";
 
-const HeaderComponent = () => {
+interface HeaderComponentProps {
+  usersPage: boolean;
+}
+
+const HeaderComponent = ({ usersPage }: HeaderComponentProps) => {
   const auth = getAuth();
 
   const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
@@ -46,7 +50,7 @@ const HeaderComponent = () => {
           </Button>
         </Grid>
 
-        {isLoggedIn ? (
+        {!usersPage && isLoggedIn ? (
           <Grid item>
             <Button
               variant="outlined"

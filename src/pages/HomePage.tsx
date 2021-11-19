@@ -1,7 +1,7 @@
 import Grid from "@mui/material/Grid";
 import Container from "@mui/material/Container";
 import { CardCarousel } from "../components/CardCarousel";
-import { Shader } from "../objects/Shader";
+import { ExampleShaderType, PublicShaderType, Shader } from "../objects/Shader";
 import { useEffect, useState } from "react";
 
 import "../assets/homePage.css";
@@ -10,18 +10,20 @@ import { getExampleShaders, getPublicShaders } from "../utils/firebaseHelper";
 import HeaderComponent from "../components/HeaderComponent";
 import FooterComponent from "../components/FooterComponent";
 
+const PAGE_LENGTH = 10;
+
 const HomePage = () => {
   const [exampleShaders, setExampleShaders] = useState<Shader[]>([]);
   const [publicShaders, setPublicShaders] = useState<Shader[]>([]);
 
   useEffect(() => {
-    getPublicShaders().then((shaders: Shader[]) => {
+    getPublicShaders(PAGE_LENGTH).then((shaders: Shader[]) => {
       setPublicShaders(shaders);
     });
   }, []);
 
   useEffect(() => {
-    getExampleShaders().then((shaders: Shader[]) => {
+    getExampleShaders(PAGE_LENGTH).then((shaders: Shader[]) => {
       setExampleShaders(shaders);
     });
   }, []);
@@ -35,17 +37,17 @@ const HomePage = () => {
         alignItems="center"
         marginBottom="10px"
       >
-        <HeaderComponent />
+        <HeaderComponent usersPage={false} />
 
         <CardCarousel
-          pageLink="/examples"
-          sectionName="Examples"
+          shaderType={ExampleShaderType}
           shaderList={exampleShaders}
+          pageLength={PAGE_LENGTH}
         />
         <CardCarousel
-          pageLink="/public"
-          sectionName="Recent Public Shaders"
+          shaderType={PublicShaderType}
           shaderList={publicShaders}
+          pageLength={PAGE_LENGTH}
         />
       </Grid>
       <FooterComponent />

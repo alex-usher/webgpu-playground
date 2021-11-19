@@ -4,18 +4,53 @@ import Typography from "@mui/material/Typography";
 import { useLocation } from "react-router-dom";
 
 import "../assets/homePage.css";
-import { Shader } from "../objects/Shader";
+import "../assets/infiniteScroll.css";
+import {
+  ExampleShaderType,
+  Shader,
+  ShaderType,
+  ShaderTypeEnum,
+  shaderTypeMap,
+} from "../objects/Shader";
 import HeaderComponent from "../components/HeaderComponent";
-import ShaderContainerLarge from "../components/ShaderContainerLarge";
+import { Loading } from "react-loading-dot/lib";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { useEffect, useState } from "react";
+import { ShaderCard } from "../components/ShaderCard";
+
+import { DocumentSnapshot } from "@firebase/firestore/lite";
+import { fetchPaginatedShaders } from "../utils/firebaseHelper";
 
 interface ShadersPageProps {
-  sectionName: string;
+  shaderTypeEnum: ShaderTypeEnum;
   shaderList: Shader[];
+  pageLength: number;
 }
 
 const ShadersPage = () => {
   const location = useLocation();
-  const { sectionName, shaderList } = location.state as ShadersPageProps;
+  const { shaderTypeEnum, pageLength } = location.state as ShadersPageProps;
+  const [prevPage, setPrevPage] = useState(0);
+  const [currentShaders, setCurrentShaders] = useState<Shader[]>([]);
+  const shaderType: ShaderType =
+    shaderTypeMap.get(shaderTypeEnum) || ExampleShaderType;
+  const [latestDoc, setLatestDoc] = useState<DocumentSnapshot | undefined>();
+
+  useEffect(() => {
+    fetchMoreShaders();
+  }, []);
+
+  const fetchMoreShaders = async () => {
+    const newShaders = await fetchPaginatedShaders(
+      shaderTypeEnum,
+      pageLength,
+      latestDoc,
+      setLatestDoc
+    );
+    setCurrentShaders([...currentShaders, ...newShaders]);
+    setPrevPage(prevPage + 1);
+  };
+
   return (
     <Container>
       <Grid
@@ -25,15 +60,30 @@ const ShadersPage = () => {
         justifyContent="space-between"
         className="container-grid"
       >
-        <HeaderComponent />
+        <HeaderComponent usersPage={false} />
         <Grid item>
           <Typography variant="h4" color="white" align="left">
-            {sectionName}
+            {shaderType.sectionName}
           </Typography>
         </Grid>
-
-        <ShaderContainerLarge shaderList={shaderList} />
       </Grid>
+      <InfiniteScroll
+        dataLength={currentShaders.length}
+        next={() => {
+          fetchMoreShaders();
+        }}
+        hasMore={currentShaders.length >= pageLength * prevPage}
+        loader={<Loading />}
+        style={{ paddingTop: "2%", paddingBottom: "5%" }}
+      >
+        <div className="image-grid">
+          {currentShaders.map((shader) => (
+            <div className="image-item">
+              <ShaderCard shader={shader} />
+            </div>
+          ))}
+        </div>
+      </InfiniteScroll>
     </Container>
   );
 };
