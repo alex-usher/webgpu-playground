@@ -20,9 +20,9 @@
 .editor-console-area {
     position: absolute !important;
     right: 0;
-    top: 10%;
+    top: 13%;
     width: 90%;
-    height: 85%;
+    height: 80%;
     padding: 1em;
     color: #e1e1e1ee;
     background-color: rgba(0, 0, 0, 0);

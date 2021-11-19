@@ -36,19 +36,12 @@ const ShaderCanvas = ({ shaderCode, setRenderLogger }: ShaderCanvasInput) => {
       const canvas = document.getElementById(
         "canvas-webgpu"
       ) as HTMLCanvasElement;
-      const offsetLeft = canvas.getBoundingClientRect().left;
-      const offsetTop = canvas.getBoundingClientRect().top;
-      const xCoord =
-        ((e.pageX - offsetLeft) /
-          (ASPECT_RATIO * aspectMultiple * WIDTH_ASPECT)) *
-          2 -
-        1;
-      const yCoord = -(
-        ((e.pageY - offsetTop) /
-          (ASPECT_RATIO * aspectMultiple * HEIGHT_ASPECT)) *
-          2 -
-        1
-      );
+      const offsetLeft =
+        canvas != null ? canvas.getBoundingClientRect().left : 0.0;
+      const offsetTop =
+        canvas != null ? canvas.getBoundingClientRect().top : 0.0;
+      const xCoord = (e.pageX - offsetLeft) / ASPECT_RATIO;
+      const yCoord = (e.pageY - offsetTop) / ASPECT_RATIO;
       setPosition({ x: xCoord, y: yCoord });
       updateCoordinates(position);
     };
