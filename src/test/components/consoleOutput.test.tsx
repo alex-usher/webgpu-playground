@@ -24,7 +24,7 @@ describe("Console Output component tests", () => {
     expect(textAreas[0]).toBeInTheDocument();
   });
 
-  test("The cosnole textarea should display the correct text value", () => {
+  test("The console textarea should display the correct text value", () => {
     const textAreas: HTMLElement[] = screen.getAllByRole("textbox");
     assert(textAreas.length > 0);
     // textAreas[0] === console text area
