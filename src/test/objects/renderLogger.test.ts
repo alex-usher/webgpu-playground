@@ -11,14 +11,14 @@ describe("Render logger tests", () => {
   });
 
   it("Should add messages and retrieve messages correctly", () => {
-    renderLogger.logMessage(testMessageSuccess);
+    renderLogger.logMessage(testMessageSuccess, "success");
 
     expect(renderLogger.getMessages()).toEqual(testMessageSuccess);
   });
 
   it("Should append messages together in the output", () => {
-    renderLogger.logMessage(testMessageWarning);
-    renderLogger.logMessage(testMessageError);
+    renderLogger.logMessage(testMessageWarning, "warning");
+    renderLogger.logMessage(testMessageError, "error");
 
     expect(renderLogger.getMessages()).toEqual(
       `${testMessageWarning}\n\r${testMessageError}`
@@ -26,7 +26,7 @@ describe("Render logger tests", () => {
   });
 
   it("Empties the messages list on clearLog()", () => {
-    renderLogger.logMessage(testMessageSuccess);
+    renderLogger.logMessage(testMessageSuccess, "success");
 
     expect(renderLogger.getMessages()).not.toEqual("");
 
