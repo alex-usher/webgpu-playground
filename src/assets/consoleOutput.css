@@ -10,7 +10,7 @@
     z-index: 30;
 }
 
-#view-console-button {
+.view-console-button {
     position: absolute !important;
     right: 0;
     padding: 1em;

@@ -15,9 +15,7 @@ let viewConsoleButton: HTMLButtonElement;
 describe("Console Output component tests", () => {
   beforeEach(() => {
     renderConsoleOutput();
-    viewConsoleButton = document.getElementById(
-      "view-console-button"
-    ) as HTMLButtonElement;
+    viewConsoleButton = screen.getAllByRole("button")[0] as HTMLButtonElement;
   });
 
   test("By default the console textarea should be visible", () => {
