@@ -4,6 +4,7 @@ import {
   rectangleFragment,
   cubeFragment,
   cubeVertex,
+  texture2dShader,
 } from "../webgpu/shaders";
 import {
   doc,
@@ -24,6 +25,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export enum MeshType {
   RECTANGLE = "Rectangle",
+  TEXTURED_RECTANGLE = "Textured Rectangle",
   CUBE = "Cube",
 }
 
@@ -34,6 +36,8 @@ export const MeshTypeFromValue = (typeString: string): MeshType => {
   switch (typeString) {
     case "Rectangle":
       return MeshType.RECTANGLE;
+    case "Textured Rectangle":
+      return MeshType.TEXTURED_RECTANGLE;
     case "Cube":
       return MeshType.CUBE;
   }
@@ -44,6 +48,8 @@ export const StringFromMeshType = (meshType: MeshType | FieldValue) => {
   switch (meshType) {
     case MeshType.RECTANGLE:
       return "Rectangle";
+    case MeshType.TEXTURED_RECTANGLE:
+      return "Textured Rectangle";
     case MeshType.CUBE:
       return "Cube";
   }
@@ -159,21 +165,21 @@ export interface ShaderProps {
 export const defaultShader = (meshType: MeshType): Shader => {
   // set shader to a default rectangle
   let shader = new Shader(
-    uuidv4() + "example_rectangle_shader",
-    "Triangle",
+    uuidv4() + "example_textured_rectangle",
+    "Textured Rectange",
     "https://i.ibb.co/M5Z06wy/triangle.png",
     false,
     `${rectangleVertex}\n${rectangleFragment}`,
     MeshType.RECTANGLE
   );
 
-  if (meshType === MeshType.RECTANGLE) {
-    ("pass");
+  if (meshType === MeshType.TEXTURED_RECTANGLE) {
+    shader.shaderCode = texture2dShader;
   } else if (meshType === MeshType.CUBE) {
     // TODO change to return a default cube shader
     shader = new Shader(
-      uuidv4() + "example_rectangle_shader",
-      "Triangle",
+      uuidv4() + "example_cube_shader",
+      "Cube",
       "https://i.ibb.co/M5Z06wy/triangle.png",
       false,
       `${cubeVertex}\n${cubeFragment}`,
