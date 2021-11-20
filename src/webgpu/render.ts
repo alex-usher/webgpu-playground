@@ -23,11 +23,152 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
 
 let renderFrame = -1;
 
+export const renderTexturedShader = async (
+  shaderCode: string,
+  renderLogger: RenderLogger
+): Promise<void> => {
+  if (!checkWebGPU()) {
+    return;
+  }
+
+  const canvas = document.getElementById("canvas-webgpu") as HTMLCanvasElement;
+
+  assert(navigator.gpu);
+  const adapter = await navigator.gpu.requestAdapter();
+  assert(adapter);
+  const device = await adapter.requestDevice();
+  // part of pipeline requires cast to unknown before cast to GPUCanvasContext
+  const context = canvas.getContext("webgpu") as unknown as GPUCanvasContext;
+  const swapchainFormat = "bgra8unorm";
+
+  context.configure({
+    device: device,
+    format: swapchainFormat,
+    usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+  });
+
+  const shaderModule = device.createShaderModule({
+    code: `${shaderCode}`,
+  });
+
+  // check for compilation failures and output any compile messages
+  if (!(await outputMessages(shaderModule, renderLogger))) {
+    renderLogger.logMessage("Shader Compilation failed");
+    return;
+  }
+
+  renderLogger.logMessage("Shader Compilation successful");
+
+  const dataBuffer = device.createBuffer({
+    size: 6 * 6 * 4,
+    usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    mappedAtCreation: true,
+  });
+
+  // define vertices + colours
+  new Float32Array(dataBuffer.getMappedRange()).set([
+    -1.0, -1.0, 0.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, -1.0, -1.0,
+    0.0, 1.0, 1.0, 1.0, 1.0, 0.0, -1.0, 1.0, 0.0, 0.0,
+  ]);
+
+  dataBuffer.unmap();
+
+  const img = await getImageFromUrl(
+    "https://images.squarespace-cdn.com/content/v1/571fc5edd210b89083925aba/1542571642279-HPT4H2FNOPFSI8685H7Y/LiamWong_MinutesToMidnight_Tokyo.jpg?format=2500w"
+  );
+  const bitmap = await createImageBitmap(img);
+
+  const extend3dDict = {
+    width: img.width,
+    height: img.height,
+    depth: 1,
+  } as GPUExtent3DDict;
+  const texture2d = device.createTexture({
+    size: extend3dDict,
+    dimension: "2d",
+    format: swapchainFormat,
+    usage:
+      GPUTextureUsage.COPY_DST |
+      GPUTextureUsage.RENDER_ATTACHMENT |
+      GPUTextureUsage.TEXTURE_BINDING,
+  });
+
+  const sampler = device.createSampler({
+    magFilter: "linear",
+    minFilter: "nearest",
+  });
+
+  device.queue.copyExternalImageToTexture(
+    {
+      source: bitmap,
+    },
+    {
+      texture: texture2d,
+      mipLevel: 0,
+    },
+    extend3dDict
+  );
+
+  const renderPipeline = device.createRenderPipeline({
+    vertex: {
+      module: shaderModule,
+      entryPoint: "vertex_main",
+      buffers: [
+        {
+          arrayStride: 4 * 4,
+          stepMode: "vertex",
+          attributes: [
+            { format: "float32x2", offset: 0, shaderLocation: 0 },
+            { format: "float32x2", offset: 2 * 4, shaderLocation: 1 },
+          ],
+        },
+      ],
+    },
+    fragment: {
+      module: shaderModule,
+      entryPoint: "fragment_main",
+      targets: [{ format: swapchainFormat }],
+    },
+  });
+
+  const bindGroup = device.createBindGroup({
+    layout: renderPipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: sampler },
+      { binding: 1, resource: texture2d.createView() },
+    ],
+  });
+
+  const commandEncoder = device.createCommandEncoder();
+
+  const renderPass = commandEncoder.beginRenderPass({
+    colorAttachments: [
+      {
+        loadValue: { r: 0, g: 0, b: 0, a: 1 },
+        storeOp: "store",
+        view: context.getCurrentTexture().createView(),
+      },
+    ],
+  });
+
+  renderPass.setPipeline(renderPipeline);
+  renderPass.setVertexBuffer(0, dataBuffer);
+  renderPass.setBindGroup(0, bindGroup);
+  renderPass.draw(6, 1, 0, 0);
+  renderPass.endPass();
+
+  device.queue.submit([commandEncoder.finish()]);
+};
+
 export const renderShader = async (
   shaderCode: string,
   meshType: MeshType,
   renderLogger: RenderLogger
 ): Promise<void> => {
+  if (meshType === MeshType.TEXTURED_RECTANGLE) {
+    return renderTexturedShader(shaderCode, renderLogger);
+  }
+
   if (!checkWebGPU()) {
     return;
   }
@@ -51,11 +192,9 @@ export const renderShader = async (
     format: stateFormat,
     usage: GPUTextureUsage.RENDER_ATTACHMENT,
   });
-
   const shaderModule = device.createShaderModule({
     code: `${structs}\n${shaderCode}`,
   });
-
   // check for compilation failures and output any compile messages
   if (!(await outputMessages(shaderModule, renderLogger))) {
     renderLogger.logMessage("Shader Compilation failed");
@@ -100,77 +239,15 @@ export const renderShader = async (
     usage: GPUTextureUsage.RENDER_ATTACHMENT,
   });
 
-  const image = await getImageFromUrl(
-    "https://images.squarespace-cdn.com/content/v1/571fc5edd210b89083925aba/1542571642279-HPT4H2FNOPFSI8685H7Y/LiamWong_MinutesToMidnight_Tokyo.jpg?format=2500w"
-  );
-  const bitmap = await createImageBitmap(image);
-
-  const texture2d = device.createTexture({
-    size: {
-      width: image.width,
-      height: image.height,
-      depth: 1,
-    } as GPUExtent3DDict,
-    dimension: "2d",
-    format: `rgba8unorm`,
-    usage:
-      GPUTextureUsage.COPY_DST |
-      GPUTextureUsage.RENDER_ATTACHMENT |
-      GPUTextureUsage.TEXTURE_BINDING |
-      GPUTextureUsage.SAMPLED,
+  const bindGroupLayout = device.createBindGroupLayout({
+    entries: [
+      {
+        binding: 0,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        buffer: [{ type: "uniform" }],
+      } as GPUBindGroupLayoutEntry,
+    ],
   });
-
-  const sampler = device.createSampler({
-    magFilter: "linear",
-    minFilter: "nearest",
-  });
-
-  device.queue.copyExternalImageToTexture(
-    {
-      source: bitmap,
-    },
-    {
-      texture: texture2d,
-      mipLevel: 0,
-    },
-    {
-      width: image.width,
-      height: image.height,
-      depth: 1,
-    } as GPUExtent3DDict
-  );
-
-  let bindGroupLayout: GPUBindGroupLayout;
-
-  if (meshType === MeshType.RECTANGLE) {
-    bindGroupLayout = device.createBindGroupLayout({
-      entries: [
-        {
-          binding: 0,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          buffer: [{ type: "uniform" }],
-        } as GPUBindGroupLayoutEntry,
-        {
-          binding: 1,
-          visibility: GPUShaderStage.FRAGMENT,
-        } as GPUBindGroupLayoutEntry,
-        {
-          binding: 2,
-          visibility: GPUShaderStage.FRAGMENT,
-        } as GPUBindGroupLayoutEntry,
-      ],
-    });
-  } else {
-    bindGroupLayout = device.createBindGroupLayout({
-      entries: [
-        {
-          binding: 0,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          buffer: [{ type: "uniform" }],
-        } as GPUBindGroupLayoutEntry,
-      ],
-    });
-  }
 
   const layout = device.createPipelineLayout({
     bindGroupLayouts: [bindGroupLayout],
@@ -223,23 +300,10 @@ export const renderShader = async (
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
-  let viewParamsBindGroup: GPUBindGroup;
-
-  if (meshType === MeshType.TEXTURED_RECTANGLE) {
-    viewParamsBindGroup = device.createBindGroup({
-      layout: bindGroupLayout,
-      entries: [
-        { binding: 0, resource: { buffer: viewParamsBuffer } },
-        { binding: 1, resource: sampler },
-        { binding: 2, resource: texture2d.createView() },
-      ],
-    });
-  } else {
-    viewParamsBindGroup = device.createBindGroup({
-      layout: bindGroupLayout,
-      entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
-    });
-  }
+  const viewParamsBindGroup = device.createBindGroup({
+    layout: bindGroupLayout,
+    entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
+  });
 
   const uniformBuffer = device.createBuffer({
     size: 64,
