@@ -48,7 +48,7 @@ export const renderTexturedShader = async (
   });
 
   const shaderModule = device.createShaderModule({
-    code: `${shaderCode}`,
+    code: `${structs}\n${shaderCode}`,
   });
 
   // check for compilation failures and output any compile messages
@@ -65,10 +65,16 @@ export const renderTexturedShader = async (
     mappedAtCreation: true,
   });
 
+  const viewParamsBuffer = device.createBuffer({
+    size: 4 * 5,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+
   // define vertices + colours
   new Float32Array(dataBuffer.getMappedRange()).set([
-    -1.0, -1.0, 0.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, -1.0, -1.0,
-    0.0, 1.0, 1.0, 1.0, 1.0, 0.0, -1.0, 1.0, 0.0, 0.0,
+    -1.0, -1.0, 0.0, 1.0, 0.0, 0.0, 1.0, -1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0,
+    1.0, 0.0, 0.0, 0.0, -1.0, -1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0,
+    0.0, -1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
   ]);
 
   dataBuffer.unmap();
@@ -78,13 +84,14 @@ export const renderTexturedShader = async (
   );
   const bitmap = await createImageBitmap(img);
 
-  const extend3dDict = {
+  const extent3dDict = {
     width: img.width,
     height: img.height,
     depth: 1,
   } as GPUExtent3DDict;
+
   const texture2d = device.createTexture({
-    size: extend3dDict,
+    size: extent3dDict,
     dimension: "2d",
     format: swapchainFormat,
     usage:
@@ -106,20 +113,53 @@ export const renderTexturedShader = async (
       texture: texture2d,
       mipLevel: 0,
     },
-    extend3dDict
+    extent3dDict
   );
 
+  const viewParamsBindGroupLayout = device.createBindGroupLayout({
+    entries: [
+      {
+        binding: 0,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        buffer: [{ type: "uniform" }],
+      } as GPUBindGroupLayoutEntry,
+      {
+        binding: 1,
+        visibility: GPUShaderStage.FRAGMENT,
+        type: "sampler",
+        sampler: {
+          type: "filtering",
+        },
+      } as GPUBindGroupLayoutEntry,
+      {
+        binding: 2,
+        visibility: GPUShaderStage.FRAGMENT,
+        type: "sampled-texture",
+        texture: {
+          sampleType: "float",
+          viewDimension: "2d",
+          multisampled: false,
+        },
+      } as GPUBindGroupLayoutEntry,
+    ],
+  });
+
+  const renderPipelineLayout = device.createPipelineLayout({
+    bindGroupLayouts: [viewParamsBindGroupLayout],
+  });
+
   const renderPipeline = device.createRenderPipeline({
+    layout: renderPipelineLayout,
     vertex: {
       module: shaderModule,
       entryPoint: "vertex_main",
       buffers: [
         {
-          arrayStride: 4 * 4,
+          arrayStride: 6 * 4,
           stepMode: "vertex",
           attributes: [
             { format: "float32x2", offset: 0, shaderLocation: 0 },
-            { format: "float32x2", offset: 2 * 4, shaderLocation: 1 },
+            { format: "float32x4", offset: 2 * 4, shaderLocation: 1 },
           ],
         },
       ],
@@ -129,13 +169,40 @@ export const renderTexturedShader = async (
       entryPoint: "fragment_main",
       targets: [{ format: swapchainFormat }],
     },
+    primitive: {
+      topology: "triangle-list",
+    },
   });
 
-  const bindGroup = device.createBindGroup({
-    layout: renderPipeline.getBindGroupLayout(0),
+  // const bindGroupLayout = device.createBindGroupLayout({
+  //   entries: [
+  //     {
+  //       binding: 0,
+  //       visibility: GPUShaderStage.FRAGMENT,
+  //       type: "sampler",
+  //     } as GPUBindGroupLayoutEntry,
+  //     {
+  //       binding: 1,
+  //       visibility: GPUShaderStage.FRAGMENT,
+  //       type: "sampled-texture",
+  //     } as GPUBindGroupLayoutEntry,
+  //   ],
+  // });
+
+  // const bindGroup = device.createBindGroup({
+  //   layout: bindGroupLayout,
+  //   entries: [
+  //     { binding: 0, resource: sampler },
+  //     { binding: 1, resource: texture2d.createView() },
+  //   ],
+  // });
+
+  const viewParamsBindGroup = device.createBindGroup({
+    layout: viewParamsBindGroupLayout,
     entries: [
-      { binding: 0, resource: sampler },
-      { binding: 1, resource: texture2d.createView() },
+      { binding: 0, resource: { buffer: viewParamsBuffer } },
+      { binding: 1, resource: sampler },
+      { binding: 2, resource: texture2d.createView() },
     ],
   });
 
@@ -153,7 +220,8 @@ export const renderTexturedShader = async (
 
   renderPass.setPipeline(renderPipeline);
   renderPass.setVertexBuffer(0, dataBuffer);
-  renderPass.setBindGroup(0, bindGroup);
+  renderPass.setBindGroup(0, viewParamsBindGroup);
+  // renderPass.setBindGroup(1, bindGroup);
   renderPass.draw(6, 1, 0, 0);
   renderPass.endPass();
 

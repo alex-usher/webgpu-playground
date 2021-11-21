@@ -21,33 +21,23 @@ struct ViewParams {
 var<uniform> view_params: ViewParams;
 `;
 
-export const texture2dShader = ` 
-struct VertexInput {
-    [[location(0)]] position: vec2<f32>;
-    [[location(1)]] uv: vec2<f32>;
-};
-
-struct VertexOutput {
-    [[builtin(position)]] position: vec4<f32>;
-    [[location(0)]] uv: vec2<f32>;
-};
-
-[[group(0), binding(0)]] var my_sampler: sampler;
-[[group(0), binding(1)]] var my_texture: texture_2d<f32>;
+export const texture2dShader = `
+[[group(0), binding(1)]] var my_sampler: sampler;
+[[group(0), binding(2)]] var my_texture: texture_2d<f32>;
 
 [[stage(vertex)]]
 fn vertex_main(vert: VertexInput) -> VertexOutput
 {
     var output : VertexOutput;
     output.position = vec4<f32>(vert.position, 0.0, 1.0);
-    output.uv = vert.uv;
+    output.color = vert.color;
     return output;
 }
 
 [[stage(fragment)]]
 fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32>
 {
-    return textureSample(my_texture, my_sampler, in.uv);
+    return textureSample(my_texture, my_sampler, in.color.xy);
 }`;
 
 export const structsLength = structs.split(/\r\n|\r|\n/).length + 1;
