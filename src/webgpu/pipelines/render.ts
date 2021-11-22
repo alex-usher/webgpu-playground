@@ -69,6 +69,66 @@ const initialiseGPU = async (
   return { canvas, context, device, shaderModule };
 };
 
+const addViewParamsToBuffer = async (
+  device: GPUDevice,
+  commandEncoder: GPUCommandEncoder,
+  viewParamsBuffer: GPUBuffer,
+  time: number,
+  res_x: number,
+  res_y: number
+): Promise<void> => {
+  const timeBuffer = device.createBuffer({
+    size: 4,
+    usage: GPUBufferUsage.COPY_SRC,
+    mappedAtCreation: true,
+  });
+
+  const xBuffer = device.createBuffer({
+    size: 4,
+    usage: GPUBufferUsage.COPY_SRC,
+    mappedAtCreation: true,
+  });
+
+  const yBuffer = device.createBuffer({
+    size: 4,
+    usage: GPUBufferUsage.COPY_SRC,
+    mappedAtCreation: true,
+  });
+
+  const resXBuffer = device.createBuffer({
+    size: 4,
+    usage: GPUBufferUsage.COPY_SRC,
+    mappedAtCreation: true,
+  });
+
+  const resYBuffer = device.createBuffer({
+    size: 4,
+    usage: GPUBufferUsage.COPY_SRC,
+    mappedAtCreation: true,
+  });
+
+  new Float32Array(timeBuffer.getMappedRange()).set([time]);
+  timeBuffer.unmap();
+
+  new Float32Array(xBuffer.getMappedRange()).set([x]);
+  xBuffer.unmap();
+
+  new Float32Array(yBuffer.getMappedRange()).set([y]);
+  yBuffer.unmap();
+
+  new Float32Array(resXBuffer.getMappedRange()).set([res_x]);
+  resXBuffer.unmap();
+
+  new Float32Array(resYBuffer.getMappedRange()).set([res_y]);
+  resYBuffer.unmap();
+
+  commandEncoder.copyBufferToBuffer(timeBuffer, 0, viewParamsBuffer, 0, 4);
+  commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
+  commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
+  commandEncoder.copyBufferToBuffer(resXBuffer, 0, viewParamsBuffer, 12, 4);
+  commandEncoder.copyBufferToBuffer(resYBuffer, 0, viewParamsBuffer, 16, 4);
+};
+
 export const renderTexturedShader = async (
   shaderCode: string,
   renderLogger: RenderLogger
@@ -128,7 +188,7 @@ export const renderTexturedShader = async (
     extent3dDict
   );
 
-  const viewParamsBindGroupLayout = device.createBindGroupLayout({
+  const bindGroupLayout = device.createBindGroupLayout({
     entries: [
       {
         binding: 0,
@@ -157,7 +217,7 @@ export const renderTexturedShader = async (
   });
 
   const renderPipelineLayout = device.createPipelineLayout({
-    bindGroupLayouts: [viewParamsBindGroupLayout],
+    bindGroupLayouts: [bindGroupLayout],
   });
 
   const renderPipeline = device.createRenderPipeline({
@@ -186,8 +246,8 @@ export const renderTexturedShader = async (
     },
   });
 
-  const viewParamsBindGroup = device.createBindGroup({
-    layout: viewParamsBindGroupLayout,
+  const bindGroup = device.createBindGroup({
+    layout: bindGroupLayout,
     entries: [
       { binding: 0, resource: { buffer: viewParamsBuffer } },
       { binding: 1, resource: sampler },
@@ -210,57 +270,16 @@ export const renderTexturedShader = async (
   const res_y = canvas.height;
   const frame = () => {
     if (canvasVisible) {
-      const timeBuffer = device.createBuffer({
-        size: 4,
-        usage: GPUBufferUsage.COPY_SRC,
-        mappedAtCreation: true,
-      });
-
-      const xBuffer = device.createBuffer({
-        size: 4,
-        usage: GPUBufferUsage.COPY_SRC,
-        mappedAtCreation: true,
-      });
-
-      const yBuffer = device.createBuffer({
-        size: 4,
-        usage: GPUBufferUsage.COPY_SRC,
-        mappedAtCreation: true,
-      });
-
-      const resXBuffer = device.createBuffer({
-        size: 4,
-        usage: GPUBufferUsage.COPY_SRC,
-        mappedAtCreation: true,
-      });
-
-      const resYBuffer = device.createBuffer({
-        size: 4,
-        usage: GPUBufferUsage.COPY_SRC,
-        mappedAtCreation: true,
-      });
-
-      new Float32Array(timeBuffer.getMappedRange()).set([time]);
-      timeBuffer.unmap();
-
-      new Float32Array(xBuffer.getMappedRange()).set([x]);
-      xBuffer.unmap();
-
-      new Float32Array(yBuffer.getMappedRange()).set([y]);
-      yBuffer.unmap();
-
-      new Float32Array(resXBuffer.getMappedRange()).set([res_x]);
-      resXBuffer.unmap();
-
-      new Float32Array(resYBuffer.getMappedRange()).set([res_y]);
-      resYBuffer.unmap();
-
       const commandEncoder = device.createCommandEncoder();
-      commandEncoder.copyBufferToBuffer(timeBuffer, 0, viewParamsBuffer, 0, 4);
-      commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
-      commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
-      commandEncoder.copyBufferToBuffer(resXBuffer, 0, viewParamsBuffer, 12, 4);
-      commandEncoder.copyBufferToBuffer(resYBuffer, 0, viewParamsBuffer, 16, 4);
+      addViewParamsToBuffer(
+        device,
+        commandEncoder,
+        viewParamsBuffer,
+        time,
+        res_x,
+        res_y
+      );
+
       const renderPass = commandEncoder.beginRenderPass({
         colorAttachments: [
           {
@@ -270,10 +289,10 @@ export const renderTexturedShader = async (
           },
         ],
       });
+
       renderPass.setPipeline(renderPipeline);
       renderPass.setVertexBuffer(0, dataBuffer);
-      renderPass.setBindGroup(0, viewParamsBindGroup);
-      // renderPass.setBindGroup(1, bindGroup);
+      renderPass.setBindGroup(0, bindGroup);
       renderPass.draw(6, 1, 0, 0);
       renderPass.endPass();
 
@@ -292,6 +311,11 @@ export const renderShader = async (
   meshType: MeshType,
   renderLogger: RenderLogger
 ): Promise<void> => {
+  if (meshType === MeshType.TEXTURED_RECTANGLE) {
+    // TODO: define a render handler that does the navigation to different functions
+    return renderTexturedShader(shaderCode, renderLogger);
+  }
+
   const init = await initialiseGPU(
     shaderCode,
     GPUTextureUsage.RENDER_ATTACHMENT,
@@ -426,50 +450,18 @@ export const renderShader = async (
   const res_y = canvas.height;
   const frame = () => {
     if (canvasVisible) {
-      const timeBuffer = device.createBuffer({
-        size: 4,
-        usage: GPUBufferUsage.COPY_SRC,
-        mappedAtCreation: true,
-      });
+      const commandEncoder = device.createCommandEncoder();
 
-      const xBuffer = device.createBuffer({
-        size: 4,
-        usage: GPUBufferUsage.COPY_SRC,
-        mappedAtCreation: true,
-      });
-
-      const yBuffer = device.createBuffer({
-        size: 4,
-        usage: GPUBufferUsage.COPY_SRC,
-        mappedAtCreation: true,
-      });
-
-      const resXBuffer = device.createBuffer({
-        size: 4,
-        usage: GPUBufferUsage.COPY_SRC,
-        mappedAtCreation: true,
-      });
-
-      const resYBuffer = device.createBuffer({
-        size: 4,
-        usage: GPUBufferUsage.COPY_SRC,
-        mappedAtCreation: true,
-      });
-
-      new Float32Array(timeBuffer.getMappedRange()).set([time]);
-      timeBuffer.unmap();
-
-      new Float32Array(xBuffer.getMappedRange()).set([x]);
-      xBuffer.unmap();
-
-      new Float32Array(yBuffer.getMappedRange()).set([y]);
-      yBuffer.unmap();
-
-      new Float32Array(resXBuffer.getMappedRange()).set([res_x]);
-      resXBuffer.unmap();
-
-      new Float32Array(resYBuffer.getMappedRange()).set([res_y]);
-      resYBuffer.unmap();
+      if (meshType === MeshType.RECTANGLE) {
+        addViewParamsToBuffer(
+          device,
+          commandEncoder,
+          viewParamsBuffer,
+          time,
+          res_x,
+          res_y
+        );
+      }
 
       const renderPassDescription = {
         colorAttachments: [
@@ -498,35 +490,6 @@ export const renderShader = async (
       createTransforms(modelMatrix);
       mat4.multiply(mvpMatrix, vpMatrix, modelMatrix);
       device.queue.writeBuffer(uniformBuffer, 0, mvpMatrix as ArrayBuffer);
-
-      const commandEncoder = device.createCommandEncoder();
-
-      if (meshType === MeshType.RECTANGLE) {
-        console.log("WIHNODIAHNOd");
-        commandEncoder.copyBufferToBuffer(
-          timeBuffer,
-          0,
-          viewParamsBuffer,
-          0,
-          4
-        );
-        commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
-        commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
-        commandEncoder.copyBufferToBuffer(
-          resXBuffer,
-          0,
-          viewParamsBuffer,
-          12,
-          4
-        );
-        commandEncoder.copyBufferToBuffer(
-          resYBuffer,
-          0,
-          viewParamsBuffer,
-          16,
-          4
-        );
-      }
 
       const renderPass = commandEncoder.beginRenderPass(
         renderPassDescription as GPURenderPassDescriptor
