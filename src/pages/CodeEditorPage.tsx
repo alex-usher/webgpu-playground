@@ -61,7 +61,7 @@ const CodeEditorPage = () => {
   const [helpBoxVisible, setHelpBoxVisible] = useState(false);
   const [editorWidth, setEditorWidth] = useState("100%");
   const [loginFormOpen, setLoginFormOpen] = useState(false);
-  
+
   useEffect(() => {
     if (shader.shaderCode === "") {
       getShaderCode(shader).then((shaderWithCode: Shader) => {
@@ -117,8 +117,8 @@ const CodeEditorPage = () => {
     } else {
       setActionDrawerOpen(false);
     }
-  }; 
-  
+  };
+
   const editorActionComponents = [
     <Button
       key="compile-button"
