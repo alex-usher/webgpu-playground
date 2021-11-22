@@ -206,26 +206,96 @@ export const renderTexturedShader = async (
     ],
   });
 
-  const commandEncoder = device.createCommandEncoder();
+  // track when canvas is visible and only render when true
+  let canvasVisible = false;
+  const observer = new IntersectionObserver(
+    (e) => {
+      canvasVisible = e[0].isIntersecting;
+    },
+    { threshold: [0] }
+  );
+  observer.observe(canvas);
 
-  const renderPass = commandEncoder.beginRenderPass({
-    colorAttachments: [
-      {
-        loadValue: { r: 0, g: 0, b: 0, a: 1 },
-        storeOp: "store",
-        view: context.getCurrentTexture().createView(),
-      },
-    ],
-  });
+  let time = 0;
+  const res_x = canvas.width;
+  const res_y = canvas.height;
+  const frame = () => {
+    if (canvasVisible) {
+      const timeBuffer = device.createBuffer({
+        size: 4,
+        usage: GPUBufferUsage.COPY_SRC,
+        mappedAtCreation: true,
+      });
 
-  renderPass.setPipeline(renderPipeline);
-  renderPass.setVertexBuffer(0, dataBuffer);
-  renderPass.setBindGroup(0, viewParamsBindGroup);
-  // renderPass.setBindGroup(1, bindGroup);
-  renderPass.draw(6, 1, 0, 0);
-  renderPass.endPass();
+      const xBuffer = device.createBuffer({
+        size: 4,
+        usage: GPUBufferUsage.COPY_SRC,
+        mappedAtCreation: true,
+      });
 
-  device.queue.submit([commandEncoder.finish()]);
+      const yBuffer = device.createBuffer({
+        size: 4,
+        usage: GPUBufferUsage.COPY_SRC,
+        mappedAtCreation: true,
+      });
+
+      const resXBuffer = device.createBuffer({
+        size: 4,
+        usage: GPUBufferUsage.COPY_SRC,
+        mappedAtCreation: true,
+      });
+
+      const resYBuffer = device.createBuffer({
+        size: 4,
+        usage: GPUBufferUsage.COPY_SRC,
+        mappedAtCreation: true,
+      });
+
+      new Float32Array(timeBuffer.getMappedRange()).set([time]);
+      timeBuffer.unmap();
+
+      new Float32Array(xBuffer.getMappedRange()).set([x]);
+      xBuffer.unmap();
+
+      new Float32Array(yBuffer.getMappedRange()).set([y]);
+      yBuffer.unmap();
+
+      new Float32Array(resXBuffer.getMappedRange()).set([res_x]);
+      resXBuffer.unmap();
+
+      new Float32Array(resYBuffer.getMappedRange()).set([res_y]);
+      resYBuffer.unmap();
+
+      const commandEncoder = device.createCommandEncoder();
+      commandEncoder.copyBufferToBuffer(timeBuffer, 0, viewParamsBuffer, 0, 4);
+      commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
+      commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
+      commandEncoder.copyBufferToBuffer(resXBuffer, 0, viewParamsBuffer, 12, 4);
+      commandEncoder.copyBufferToBuffer(resYBuffer, 0, viewParamsBuffer, 16, 4);
+      const renderPass = commandEncoder.beginRenderPass({
+        colorAttachments: [
+          {
+            loadValue: { r: 0, g: 0, b: 0, a: 1 },
+            storeOp: "store",
+            view: context.getCurrentTexture().createView(),
+          },
+        ],
+      });
+      renderPass.setPipeline(renderPipeline);
+      renderPass.setVertexBuffer(0, dataBuffer);
+      renderPass.setBindGroup(0, viewParamsBindGroup);
+      // renderPass.setBindGroup(1, bindGroup);
+      renderPass.draw(6, 1, 0, 0);
+      renderPass.endPass();
+
+      device.queue.submit([commandEncoder.finish()]);
+      time++;
+    }
+
+    renderFrame = requestAnimationFrame(frame);
+  };
+
+  renderFrame = requestAnimationFrame(frame);
 };
 
 export const renderShader = async (
