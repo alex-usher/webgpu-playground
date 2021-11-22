@@ -2,10 +2,10 @@ import assert from "assert";
 import { structs } from "../shaders";
 import {
   checkWebGPU,
-  outputMessages,
   createGPUBuffer,
   createTransforms,
   createViewProjection,
+  outputMessages,
 } from "./helpers";
 import { texturedRectangleMesh } from "../meshes/texturedRectangle";
 import { cubeColours, cubePositions } from "../meshes/cube";
@@ -14,51 +14,74 @@ import { RenderLogger } from "../../objects/RenderLogger";
 import { MeshType } from "../../objects/Shader";
 import { getImageFromUrl } from "../../utils/imageHelper";
 
+const SWAPCHAIN_FORMAT = "bgra8unorm";
+const DEPTH_FORMAT = "depth24plus-stencil8";
+
 let x = 0;
 let y = 0;
+
+let renderFrame = -1;
 
 export const updateCoordinates = (position: { x: number; y: number }): void => {
   x = position.x;
   y = position.y;
 };
 
-let renderFrame = -1;
-
-export const renderTexturedShader = async (
-  shaderCode: string,
+const initialiseGPU = async (
+  code: string,
+  usage: number,
   renderLogger: RenderLogger
-): Promise<void> => {
+) => {
   if (!checkWebGPU()) {
-    return;
+    return undefined;
   }
 
   const canvas = document.getElementById("canvas-webgpu") as HTMLCanvasElement;
-
   assert(navigator.gpu);
   const adapter = await navigator.gpu.requestAdapter();
   assert(adapter);
   const device = await adapter.requestDevice();
-  // part of pipeline requires cast to unknown before cast to GPUCanvasContext
   const context = canvas.getContext("webgpu") as unknown as GPUCanvasContext;
-  const swapchainFormat = "bgra8unorm";
 
   context.configure({
     device: device,
-    format: swapchainFormat,
-    usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+    format: SWAPCHAIN_FORMAT,
+    usage: usage,
   });
 
   const shaderModule = device.createShaderModule({
-    code: `${structs}\n${shaderCode}`,
+    code: `${structs}\n${code}`,
   });
 
   // check for compilation failures and output any compile messages
   if (!(await outputMessages(shaderModule, renderLogger))) {
     renderLogger.logMessage("Shader Compilation failed");
-    return;
+    return undefined;
   }
 
   renderLogger.logMessage("Shader Compilation successful");
+
+  // cancel the previous render once we know the next render will compile
+  if (renderFrame != -1) {
+    cancelAnimationFrame(renderFrame);
+  }
+
+  return { canvas, context, device, shaderModule };
+};
+
+export const renderTexturedShader = async (
+  shaderCode: string,
+  renderLogger: RenderLogger
+): Promise<void> => {
+  const init = await initialiseGPU(
+    shaderCode,
+    GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+    renderLogger
+  );
+
+  if (init === undefined) return;
+
+  const { canvas, context, device, shaderModule } = init;
 
   const viewParamsBuffer = device.createBuffer({
     size: 4 * 5,
@@ -82,7 +105,7 @@ export const renderTexturedShader = async (
   const texture2d = device.createTexture({
     size: extent3dDict,
     dimension: "2d",
-    format: swapchainFormat,
+    format: SWAPCHAIN_FORMAT,
     usage:
       GPUTextureUsage.COPY_DST |
       GPUTextureUsage.RENDER_ATTACHMENT |
@@ -156,7 +179,7 @@ export const renderTexturedShader = async (
     fragment: {
       module: shaderModule,
       entryPoint: "fragment_main",
-      targets: [{ format: swapchainFormat }],
+      targets: [{ format: SWAPCHAIN_FORMAT }],
     },
     primitive: {
       topology: "triangle-list",
@@ -264,72 +287,22 @@ export const renderTexturedShader = async (
   renderFrame = requestAnimationFrame(frame);
 };
 
-// const initialiseGPU = async (
-//   context: GPUCanvasContext,
-//   device: GPUDevice,
-//   code: string,
-//   usage: number,
-//   renderLogger: RenderLogger
-// ) => {
-//   if (!checkWebGPU()) {
-//     return {};
-//   }
-//
-//   const canvas = document.getElementById("canvas-webgpu") as HTMLCanvasElement;
-//   assert(navigator.gpu);
-//   const adapter = await navigator.gpu.requestAdapter();
-//   assert(adapter);
-//   const device = await adapter.requestDevice();
-//   const context;
-// };
-
 export const renderShader = async (
   shaderCode: string,
   meshType: MeshType,
   renderLogger: RenderLogger
 ): Promise<void> => {
-  if (meshType === MeshType.TEXTURED_RECTANGLE) {
-    return renderTexturedShader(shaderCode, renderLogger);
-  }
+  const init = await initialiseGPU(
+    shaderCode,
+    GPUTextureUsage.RENDER_ATTACHMENT,
+    renderLogger
+  );
 
-  if (!checkWebGPU()) {
-    return;
-  }
+  if (init === undefined) return;
 
-  // --------------------------------------------------------------------------------------
-  // Initialise GPU
-  const canvas = document.getElementById("canvas-webgpu") as HTMLCanvasElement;
+  // delay pattern match so we can test for error
+  const { canvas, context, device, shaderModule } = init;
 
-  assert(navigator.gpu);
-  const adapter = await navigator.gpu.requestAdapter();
-
-  assert(adapter);
-  const device = await adapter.requestDevice();
-  const context = canvas.getContext("webgpu") as unknown as GPUCanvasContext;
-
-  const stateFormat = "bgra8unorm";
-  const depthFormat = "depth24plus-stencil8";
-
-  context.configure({
-    device: device,
-    format: stateFormat,
-    usage: GPUTextureUsage.RENDER_ATTACHMENT,
-  });
-  const shaderModule = device.createShaderModule({
-    code: `${structs}\n${shaderCode}`,
-  });
-  // check for compilation failures and output any compile messages
-  if (!(await outputMessages(shaderModule, renderLogger))) {
-    renderLogger.logMessage("Shader Compilation failed");
-    return;
-  }
-
-  renderLogger.logMessage("Shader Compilation successful");
-
-  // cancel the previous render once we know the next render will compile
-  if (renderFrame != -1) {
-    cancelAnimationFrame(renderFrame);
-  }
   // --------------------------------------------------------------------------------------
   // create buffers
   const numberOfVertices = cubePositions.length / 3;
@@ -358,7 +331,7 @@ export const renderShader = async (
 
   const depthTexture = device.createTexture({
     size: [canvas.width, canvas.height, 1],
-    format: depthFormat,
+    format: DEPTH_FORMAT,
     usage: GPUTextureUsage.RENDER_ATTACHMENT,
   });
 
@@ -409,10 +382,10 @@ export const renderShader = async (
     fragment: {
       module: shaderModule,
       entryPoint: "fragment_main",
-      targets: [{ format: stateFormat }],
+      targets: [{ format: SWAPCHAIN_FORMAT }],
     },
     depthStencil: {
-      format: depthFormat,
+      format: DEPTH_FORMAT,
       depthWriteEnabled: true,
       depthCompare: "less",
     },
