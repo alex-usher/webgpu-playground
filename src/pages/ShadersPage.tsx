@@ -60,7 +60,7 @@ const ShadersPage = () => {
         justifyContent="space-between"
         className="container-grid"
       >
-        <HeaderComponent />
+        <HeaderComponent usersPage={false} />
         <Grid item>
           <Typography variant="h4" color="white" align="left">
             {shaderType.sectionName}

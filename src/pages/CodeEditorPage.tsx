@@ -2,6 +2,8 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
+import { useEffect, useState } from "react";
+import { useHistory, useLocation } from "react-router-dom";
 import { defaultShader, Shader } from "../objects/Shader";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
@@ -22,8 +24,6 @@ import {
   overwriteShader,
   isCurrentUsersShader,
 } from "../utils/firebaseHelper";
-import { useEffect, useState } from "react";
-import { useHistory, useLocation } from "react-router-dom";
 import SnackbarUtils from "../utils/Snackbar";
 
 import "../assets/style.css";
@@ -33,9 +33,11 @@ import { auth } from "../firebase";
 
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { Tooltip } from "@mui/material";
+import { Dialog, DialogContent, DialogTitle } from "@mui/material";
 import { ConsoleOutput } from "../components/ConsoleOutput";
 import React from "react";
+import SignInButton from "../components/SignInButton";
+import { RenderLogger } from "../objects/RenderLogger";
 
 const CodeEditorPage = () => {
   const [shader, setShader] = useState<Shader>(
@@ -49,17 +51,17 @@ const CodeEditorPage = () => {
   const [renderedShaderCode, setRenderedShaderCode] = useState(
     shader.shaderCode
   );
-  const [messages, setMessages] = useState("");
+  const [renderLogger, setRenderLogger] = useState(new RenderLogger());
   const [inFullscreen, setInFullscreen] = useState(false);
   const [editorOpacity, setEditorOpacity] = useState(0.5);
-  const [formOpen, setFormOpen] = React.useState(false);
-  const [actionDrawerOpen, setActionDrawerOpen] = React.useState(false);
+  const [saveFormOpen, setSaveFormOpen] = useState(false);
+  const [actionDrawerOpen, setActionDrawerOpen] = useState(false);
   const [shaderName, setShaderName] = useState("Untitled");
   const history = useHistory();
-  const isLoggedIn = auth.currentUser == null;
-  const [helpBoxVisable, setHelpBoxVisable] = React.useState(false);
+  const [helpBoxVisible, setHelpBoxVisible] = useState(false);
   const [editorWidth, setEditorWidth] = useState("100%");
-
+  const [loginFormOpen, setLoginFormOpen] = useState(false);
+  
   useEffect(() => {
     if (shader.shaderCode === "") {
       getShaderCode(shader).then((shaderWithCode: Shader) => {
@@ -78,19 +80,18 @@ const CodeEditorPage = () => {
 
   const handleFormOpen = async () => {
     if (!auth.currentUser) {
-      SnackbarUtils.error("You must be logged in to save a shader.");
-      return;
-    }
-    if ((await isCurrentUsersShader(shader)) && shader.id) {
+      setLoginFormOpen(true);
+    } else if ((await isCurrentUsersShader(shader)) && shader.id) {
       overwriteShader(shader);
     } else {
-      setFormOpen(true);
+      setSaveFormOpen(true);
     }
   };
 
   const handleFormClose = () => {
     setShaderName(shader.title);
-    setFormOpen(false);
+    setSaveFormOpen(false);
+    setLoginFormOpen(false);
   };
 
   const handleOpacitySlider = (e: Event, newValue: number | number[]) => {
@@ -103,9 +104,9 @@ const CodeEditorPage = () => {
   const isSmallWidth = useMediaQuery(useTheme().breakpoints.down("xl"));
 
   const toggleHelpVisible = () => {
-    setHelpBoxVisable(!helpBoxVisable);
+    setHelpBoxVisible(!helpBoxVisible);
     {
-      helpBoxVisable ? setEditorWidth("100%") : setEditorWidth("75%");
+      helpBoxVisible ? setEditorWidth("100%") : setEditorWidth("75%");
     }
   };
 
@@ -116,53 +117,48 @@ const CodeEditorPage = () => {
     } else {
       setActionDrawerOpen(false);
     }
-  };
-
+  }; 
+  
   const editorActionComponents = [
     <Button
-      key={1}
+      key="compile-button"
       id="compile-button"
       variant="outlined"
       disableElevation
-      color="secondary"
+      color={
+        renderLogger.hasErrors()
+          ? "error"
+          : renderLogger.hasWarnings()
+          ? "warning"
+          : "success"
+      }
       onClick={() => {
         setRenderedShaderCode(shaderCode);
       }}
     >
       Compile
     </Button>,
-    <div key={9}>
-      {isLoggedIn ? (
-        <Tooltip title="You must be logged in to be able to save shaders.">
-          <span>
-            <Button
-              key={2}
-              id="save-button"
-              variant="contained"
-              disabled
-              disableElevation
-              fullWidth
-            >
-              Save
-            </Button>
-          </span>
-        </Tooltip>
-      ) : (
-        <Button
-          key={2}
-          id="save-button"
-          variant="outlined"
-          disableElevation
-          fullWidth
-          color="success"
-          onClick={handleFormOpen}
-        >
-          Save
-        </Button>
-      )}
+    <div key="save-div">
+      <Button
+        key="save-button"
+        id="save-button"
+        variant="outlined"
+        disableElevation
+        fullWidth
+        color="success"
+        onClick={handleFormOpen}
+      >
+        Save
+      </Button>
+      <Dialog open={loginFormOpen} onClose={handleFormClose}>
+        <DialogTitle>Sign in to save a shader</DialogTitle>
+        <DialogContent style={{ display: "flex", justifyContent: "center" }}>
+          <SignInButton />
+        </DialogContent>
+      </Dialog>
     </div>,
     <Button
-      key={3}
+      key="export-button"
       id="export-button"
       variant="outlined"
       disableElevation
@@ -178,12 +174,12 @@ const CodeEditorPage = () => {
           link.click();
         }, "image/png");
       }}
-      color={"primary"}
+      color="primary"
     >
       Export as PNG
     </Button>,
     <Button
-      key={4}
+      key="help-button"
       id="help-button"
       variant="outlined"
       disableElevation
@@ -191,17 +187,10 @@ const CodeEditorPage = () => {
         toggleHelpVisible();
         toggleActionDrawer();
       }}
-      color={"secondary"}
+      color="secondary"
     >
       Help
     </Button>,
-    <FormDialog
-      key={5}
-      open={formOpen}
-      handleClose={handleFormClose}
-      shaderCode={shaderCode}
-      updateShader={(shader) => setShader(shader)}
-    />,
     <Button
       key={10}
       id="delete-button"
@@ -217,18 +206,26 @@ const CodeEditorPage = () => {
     >
       Delete
     </Button>,
+
+    <FormDialog
+      key="save-form"
+      open={saveFormOpen}
+      handleClose={handleFormClose}
+      shaderCode={shaderCode}
+      updateShader={(shader) => setShader(shader)}
+    />,
   ];
 
   const opacitySliderComponent = (
     <Stack
-      key={6}
+      key="stack"
       alignItems="center"
       direction="row"
       justifyContent="center"
       spacing={1.5}
     >
       <Button
-        key={7}
+        key="slider-text"
         variant="text"
         disableRipple
         disableElevation
@@ -238,7 +235,7 @@ const CodeEditorPage = () => {
         Opacity
       </Button>
       <Slider
-        key={8}
+        key="slider"
         color="primary"
         value={editorOpacity}
         onChange={handleOpacitySlider}
@@ -343,57 +340,58 @@ const CodeEditorPage = () => {
                 )}
               </IconButton>
             </Grid>
-            {showCode ? (
-              <>
-                {/* Display editor opacity normally if screen is wide, hide in a drawer otherwise */}
-                {!isSmallWidth ? (
-                  <>{opacitySliderComponent}</>
-                ) : (
-                  <>
-                    <Button
-                      id="editor-action-dropdown"
-                      variant="outlined"
-                      disableElevation
-                      color="primary"
-                      endIcon={<ArrowDropDownIcon />}
-                      onClick={toggleActionDrawer}
+            <>
+              {/* Display editor opacity normally if screen is wide, hide in a drawer otherwise */}
+              {!isSmallWidth ? (
+                <>{opacitySliderComponent}</>
+              ) : (
+                <>
+                  <Button
+                    id="editor-action-dropdown"
+                    variant="outlined"
+                    disableElevation
+                    color="primary"
+                    endIcon={<ArrowDropDownIcon />}
+                    onClick={toggleActionDrawer}
+                  >
+                    {"Code Actions"}
+                  </Button>
+                  <Drawer
+                    anchor={"right"}
+                    open={actionDrawerOpen}
+                    onClose={toggleActionDrawer}
+                  >
+                    <Stack
+                      direction="column"
+                      spacing={5}
+                      style={{
+                        paddingTop: "5vh",
+                        paddingLeft: "2vh",
+                        paddingRight: "2vh",
+                      }}
                     >
-                      {"Code Actions"}
-                    </Button>
-                    <Drawer
-                      anchor={"right"}
-                      open={actionDrawerOpen}
-                      onClose={toggleActionDrawer}
-                    >
-                      <Stack
-                        direction="column"
-                        spacing={5}
-                        style={{
-                          paddingTop: "5vh",
-                          paddingLeft: "2vh",
-                          paddingRight: "2vh",
-                        }}
-                      >
-                        {editorActionComponents.concat([
-                          opacitySliderComponent,
-                        ])}
-                      </Stack>
-                    </Drawer>
-                  </>
-                )}{" "}
-              </>
-            ) : (
-              <></>
-            )}
+                      {editorActionComponents.concat([opacitySliderComponent])}
+                    </Stack>
+                  </Drawer>
+                </>
+              )}{" "}
+            </>
           </Grid>
         </Stack>
       </div>
 
-      <ShaderCanvas shaderCode={renderedShaderCode} setMessages={setMessages} />
-      {showCode ? <ConsoleOutput messages={messages} /> : <></>}
+      <ShaderCanvas
+        shaderCode={renderedShaderCode}
+        setRenderLogger={setRenderLogger}
+      />
+      {showCode ? (
+        <ConsoleOutput messages={renderLogger.getMessages()} />
+      ) : (
+        <></>
+      )}
 
       <div className="editors">
-        {helpBoxVisable ? (
+        {helpBoxVisible ? (
           <HelpBanner
             opacity={editorOpacity}
             toggleVisibility={toggleHelpVisible}
@@ -407,6 +405,7 @@ const CodeEditorPage = () => {
               value={shaderCode}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                 setShaderCode(e.target.value);
+                setRenderedShaderCode(e.target.value);
               }}
               opacity={editorOpacity}
             />

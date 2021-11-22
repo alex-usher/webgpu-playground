@@ -6,19 +6,22 @@ import {
 } from "../sample_shaders/triangle";
 
 import * as shaders from "../../render";
+import { RenderLogger } from "../../objects/RenderLogger";
 
-const renderShaderCanvas = (setMessages: (messages: string) => void) =>
+const renderShaderCanvas = (
+  setRenderLogger: (renderLogger: RenderLogger) => void
+) =>
   render(
     <ShaderCanvas
       shaderCode={`${shaderTriangleVertex}\n${shaderTriangleFragment}`}
-      setMessages={setMessages}
+      setRenderLogger={setRenderLogger}
     />
   );
 
 let checkWebGPUMock: jest.SpyInstance;
 let simpleShaderMock: jest.SpyInstance;
 
-const setMessages = jest.fn(() => {
+const setRenderLogger = jest.fn(() => {
   undefined;
 });
 
@@ -39,7 +42,7 @@ describe("Shader Canvas component tests", () => {
   it("Should not render the canvas when WebGPU is disabled", async () => {
     checkWebGPUMock.mockReturnValue(false);
 
-    renderShaderCanvas(setMessages);
+    renderShaderCanvas(setRenderLogger);
 
     expect(document.getElementById("canvas-webgpu")).toBeNull();
   });
@@ -47,7 +50,7 @@ describe("Shader Canvas component tests", () => {
   it("Should render the canvas when WebGPU is enabled", async () => {
     checkWebGPUMock.mockReturnValue(true);
 
-    renderShaderCanvas(setMessages);
+    renderShaderCanvas(setRenderLogger);
 
     expect(document.getElementById("canvas-webgpu")).not.toBeNull();
   });
@@ -55,7 +58,7 @@ describe("Shader Canvas component tests", () => {
   it("Should make calls to renderShader to render onto the canvas", () => {
     checkWebGPUMock.mockReturnValue(true);
 
-    renderShaderCanvas(setMessages);
+    renderShaderCanvas(setRenderLogger);
 
     expect(simpleShaderMock).toHaveBeenCalledTimes(1);
   });

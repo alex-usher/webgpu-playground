@@ -120,7 +120,8 @@ const outputMessages = async (
         renderLogger.logMessage(
           `(${message.lineNum - structsLength}, ${message.linePos}): ${
             message.message
-          }`
+          }`,
+          message.type
         );
         error = error || message.type === "error";
       }
@@ -172,11 +173,11 @@ export const renderShader = async (
   });
   // check for compilation failures and output any compile messages
   if (!(await outputMessages(shaderModule, renderLogger))) {
-    renderLogger.logMessage("Shader Compilation failed");
+    renderLogger.logMessage("Shader Compilation failed", "error");
     return;
   }
 
-  renderLogger.logMessage("Shader Compilation successful");
+  renderLogger.logMessage("Shader Compilation successful", "success");
 
   // cancel the previous render once we know the next render will compile
   if (renderFrame != -1) {
