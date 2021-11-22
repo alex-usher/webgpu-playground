@@ -1,26 +1,30 @@
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
-import Grid from "@mui/material/Grid";
-import Stack from "@mui/material/Stack";
-import Slider from "@mui/material/Slider";
-import Typography from "@mui/material/Typography";
+import { useEffect, useState } from "react";
+import { useHistory, useLocation } from "react-router-dom";
 import { defaultShader, Shader } from "../objects/Shader";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
 import HelpBanner from "../components/HelpBanner";
 import FormDialog from "../components/FormDialog";
-import Drawer from "@mui/material/Drawer";
+import {
+  Drawer,
+  Grid,
+  Stack,
+  Slider,
+  Typography,
+  Button,
+  IconButton,
+} from "@mui/material";
 import {
   getShaderCode,
+  deleteShader,
   overwriteShader,
   isCurrentUsersShader,
 } from "../utils/firebaseHelper";
-import { useEffect, useState } from "react";
-import { useHistory, useLocation } from "react-router-dom";
+import SnackbarUtils from "../utils/Snackbar";
 
 import "../assets/style.css";
 import "../assets/codeEditorPage.css";
@@ -57,7 +61,7 @@ const CodeEditorPage = () => {
   const [helpBoxVisible, setHelpBoxVisible] = useState(false);
   const [editorWidth, setEditorWidth] = useState("100%");
   const [loginFormOpen, setLoginFormOpen] = useState(false);
-
+  
   useEffect(() => {
     if (shader.shaderCode === "") {
       getShaderCode(shader).then((shaderWithCode: Shader) => {
@@ -113,8 +117,8 @@ const CodeEditorPage = () => {
     } else {
       setActionDrawerOpen(false);
     }
-  };
-
+  }; 
+  
   const editorActionComponents = [
     <Button
       key="compile-button"
@@ -186,6 +190,21 @@ const CodeEditorPage = () => {
       color="secondary"
     >
       Help
+    </Button>,
+    <Button
+      key={10}
+      id="delete-button"
+      variant="outlined"
+      disableElevation
+      color="error"
+      onClick={async () => {
+        if (await deleteShader(shader)) {
+          SnackbarUtils.success("Successfully deleted " + shaderName + ".");
+          history.goBack();
+        }
+      }}
+    >
+      Delete
     </Button>,
 
     <FormDialog
