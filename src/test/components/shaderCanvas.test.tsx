@@ -3,7 +3,7 @@ import ShaderCanvas from "../../components/ShaderCanvas";
 import {
   shaderTriangleFragment,
   shaderTriangleVertex,
-} from "../sample_shaders/triangle";
+} from "../../utils/sample_shaders/triangle";
 
 import * as shaders from "../../render";
 import { RenderLogger } from "../../objects/RenderLogger";

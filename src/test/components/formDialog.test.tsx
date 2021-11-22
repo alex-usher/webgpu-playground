@@ -4,7 +4,7 @@ import { act, render, screen } from "@testing-library/react";
 import { Shader } from "../../objects/Shader";
 import * as firebaseHelper from "../../utils/firebaseHelper";
 
-import { shaderTriangleVertex } from "../sample_shaders/triangle";
+import { shaderTriangleVertex } from "../../utils/sample_shaders/triangle";
 
 import "@testing-library/jest-dom/extend-expect";
 
