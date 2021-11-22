@@ -1,17 +1,18 @@
 import assert from "assert";
-import { structs } from "./shaders";
+import { structs } from "../shaders";
 import {
   checkWebGPU,
   outputMessages,
-  CreateGPUBuffer,
-  CreateTransforms,
-  CreateViewProjection,
+  createGPUBuffer,
+  createTransforms,
+  createViewProjection,
 } from "./helpers";
-import { cubeColours, cubePositions } from "./meshes";
+import { texturedRectangleMesh } from "../meshes/texturedRectangle";
+import { cubeColours, cubePositions } from "../meshes/cube";
 import { mat4 } from "gl-matrix";
-import { RenderLogger } from "../objects/RenderLogger";
-import { MeshType } from "../objects/Shader";
-import { getImageFromUrl } from "../utils/imageHelper";
+import { RenderLogger } from "../../objects/RenderLogger";
+import { MeshType } from "../../objects/Shader";
+import { getImageFromUrl } from "../../utils/imageHelper";
 
 let x = 0;
 let y = 0;
@@ -59,25 +60,13 @@ export const renderTexturedShader = async (
 
   renderLogger.logMessage("Shader Compilation successful");
 
-  const dataBuffer = device.createBuffer({
-    size: 6 * 6 * 4,
-    usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    mappedAtCreation: true,
-  });
-
   const viewParamsBuffer = device.createBuffer({
     size: 4 * 5,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
   // define vertices + colours
-  new Float32Array(dataBuffer.getMappedRange()).set([
-    -1.0, -1.0, 0.0, 1.0, 0.0, 0.0, 1.0, -1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0,
-    1.0, 0.0, 0.0, 0.0, -1.0, -1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0,
-    0.0, -1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
-  ]);
-
-  dataBuffer.unmap();
+  const dataBuffer = createGPUBuffer(device, texturedRectangleMesh);
 
   const img = await getImageFromUrl(
     "https://images.squarespace-cdn.com/content/v1/571fc5edd210b89083925aba/1542571642279-HPT4H2FNOPFSI8685H7Y/LiamWong_MinutesToMidnight_Tokyo.jpg?format=2500w"
@@ -173,29 +162,6 @@ export const renderTexturedShader = async (
       topology: "triangle-list",
     },
   });
-
-  // const bindGroupLayout = device.createBindGroupLayout({
-  //   entries: [
-  //     {
-  //       binding: 0,
-  //       visibility: GPUShaderStage.FRAGMENT,
-  //       type: "sampler",
-  //     } as GPUBindGroupLayoutEntry,
-  //     {
-  //       binding: 1,
-  //       visibility: GPUShaderStage.FRAGMENT,
-  //       type: "sampled-texture",
-  //     } as GPUBindGroupLayoutEntry,
-  //   ],
-  // });
-
-  // const bindGroup = device.createBindGroup({
-  //   layout: bindGroupLayout,
-  //   entries: [
-  //     { binding: 0, resource: sampler },
-  //     { binding: 1, resource: texture2d.createView() },
-  //   ],
-  // });
 
   const viewParamsBindGroup = device.createBindGroup({
     layout: viewParamsBindGroupLayout,
@@ -348,8 +314,8 @@ export const renderShader = async (
   // --------------------------------------------------------------------------------------
   // create buffers
   const numberOfVertices = cubePositions.length / 3;
-  const vertexBuffer = CreateGPUBuffer(device, cubePositions);
-  const colorBuffer = CreateGPUBuffer(device, cubeColours);
+  const vertexBuffer = createGPUBuffer(device, cubePositions);
+  const colorBuffer = createGPUBuffer(device, cubeColours);
 
   // --------------------------------------------------------------------------------------
   // Define  layouts
@@ -534,10 +500,10 @@ export const renderShader = async (
       const modelMatrix = mat4.create();
       const mvpMatrix = mat4.create();
       let vpMatrix = mat4.create();
-      const vp = CreateViewProjection(canvas.width / canvas.height);
+      const vp = createViewProjection(canvas.width / canvas.height);
       vpMatrix = vp.viewProjectionMatrix;
 
-      CreateTransforms(modelMatrix);
+      createTransforms(modelMatrix);
       mat4.multiply(mvpMatrix, vpMatrix, modelMatrix);
       device.queue.writeBuffer(uniformBuffer, 0, mvpMatrix as ArrayBuffer);
 

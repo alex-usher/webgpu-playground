@@ -5,8 +5,8 @@ import {
   shaderTriangleVertex,
 } from "../sample_shaders/triangle";
 
-import * as helpers from "../../webgpu/helpers";
-import * as renders from "../../webgpu/render";
+import * as helpers from "../../webgpu/pipelines/helpers";
+import * as renders from "../../webgpu/pipelines/render";
 
 const renderShaderCanvas = (setMessages: (messages: string) => void) =>
   render(

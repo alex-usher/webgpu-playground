@@ -1,6 +1,6 @@
 import { vec3, mat4 } from "gl-matrix";
-import { RenderLogger } from "../objects/RenderLogger";
-import { structsLength } from "./shaders";
+import { RenderLogger } from "../../objects/RenderLogger";
+import { structsLength } from "../shaders";
 
 export const checkWebGPU = (): boolean => navigator.gpu != null;
 
@@ -31,7 +31,7 @@ export const outputMessages = async (
   return false;
 };
 
-export const CreateGPUBuffer = (
+export const createGPUBuffer = (
   device: GPUDevice,
   data: Float32Array,
   usageFlag: GPUBufferUsageFlags = GPUBufferUsage.VERTEX |
@@ -47,7 +47,7 @@ export const CreateGPUBuffer = (
   return buffer;
 };
 
-export const CreateTransforms = (
+export const createTransforms = (
   modelMat: mat4,
   translation: vec3 = [0, 0, 0],
   rotation: vec3 = [0, 0, 0],
@@ -73,7 +73,7 @@ export const CreateTransforms = (
   mat4.multiply(modelMat, translateMat, modelMat);
 };
 
-export const CreateViewProjection = (
+export const createViewProjection = (
   respectRatio = 1.0,
   cameraPosition: vec3 = [2, 2, 4],
   lookDirection: vec3 = [0, 0, 0],

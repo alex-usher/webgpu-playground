@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "../assets/shaderCanvas.css";
-import { checkWebGPU } from "../webgpu/helpers";
-import { renderShader, updateCoordinates } from "../webgpu/render";
+import { checkWebGPU } from "../webgpu/pipelines/helpers";
+import { renderShader, updateCoordinates } from "../webgpu/pipelines/render";
 import Typography from "@mui/material/Typography";
 import { RenderLogger } from "../objects/RenderLogger";
 import { MeshType } from "../objects/Shader";
