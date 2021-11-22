@@ -264,6 +264,25 @@ export const renderTexturedShader = async (
   renderFrame = requestAnimationFrame(frame);
 };
 
+// const initialiseGPU = async (
+//   context: GPUCanvasContext,
+//   device: GPUDevice,
+//   code: string,
+//   usage: number,
+//   renderLogger: RenderLogger
+// ) => {
+//   if (!checkWebGPU()) {
+//     return {};
+//   }
+//
+//   const canvas = document.getElementById("canvas-webgpu") as HTMLCanvasElement;
+//   assert(navigator.gpu);
+//   const adapter = await navigator.gpu.requestAdapter();
+//   assert(adapter);
+//   const device = await adapter.requestDevice();
+//   const context;
+// };
+
 export const renderShader = async (
   shaderCode: string,
   meshType: MeshType,
