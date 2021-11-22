@@ -175,8 +175,6 @@ const CodeEditorPage = () => {
 
         canvas.toBlob(function (blob) {
           link.href = URL.createObjectURL(blob);
-          console.log(blob);
-          console.log(link.href);
           link.click();
         }, "image/png");
       }}
