@@ -5,10 +5,16 @@ import Prism from "prismjs";
 
 import KeyboardShortcut from "../utils/keyboardShortcuts";
 import { addShortcuts } from "../utils/shortcutListener";
-import { applyShiftTab, insertTab } from "../utils/textareaActions";
+import {
+  applyShiftTab,
+  applyCtrlSlash,
+  insertTab,
+} from "../utils/textareaActions";
 
+// Shortcut inputs in the editor, optional argument order: shift, ctrl, alt
 const tab = new KeyboardShortcut("Tab");
 const shiftTab = new KeyboardShortcut("Tab", true);
+const ctrlSlash = new KeyboardShortcut("/", false, true);
 
 console.log(insertTab);
 
@@ -60,11 +66,11 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
           shortcut: tab,
           action: () => {
             console.log("tab");
-            console.log(ref);
+            //console.log(ref);
             insertTab(ref);
             update(ref.value);
             // update(ref.value);
-            console.log(ref);
+            //console.log(ref);
             //Prism.highlightAll();
           },
         },
@@ -75,6 +81,14 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
             applyShiftTab(ref);
             update(ref.value);
             //Prism.highlightAll();
+          },
+        },
+        {
+          shortcut: ctrlSlash,
+          action: () => {
+            console.log("ctrlSlash");
+            applyCtrlSlash(ref);
+            update(ref.value);
           },
         },
       ];

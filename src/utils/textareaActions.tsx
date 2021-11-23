@@ -63,9 +63,10 @@ const insertTab = (textareaRef: HTMLTextAreaElement): string => {
     newState.end = end + 1;
     // Otherwise add tabs to the start of every line in the selection
   } else {
-    newState.text = replaceSelectionLineStart(state, "", "\t").text;
-    newState.start = start + 1;
-    newState.end = end + (newState.text.length - text.length);
+    const replaced = replaceSelectionLineStart(state, "", "\t");
+    newState.text = replaced.text;
+    newState.start = replaced.start;
+    newState.end = replaced.end;
   }
 
   setTextareaState(newState, textareaRef);
@@ -75,50 +76,83 @@ const insertTab = (textareaRef: HTMLTextAreaElement): string => {
 // Remove indents from the selection
 const applyShiftTab = (textareaRef: HTMLTextAreaElement) => {
   const currentState = getTextareaState(textareaRef);
-  const { text, start, end } = getTextareaState(textareaRef);
-  const currentLineIndex = getCurrentLineIndex(currentState);
-
-  console.log(text.slice(0, currentLineIndex));
 
   // remove both spaces and tabs from the start of lines
   const stateWithoutTabs = replaceSelectionLineStart(currentState, "\t", "");
   const newState = replaceSelectionLineStart(stateWithoutTabs, "  ", "");
 
-  if (newState.text !== text) {
-    newState.start = start - (text[currentLineIndex] == "\t" ? 1 : 0);
-    newState.end = end - (text.length - newState.text.length);
-
+  if (newState.text !== currentState.text) {
     setTextareaState(newState, textareaRef);
   }
 };
 
+// Toggles comments at the start of every line of the selection
+// TODO change to support tabbing/untabbingn at the current indentation level
+const applyCtrlSlash = (textareaRef: HTMLTextAreaElement) => {
+  const currentState = getTextareaState(textareaRef);
+  const { text, start, end } = currentState;
+  // Match "// " or "//"
+  const commentRegex = /\n\/\/( |)/gm;
+  const firstLineIndex = getCurrentLineIndex(currentState);
+
+  // Get all the comment matches and newlines in the selection
+  const selectionComments = text.slice(firstLineIndex, end).match(commentRegex);
+  const selectionLines = text.slice(start, end).split("\n");
+
+  // Boolean storing if every line in the selection is commented
+  let commented = false;
+  if (selectionComments) {
+    if (selectionLines) {
+      commented = selectionComments.length >= selectionLines.length;
+    } else {
+      commented = true;
+    }
+  }
+  console.log(selectionComments);
+  console.log(selectionLines?.length);
+  console.log(commented);
+
+  // Remove comments if all lines in the selection start with comments
+  const newState = commented
+    ? replaceSelectionLineStart(currentState, commentRegex, "")
+    : replaceSelectionLineStart(currentState, "", "// ");
+  setTextareaState(newState, textareaRef);
+};
+
 // Replaces find with replace at the start of every line in the selcetion
-// TODO - move calculation of new start/end into here
 const replaceSelectionLineStart = (
   state: textareaState,
-  find: string,
+  find: string | RegExp,
   replace: string
 ): textareaState => {
   const { text, start, end } = state;
   // Handle the first line separately as it won't necessarily be preceeded by a new line
   const firstLineIndex = getCurrentLineIndex(state);
-
-  // Replace the first occurence - if adding, prepend replace
-  const firstLinePrefix =
-    find === ""
-      ? replace + text.slice(firstLineIndex, start)
-      : text.slice(firstLineIndex, start).replace(find, replace);
+  const findExp = typeof find == "string" ? "\n" + find : find;
 
   const newText =
     // Keep text before the selection the same
     text.slice(0, firstLineIndex) +
-    firstLinePrefix +
-    // Replace all occurences after
-    text.slice(start, end).replaceAll("\n" + find, "\n" + replace) +
+    // Replace all occurences
+    text.slice(firstLineIndex, end).replaceAll(findExp, "\n" + replace) +
     // Keep text after the selection the same
     text.slice(end);
 
-  return { text: newText, start, end };
+  let newStart = start;
+  if (find === "") {
+    // If adding, replace will always be added before the selection start
+    newStart += replace.length;
+  } else {
+    // Match find in the first line prefix
+    const firstMatch = text.slice(firstLineIndex, start).match(find);
+    if (firstMatch) {
+      // If find is in the first line prefix, it will be removed
+      newStart -= firstMatch[0].replace("\n", "").length;
+    }
+  }
+
+  const newEnd = end + (newText.length - text.length);
+  return { text: newText, start: newStart, end: newEnd };
 };
 
-export { insertTab, applyShiftTab };
+export { insertTab, applyShiftTab, applyCtrlSlash };
