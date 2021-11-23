@@ -35,27 +35,6 @@ import { Tooltip } from "@mui/material";
 import { ConsoleOutput } from "../components/ConsoleOutput";
 import React from "react";
 
-import KeyboardShortcut from "../utils/keyboardShortcuts";
-import ShortcutListener from "../utils/shortcutListener";
-
-const tab = new KeyboardShortcut("Tab");
-const shiftTab = new KeyboardShortcut("Tab", true);
-
-// Given a list of definitions for all shortcuts to add in each object, add the relevant listeners
-// eslint-disable-next-line
-const addShortcuts = (mappings: { selector: string, shortcuts: { shortcut: KeyboardShortcut, action: () => void }[] }[]) => {
-  mappings.forEach((objectMapping) => {
-    const objectRef = document.querySelector(objectMapping.selector);
-    objectMapping.shortcuts.forEach(({ shortcut, action }) => {
-      console.log("added listener");
-      objectRef?.addEventListener("keydown", (event) => {
-        ShortcutListener(event as KeyboardEvent, shortcut, action);
-        event.preventDefault();
-      });
-    });
-  });
-};
-
 const CodeEditorPage = () => {
   const [shader, setShader] = useState<Shader>(
     useLocation().state
@@ -79,17 +58,12 @@ const CodeEditorPage = () => {
   const [helpBoxVisable, setHelpBoxVisable] = React.useState(false);
   const [editorWidth, setEditorWidth] = useState("100%");
 
-  const shortcutMappings = [
-    {
-      selector: "textarea",
-      shortcuts: [
-        { shortcut: tab, action: () => console.log("tab") },
-        { shortcut: shiftTab, action: () => console.log("shiftTab") },
-      ],
-    },
-  ];
-
-  addShortcuts(shortcutMappings);
+  // const shortcutMappings = [
+  //   {
+  //     selector: "textarea",
+  //     shortcuts:
+  //   },
+  // ];
 
   useEffect(() => {
     if (shader.shaderCode === "") {

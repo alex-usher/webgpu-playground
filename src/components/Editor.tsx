@@ -3,6 +3,15 @@ import "../assets/editor.css";
 import "../assets/prism.css";
 import Prism from "prismjs";
 
+import KeyboardShortcut from "../utils/keyboardShortcuts";
+import { addShortcuts } from "../utils/shortcutListener";
+import { applyShiftTab, insertTab } from "../utils/textareaActions";
+
+const tab = new KeyboardShortcut("Tab");
+const shiftTab = new KeyboardShortcut("Tab", true);
+
+console.log(insertTab);
+
 interface EditorProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
@@ -19,6 +28,8 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
   const editorRef = React.useRef<HTMLTextAreaElement>(null);
   const codeBlockRef = React.useRef<HTMLPreElement>(null);
 
+  //const [codeValue, setCodeValue] = React.useState(value);
+
   const lineNumbers = [...Array(lines)].map((_, i) => (
     <div key={i}>
       {i + 1}
@@ -28,9 +39,48 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
 
   useEffect(() => {
     if (editorRef?.current) {
+      console.log("USE EFFECT:");
+      console.log(editorRef.current);
       Prism.highlightAll();
     }
-  });
+  }, [editorRef?.current?.value]);
+
+  // Add the shortcut listeners once after render
+  useEffect(() => {
+    if (editorRef?.current) {
+      const ref = document.querySelector(
+        ".code-text-editor"
+      ) as HTMLTextAreaElement;
+      //const ref = editorRef.current;
+      //ref.focus();
+      //changeSpacesToTabs(textareaRef);
+
+      const textareaShortcuts = [
+        {
+          shortcut: tab,
+          action: () => {
+            console.log("tab");
+            console.log(ref);
+            insertTab(ref);
+            update(ref.value);
+            // update(ref.value);
+            console.log(ref);
+            //Prism.highlightAll();
+          },
+        },
+        {
+          shortcut: shiftTab,
+          action: () => {
+            console.log("shiftTab");
+            applyShiftTab(ref);
+            update(ref.value);
+            //Prism.highlightAll();
+          },
+        },
+      ];
+      addShortcuts(".code-text-editor", textareaShortcuts);
+    }
+  }, []);
 
   // Ensure editor scroll positions are the same, set gutter scroll to the editor scroll
   const textAreaScroll = (_e: React.UIEvent<HTMLElement>): void => {
@@ -70,10 +120,17 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
   const update = (text: string): void => {
     if (editorRef.current && codeBlockRef.current) {
       editorRef.current.focus();
+      codeBlockRef.current.focus();
+
       editorRef.current.innerText = text;
-      codeBlockRef.current.innerText = text; //+ "\n\r\n\r";
+      codeBlockRef.current.innerText = text;
+
+      // editorRef.current.innerText = text;
+      // codeBlockRef.current.innerText = text; //+ "\n\r\n\r";
+      //console.log("set code block text to \n" + text);
 
       window.Prism = window.Prism || {};
+      // Prism.highlightAll();
       Prism.highlight(
         editorRef.current.value,
         Prism.languages.javascript,
