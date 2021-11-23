@@ -12,7 +12,6 @@ type textareaState = {
 };
 
 const getTextareaState = (textareaRef: HTMLTextAreaElement): textareaState => {
-  //console.log(textareaRef);
   return {
     text: textareaRef.value,
     start: textareaRef.selectionStart,
@@ -24,25 +23,9 @@ const setTextareaState = (
   newState: textareaState,
   textareaRef: HTMLTextAreaElement
 ): void => {
-  //console.log(textareaRef);
   textareaRef.value = newState.text;
   textareaRef.selectionStart = newState.start;
   textareaRef.selectionEnd = newState.end;
-  // console.log(textareaRef);
-  // textareaRef.innerText = newState.text;
-  // console.log(textareaRef);
-  // console.log("COMPARISON");
-  // console.log(textareaRef.value);
-  // console.log(textareaRef.value.replace(/<br\s?\/?>/g, "\r\n"));
-  // console.log(
-  //   textareaRef.value === textareaRef.value.replace(/<br\s?\/?>/g, "\r\n")
-  // );
-  // textareaRef.value = textareaRef.value.replace(/<br\s?\/?>/g, "\r\n"); //= textareaRef.value.split("<br>").join("\n"); //replace(/<br *\/?>/gi, "\n");
-  // console.log(textareaRef);
-  // console.log(textareaRef);
-  // console.log(textareaRef.innerHTML);
-  // textareaRef.innerHTML = textareaRef.innerHTML.replace(/<br *\/?>/gi, "\n");
-  // console.log(textareaRef);
 };
 
 const getCurrentLineIndex = (state: textareaState): number => {
@@ -79,7 +62,11 @@ const applyShiftTab = (textareaRef: HTMLTextAreaElement) => {
 
   // remove both spaces and tabs from the start of lines
   const stateWithoutTabs = replaceSelectionLineStart(currentState, "\t", "");
-  const newState = replaceSelectionLineStart(stateWithoutTabs, "  ", "");
+  const newState = replaceSelectionLineStart(
+    stateWithoutTabs,
+    /\n( {2}| )/gm,
+    ""
+  );
 
   if (newState.text !== currentState.text) {
     setTextareaState(newState, textareaRef);
@@ -108,9 +95,6 @@ const applyCtrlSlash = (textareaRef: HTMLTextAreaElement) => {
       commented = true;
     }
   }
-  console.log(selectionComments);
-  console.log(selectionLines?.length);
-  console.log(commented);
 
   // Remove comments if all lines in the selection start with comments
   const newState = commented

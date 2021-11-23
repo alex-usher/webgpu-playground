@@ -12,7 +12,6 @@ import { defaultShader, Shader } from "../objects/Shader";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
 import HelpBanner from "../components/HelpBanner";
-//import { Link } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
 import Drawer from "@mui/material/Drawer";
 import {
@@ -20,7 +19,7 @@ import {
   overwriteShader,
   isCurrentUsersShader,
 } from "../utils/firebaseHelper";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import SnackbarUtils from "../utils/Snackbar";
 
@@ -35,14 +34,28 @@ import { Tooltip } from "@mui/material";
 import { ConsoleOutput } from "../components/ConsoleOutput";
 import React from "react";
 
+import KeyboardShortcut from "../utils/keyboardShortcuts";
+import { addShortcuts } from "../utils/shortcutListener";
+
+// Shortcut patterns
+const altT = new KeyboardShortcut("T", false, false, true);
+const altH = new KeyboardShortcut("H", false, false, true);
+const ctrlS = new KeyboardShortcut("S", false, true);
+
 const CodeEditorPage = () => {
   const [shader, setShader] = useState<Shader>(
     useLocation().state
       ? (useLocation().state as { shader: Shader }).shader
       : defaultShader
   );
+
+  const showCodeRef = useRef(false);
+  const editorWidthRef = useRef("100%");
+  const helpBoxVisableRef = React.useRef(false);
+  const formOpenRef = React.useRef(false);
+
   const [shaderCode, setShaderCode] = useState(shader.shaderCode);
-  const [showCode, setShowCode] = useState(false);
+  const [showCode, setShowCode] = useState(showCodeRef.current);
   const [viewCodeText, setViewCodeText] = useState("View Code");
   const [renderedShaderCode, setRenderedShaderCode] = useState(
     shader.shaderCode
@@ -50,20 +63,15 @@ const CodeEditorPage = () => {
   const [messages, setMessages] = useState("");
   const [inFullscreen, setInFullscreen] = useState(false);
   const [editorOpacity, setEditorOpacity] = useState(0.5);
-  const [formOpen, setFormOpen] = React.useState(false);
+  const [formOpen, setFormOpen] = React.useState(formOpenRef.current);
   const [actionDrawerOpen, setActionDrawerOpen] = React.useState(false);
   const [shaderName, setShaderName] = useState("Untitled");
   const history = useHistory();
   const isLoggedIn = auth.currentUser == null;
-  const [helpBoxVisable, setHelpBoxVisable] = React.useState(false);
-  const [editorWidth, setEditorWidth] = useState("100%");
-
-  // const shortcutMappings = [
-  //   {
-  //     selector: "textarea",
-  //     shortcuts:
-  //   },
-  // ];
+  const [helpBoxVisable, setHelpBoxVisable] = React.useState(
+    helpBoxVisableRef.current
+  );
+  const [editorWidth, setEditorWidth] = useState(editorWidthRef.current);
 
   useEffect(() => {
     if (shader.shaderCode === "") {
@@ -78,6 +86,30 @@ const CodeEditorPage = () => {
   }, []);
 
   useEffect(() => {
+    const shortcuts = [
+      {
+        shortcut: altT,
+        action: () => {
+          toggleShowCode();
+        },
+      },
+      {
+        shortcut: altH,
+        action: () => {
+          toggleHelpVisible();
+        },
+      },
+      {
+        shortcut: ctrlS,
+        action: async () => {
+          await handleFormOpen();
+        },
+      },
+    ];
+    addShortcuts("*", shortcuts);
+  }, []);
+
+  useEffect(() => {
     shader.shaderCode = shaderCode;
   }, [shaderCode]);
 
@@ -89,13 +121,15 @@ const CodeEditorPage = () => {
     if ((await isCurrentUsersShader(shader)) && shader.id) {
       overwriteShader(shader);
     } else {
-      setFormOpen(true);
+      formOpenRef.current = true;
+      setFormOpen(formOpenRef.current);
     }
   };
 
   const handleFormClose = () => {
     setShaderName(shader.title);
-    setFormOpen(false);
+    formOpenRef.current = false;
+    setFormOpen(formOpenRef.current);
   };
 
   const handleOpacitySlider = (e: Event, newValue: number | number[]) => {
@@ -107,11 +141,21 @@ const CodeEditorPage = () => {
 
   const isSmallWidth = useMediaQuery(useTheme().breakpoints.down("xl"));
 
+  const toggleShowCode = () => {
+    showCodeRef.current = !showCodeRef.current;
+    setShowCode(showCodeRef.current);
+    setViewCodeText(showCode ? "View Code" : "Hide Code");
+  };
+
   const toggleHelpVisible = () => {
-    setHelpBoxVisable(!helpBoxVisable);
+    helpBoxVisableRef.current = !helpBoxVisableRef.current;
+    setHelpBoxVisable(helpBoxVisableRef.current);
     {
-      helpBoxVisable ? setEditorWidth("100%") : setEditorWidth("75%");
+      !helpBoxVisableRef.current
+        ? (editorWidthRef.current = "100%")
+        : (editorWidthRef.current = "75%");
     }
+    setEditorWidth(editorWidthRef.current);
   };
 
   const toggleActionDrawer = () => {
@@ -275,10 +319,7 @@ const CodeEditorPage = () => {
                 id="show-code-button"
                 variant="outlined"
                 disableElevation
-                onClick={() => {
-                  setShowCode(!showCode);
-                  setViewCodeText(showCode ? "View Code" : "Hide Code");
-                }}
+                onClick={toggleShowCode}
                 color={"primary"}
               >
                 {viewCodeText}

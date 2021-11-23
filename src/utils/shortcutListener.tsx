@@ -12,8 +12,8 @@ const ShortcutListener = (
   }
 };
 
-// Given a list of definitions for all shortcuts to add in each object, add the relevant listeners
-// eslint-disable-next-line
+// // Given a list of definitions for all shortcuts to add in each object, add the relevant listeners
+// // eslint-disable-next-line
 // const addMappings = (mappings: { selector: string, shortcuts: { shortcut: KeyboardShortcut, action: () => void }[] }[]) => {
 //   mappings.forEach((objectMapping) => {
 //     addShortcuts(objectMapping.selector, objectMapping.shortcuts);
@@ -26,7 +26,6 @@ const addShortcuts = (
 ) => {
   const objectRef = document.querySelector(selector);
   shortcuts.forEach(({ shortcut, action }) => {
-    console.log("added listener");
     objectRef?.addEventListener(
       "keydown",
       (event) => {

@@ -15,7 +15,7 @@ class KeyboardShortcut {
   // returns true iff the current keyboard event matches the shortcut
   match = (event: KeyboardEvent) => {
     return (
-      event.key == this.key &&
+      event.key.toLowerCase() == this.key.toLowerCase() &&
       event.altKey == this.altKey &&
       event.ctrlKey == this.ctrlKey &&
       event.shiftKey == this.shiftKey

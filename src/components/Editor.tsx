@@ -16,8 +16,6 @@ const tab = new KeyboardShortcut("Tab");
 const shiftTab = new KeyboardShortcut("Tab", true);
 const ctrlSlash = new KeyboardShortcut("/", false, true);
 
-console.log(insertTab);
-
 interface EditorProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
@@ -34,8 +32,6 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
   const editorRef = React.useRef<HTMLTextAreaElement>(null);
   const codeBlockRef = React.useRef<HTMLPreElement>(null);
 
-  //const [codeValue, setCodeValue] = React.useState(value);
-
   const lineNumbers = [...Array(lines)].map((_, i) => (
     <div key={i}>
       {i + 1}
@@ -45,8 +41,6 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
 
   useEffect(() => {
     if (editorRef?.current) {
-      console.log("USE EFFECT:");
-      console.log(editorRef.current);
       Prism.highlightAll();
     }
   }, [editorRef?.current?.value]);
@@ -57,36 +51,25 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
       const ref = document.querySelector(
         ".code-text-editor"
       ) as HTMLTextAreaElement;
-      //const ref = editorRef.current;
-      //ref.focus();
-      //changeSpacesToTabs(textareaRef);
 
       const textareaShortcuts = [
         {
           shortcut: tab,
           action: () => {
-            console.log("tab");
-            //console.log(ref);
             insertTab(ref);
             update(ref.value);
-            // update(ref.value);
-            //console.log(ref);
-            //Prism.highlightAll();
           },
         },
         {
           shortcut: shiftTab,
           action: () => {
-            console.log("shiftTab");
             applyShiftTab(ref);
             update(ref.value);
-            //Prism.highlightAll();
           },
         },
         {
           shortcut: ctrlSlash,
           action: () => {
-            console.log("ctrlSlash");
             applyCtrlSlash(ref);
             update(ref.value);
           },
@@ -139,12 +122,7 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
       editorRef.current.innerText = text;
       codeBlockRef.current.innerText = text;
 
-      // editorRef.current.innerText = text;
-      // codeBlockRef.current.innerText = text; //+ "\n\r\n\r";
-      //console.log("set code block text to \n" + text);
-
       window.Prism = window.Prism || {};
-      // Prism.highlightAll();
       Prism.highlight(
         editorRef.current.value,
         Prism.languages.javascript,
