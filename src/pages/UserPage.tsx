@@ -39,7 +39,7 @@ const UserPage = () => {
         alignItems="center"
         justifyContent="space-between"
       >
-        <HeaderComponent />
+        <HeaderComponent usersPage={true} />
         <Grid item>
           <Typography variant="h4" color="white" align="left">
             My Shaders
