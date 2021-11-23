@@ -17,8 +17,10 @@ import { getImageFromUrl } from "../../utils/imageHelper";
 const SWAPCHAIN_FORMAT = "bgra8unorm";
 const DEPTH_FORMAT = "depth24plus-stencil8";
 
+let time = 0;
 let x = 0;
 let y = 0;
+let canvasVisible = false;
 
 let renderFrame = -1;
 
@@ -127,6 +129,55 @@ const addViewParamsToBuffer = async (
   commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
   commandEncoder.copyBufferToBuffer(resXBuffer, 0, viewParamsBuffer, 12, 4);
   commandEncoder.copyBufferToBuffer(resYBuffer, 0, viewParamsBuffer, 16, 4);
+};
+
+export const generateFrameFunction = (
+  canvas: HTMLCanvasElement,
+  context: GPUCanvasContext,
+  bindGroup: GPUBindGroup,
+  dataBuffer: GPUBuffer,
+  device: GPUDevice,
+  renderPipeline: GPURenderPipeline,
+  viewParamsBuffer: GPUBuffer
+): (() => void) => {
+  const frame = (): void => {
+    const res_x = canvas.width;
+    const res_y = canvas.height;
+    if (canvasVisible) {
+      const commandEncoder = device.createCommandEncoder();
+      addViewParamsToBuffer(
+        device,
+        commandEncoder,
+        viewParamsBuffer,
+        time,
+        res_x,
+        res_y
+      );
+
+      const renderPass = commandEncoder.beginRenderPass({
+        colorAttachments: [
+          {
+            loadValue: { r: 0, g: 0, b: 0, a: 1 },
+            storeOp: "store",
+            view: context.getCurrentTexture().createView(),
+          },
+        ],
+      });
+
+      renderPass.setPipeline(renderPipeline);
+      renderPass.setVertexBuffer(0, dataBuffer);
+      renderPass.setBindGroup(0, bindGroup);
+      renderPass.draw(6, 1, 0, 0);
+      renderPass.endPass();
+
+      device.queue.submit([commandEncoder.finish()]);
+      time++;
+    }
+
+    renderFrame = requestAnimationFrame(frame);
+  };
+
+  return frame;
 };
 
 export const renderTexturedShader = async (
@@ -256,52 +307,24 @@ export const renderTexturedShader = async (
   });
 
   // track when canvas is visible and only render when true
-  let canvasVisible = false;
-  const observer = new IntersectionObserver(
+  canvasVisible = false;
+  new IntersectionObserver(
     (e) => {
       canvasVisible = e[0].isIntersecting;
     },
     { threshold: [0] }
+  ).observe(canvas);
+
+  time = 0;
+  const frame = generateFrameFunction(
+    canvas,
+    context,
+    bindGroup,
+    dataBuffer,
+    device,
+    renderPipeline,
+    viewParamsBuffer
   );
-  observer.observe(canvas);
-
-  let time = 0;
-  const res_x = canvas.width;
-  const res_y = canvas.height;
-  const frame = () => {
-    if (canvasVisible) {
-      const commandEncoder = device.createCommandEncoder();
-      addViewParamsToBuffer(
-        device,
-        commandEncoder,
-        viewParamsBuffer,
-        time,
-        res_x,
-        res_y
-      );
-
-      const renderPass = commandEncoder.beginRenderPass({
-        colorAttachments: [
-          {
-            loadValue: { r: 0, g: 0, b: 0, a: 1 },
-            storeOp: "store",
-            view: context.getCurrentTexture().createView(),
-          },
-        ],
-      });
-
-      renderPass.setPipeline(renderPipeline);
-      renderPass.setVertexBuffer(0, dataBuffer);
-      renderPass.setBindGroup(0, bindGroup);
-      renderPass.draw(6, 1, 0, 0);
-      renderPass.endPass();
-
-      device.queue.submit([commandEncoder.finish()]);
-      time++;
-    }
-
-    renderFrame = requestAnimationFrame(frame);
-  };
 
   renderFrame = requestAnimationFrame(frame);
 };
