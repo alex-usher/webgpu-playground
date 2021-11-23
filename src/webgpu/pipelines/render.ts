@@ -329,16 +329,10 @@ export const renderTexturedShader = async (
   renderFrame = requestAnimationFrame(frame);
 };
 
-export const renderShader = async (
+export const renderCubeShader = async (
   shaderCode: string,
-  meshType: MeshType,
   renderLogger: RenderLogger
 ): Promise<void> => {
-  if (meshType === MeshType.TEXTURED_RECTANGLE) {
-    // TODO: define a render handler that does the navigation to different functions
-    return renderTexturedShader(shaderCode, renderLogger);
-  }
-
   const init = await initialiseGPU(
     shaderCode,
     GPUTextureUsage.RENDER_ATTACHMENT,
@@ -386,6 +380,11 @@ export const renderShader = async (
     entries: [
       {
         binding: 0,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        buffer: [{ type: "uniform" }],
+      } as GPUBindGroupLayoutEntry,
+      {
+        binding: 1,
         visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
         buffer: [{ type: "uniform" }],
       } as GPUBindGroupLayoutEntry,
@@ -443,10 +442,10 @@ export const renderShader = async (
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
-  const viewParamsBindGroup = device.createBindGroup({
-    layout: bindGroupLayout,
-    entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
-  });
+  // const viewParamsBindGroup = device.createBindGroup({
+  //   layout: bindGroupLayout,
+  //   entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
+  // });
 
   const uniformBuffer = device.createBuffer({
     size: 64,
@@ -455,7 +454,10 @@ export const renderShader = async (
 
   const uniformBindGroup = device.createBindGroup({
     layout: bindGroupLayout,
-    entries: [{ binding: 0, resource: { buffer: uniformBuffer } }],
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: viewParamsBuffer } },
+    ],
   });
 
   // track when canvas is visible and only render when true
@@ -475,16 +477,14 @@ export const renderShader = async (
     if (canvasVisible) {
       const commandEncoder = device.createCommandEncoder();
 
-      if (meshType === MeshType.RECTANGLE) {
-        addViewParamsToBuffer(
-          device,
-          commandEncoder,
-          viewParamsBuffer,
-          time,
-          res_x,
-          res_y
-        );
-      }
+      addViewParamsToBuffer(
+        device,
+        commandEncoder,
+        viewParamsBuffer,
+        time,
+        res_x,
+        res_y
+      );
 
       const renderPassDescription = {
         colorAttachments: [
@@ -518,11 +518,7 @@ export const renderShader = async (
         renderPassDescription as GPURenderPassDescriptor
       );
       renderPass.setPipeline(renderPipeline);
-      if (meshType === MeshType.RECTANGLE) {
-        renderPass.setBindGroup(0, viewParamsBindGroup);
-      } else if (meshType === MeshType.CUBE) {
-        renderPass.setBindGroup(0, uniformBindGroup);
-      }
+      renderPass.setBindGroup(0, uniformBindGroup);
       renderPass.setVertexBuffer(0, vertexBuffer);
       renderPass.setVertexBuffer(1, colorBuffer);
       renderPass.draw(numberOfVertices);
@@ -536,4 +532,174 @@ export const renderShader = async (
   };
 
   renderFrame = requestAnimationFrame(frame);
+};
+
+export const renderRectangleShader = async (
+  shaderCode: string,
+  renderLogger: RenderLogger
+): Promise<void> => {
+  const init = await initialiseGPU(
+    shaderCode,
+    GPUTextureUsage.RENDER_ATTACHMENT,
+    renderLogger
+  );
+
+  if (init === undefined) return;
+
+  // delay pattern match so we can test for error
+  const { canvas, context, device, shaderModule } = init;
+
+  // --------------------------------------------------------------------------------------
+  // Define  layouts
+
+  // allocate a buffer for up to 6 vertices
+  const dataBuffer = device.createBuffer({
+    size: 6 * 6 * 4,
+    usage: GPUBufferUsage.VERTEX,
+    mappedAtCreation: true,
+  });
+
+  // this float 32 array is not necessary,
+  // but with it you can do some cool things using the
+  // VertexInput in the shader
+  new Float32Array(dataBuffer.getMappedRange()).set([
+    1, 1, 1, 0, 0, 1, 1, -1, 0, 1, 0, 1, -1, -1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1,
+    -1, 1, 0, 1, 0, 1, -1, -1, 0, 0, 1, 1,
+  ]);
+
+  dataBuffer.unmap();
+
+  const depthTexture = device.createTexture({
+    size: [canvas.width, canvas.height, 1],
+    format: DEPTH_FORMAT,
+    usage: GPUTextureUsage.RENDER_ATTACHMENT,
+  });
+
+  const bindGroupLayout = device.createBindGroupLayout({
+    entries: [
+      {
+        binding: 0,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        buffer: [{ type: "uniform" }],
+      } as GPUBindGroupLayoutEntry,
+    ],
+  });
+
+  const layout = device.createPipelineLayout({
+    bindGroupLayouts: [bindGroupLayout],
+  });
+
+  const renderPipeline = device.createRenderPipeline({
+    layout: layout,
+    vertex: {
+      module: shaderModule,
+      entryPoint: "vertex_main",
+      buffers: [
+        {
+          arrayStride: 6 * 4,
+          stepMode: "vertex",
+          attributes: [
+            { format: "float32x2", offset: 0, shaderLocation: 0 },
+            { format: "float32x4", offset: 2 * 4, shaderLocation: 1 },
+          ],
+        },
+      ],
+    },
+    fragment: {
+      module: shaderModule,
+      entryPoint: "fragment_main",
+      targets: [{ format: SWAPCHAIN_FORMAT }],
+    },
+    depthStencil: {
+      format: DEPTH_FORMAT,
+      depthWriteEnabled: true,
+      depthCompare: "less",
+    },
+  });
+
+  const viewParamsBuffer = device.createBuffer({
+    size: 4 * 5,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+
+  const viewParamsBindGroup = device.createBindGroup({
+    layout: bindGroupLayout,
+    entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
+  });
+
+  // track when canvas is visible and only render when true
+  let canvasVisible = false;
+  const observer = new IntersectionObserver(
+    (e) => {
+      canvasVisible = e[0].isIntersecting;
+    },
+    { threshold: [0] }
+  );
+  observer.observe(canvas);
+
+  let time = 0;
+  const res_x = canvas.width;
+  const res_y = canvas.height;
+  const frame = () => {
+    if (canvasVisible) {
+      const commandEncoder = device.createCommandEncoder();
+
+      addViewParamsToBuffer(
+        device,
+        commandEncoder,
+        viewParamsBuffer,
+        time,
+        res_x,
+        res_y
+      );
+
+      const renderPassDescription = {
+        colorAttachments: [
+          {
+            view: context.getCurrentTexture().createView(),
+            loadValue: [0.0, 0.0, 0.0, 1.0],
+            storeOp: "store",
+          },
+        ],
+        depthStencilAttachment: {
+          view: depthTexture.createView(),
+          depthLoadValue: 1.0,
+          depthStoreOp: "store",
+          stencilLoadValue: 0,
+          stencilStoreOp: "store",
+        },
+      };
+
+      const renderPass = commandEncoder.beginRenderPass(
+        renderPassDescription as GPURenderPassDescriptor
+      );
+      renderPass.setPipeline(renderPipeline);
+      renderPass.setBindGroup(0, viewParamsBindGroup);
+      renderPass.setVertexBuffer(0, dataBuffer);
+      renderPass.draw(6, 1, 0, 0);
+
+      renderPass.endPass();
+      device.queue.submit([commandEncoder.finish()]);
+      time++;
+    }
+
+    renderFrame = requestAnimationFrame(frame);
+  };
+
+  renderFrame = requestAnimationFrame(frame);
+};
+
+export const renderShader = async (
+  shaderCode: string,
+  meshType: MeshType,
+  renderLogger: RenderLogger
+): Promise<void> => {
+  if (meshType === MeshType.TEXTURED_RECTANGLE) {
+    // TODO: define a render handler that does the navigation to different functions
+    return renderTexturedShader(shaderCode, renderLogger);
+  } else if (meshType === MeshType.CUBE) {
+    return renderCubeShader(shaderCode, renderLogger);
+  } else if (meshType === MeshType.RECTANGLE) {
+    return renderRectangleShader(shaderCode, renderLogger);
+  }
 };
