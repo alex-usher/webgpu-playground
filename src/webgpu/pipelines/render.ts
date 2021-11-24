@@ -182,7 +182,8 @@ export const generateFrameFunction = (
 
 export const renderTexturedShader = async (
   shaderCode: string,
-  renderLogger: RenderLogger
+  renderLogger: RenderLogger,
+  imageUrl?: string
 ): Promise<void> => {
   const init = await initialiseGPU(
     shaderCode,
@@ -203,7 +204,8 @@ export const renderTexturedShader = async (
   const dataBuffer = createGPUBuffer(device, texturedRectangleMesh);
 
   const img = await getImageFromUrl(
-    "https://images.squarespace-cdn.com/content/v1/571fc5edd210b89083925aba/1542571642279-HPT4H2FNOPFSI8685H7Y/LiamWong_MinutesToMidnight_Tokyo.jpg?format=2500w"
+    imageUrl ||
+      "https://images.squarespace-cdn.com/content/v1/571fc5edd210b89083925aba/1542571642279-HPT4H2FNOPFSI8685H7Y/LiamWong_MinutesToMidnight_Tokyo.jpg?format=2500w"
   );
   const bitmap = await createImageBitmap(img);
 
@@ -332,11 +334,12 @@ export const renderTexturedShader = async (
 export const renderShader = async (
   shaderCode: string,
   meshType: MeshType,
-  renderLogger: RenderLogger
+  renderLogger: RenderLogger,
+  imageUrl?: string
 ): Promise<void> => {
   if (meshType === MeshType.TEXTURED_RECTANGLE) {
     // TODO: define a render handler that does the navigation to different functions
-    return renderTexturedShader(shaderCode, renderLogger);
+    return renderTexturedShader(shaderCode, renderLogger, imageUrl);
   }
 
   const init = await initialiseGPU(

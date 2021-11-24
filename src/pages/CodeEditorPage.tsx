@@ -9,10 +9,10 @@ import Stack from "@mui/material/Stack";
 import Slider from "@mui/material/Slider";
 import Typography from "@mui/material/Typography";
 import { defaultShader, Shader } from "../objects/Shader";
+import DoneIcon from "@mui/icons-material/Done";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
 import React from "react";
-//import { Link } from "react-router-dom";
 import FormDialog from "../components/FormDialog";
 import Drawer from "@mui/material/Drawer";
 import {
@@ -31,7 +31,7 @@ import { auth } from "../firebase";
 
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { Tooltip } from "@mui/material";
+import { TextField, Tooltip } from "@mui/material";
 import { ConsoleOutput } from "../components/ConsoleOutput";
 import { MeshType } from "../objects/Shader";
 
@@ -45,7 +45,6 @@ const CodeEditorPage = () => {
   // Firebase should always save the type of mesh a shader uses
   const meshType = state.meshType ? state.meshType : isLoadedShader.meshType;
 
-  // console.log(isLoadedShader, isLoadedShader.meshType);
   // Get the loaded shader code if is a loaded shader, else get the default corresponding to the mesh
   const [shader, setShader] = useState<Shader>(
     isLoadedShader
@@ -65,6 +64,8 @@ const CodeEditorPage = () => {
   const [formOpen, setFormOpen] = React.useState(false);
   const [actionDrawerOpen, setActionDrawerOpen] = React.useState(false);
   const [shaderName, setShaderName] = useState("Untitled" + meshType);
+  const [imageUrl, setImageUrl] = useState("");
+  const [renderedImageUrl, setRenderedImageUrl] = useState("");
   const history = useHistory();
   const isLoggedIn = auth.currentUser == null;
 
@@ -191,6 +192,24 @@ const CodeEditorPage = () => {
       updateShader={(shader) => setShader(shader)}
       meshType={shader.meshType}
     />,
+    ...(meshType === MeshType.TEXTURED_RECTANGLE
+      ? [
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <TextField
+              label="Image URL"
+              variant="outlined"
+              size="small"
+              onChange={(event) => setImageUrl(event.target.value)}
+            />
+            <IconButton
+              size="small"
+              onClick={() => setRenderedImageUrl(imageUrl)}
+            >
+              <DoneIcon />
+            </IconButton>
+          </div>,
+        ]
+      : []),
   ];
 
   const opacitySliderComponent = (
@@ -367,6 +386,7 @@ const CodeEditorPage = () => {
         shaderCode={renderedShaderCode}
         meshType={meshType}
         setMessages={setMessages}
+        imageUrl={renderedImageUrl}
       />
       {showCode ? <ConsoleOutput messages={messages} /> : <></>}
 

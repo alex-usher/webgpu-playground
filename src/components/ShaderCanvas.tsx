@@ -14,12 +14,14 @@ interface ShaderCanvasInput {
   shaderCode: string;
   setMessages: (messages: string) => void;
   meshType: MeshType;
+  imageUrl?: string;
 }
 
 const ShaderCanvas = ({
   shaderCode,
   setMessages,
   meshType,
+  imageUrl,
 }: ShaderCanvasInput) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
@@ -32,11 +34,11 @@ const ShaderCanvas = ({
 
   useEffect(() => {
     if (shaderCode !== "" && shaderCode !== undefined) {
-      renderShader(shaderCode, meshType, renderLogger).then(() => {
+      renderShader(shaderCode, meshType, renderLogger, imageUrl).then(() => {
         setMessages(renderLogger.getMessages());
       });
     }
-  }, [shaderCode]);
+  }, [shaderCode, imageUrl]);
 
   useEffect(() => {
     const setFromEvent = (e: MouseEvent) => {
