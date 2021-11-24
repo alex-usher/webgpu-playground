@@ -9,6 +9,7 @@ import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
 import HelpBanner from "../components/HelpBanner";
 import FormDialog from "../components/FormDialog";
+import RenameFormDialog from "../components/RenameFormDialog";
 import {
   Drawer,
   Grid,
@@ -55,13 +56,14 @@ const CodeEditorPage = () => {
   const [inFullscreen, setInFullscreen] = useState(false);
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [saveFormOpen, setSaveFormOpen] = useState(false);
+  const [renameFormOpen, setRenameFormOpen] = useState(false);
   const [actionDrawerOpen, setActionDrawerOpen] = useState(false);
   const [shaderName, setShaderName] = useState("Untitled");
   const history = useHistory();
   const [helpBoxVisible, setHelpBoxVisible] = useState(false);
   const [editorWidth, setEditorWidth] = useState("100%");
   const [loginFormOpen, setLoginFormOpen] = useState(false);
-  
+
   useEffect(() => {
     if (shader.shaderCode === "") {
       getShaderCode(shader).then((shaderWithCode: Shader) => {
@@ -88,9 +90,25 @@ const CodeEditorPage = () => {
     }
   };
 
+  const handleRenameFormOpen = async () => {
+    if (!auth.currentUser) {
+      setLoginFormOpen(true);
+    } else if ((await isCurrentUsersShader(shader)) && shader.id) {
+      setRenameFormOpen(true);
+    } else {
+      SnackbarUtils.error("You must save a shader before renaming.");
+    }
+  };
+
   const handleFormClose = () => {
     setShaderName(shader.title);
     setSaveFormOpen(false);
+    setLoginFormOpen(false);
+  };
+
+  const handleRenameFormClose = () => {
+    setShaderName(shader.title);
+    setRenameFormOpen(false);
     setLoginFormOpen(false);
   };
 
@@ -117,8 +135,8 @@ const CodeEditorPage = () => {
     } else {
       setActionDrawerOpen(false);
     }
-  }; 
-  
+  };
+
   const editorActionComponents = [
     <Button
       key="compile-button"
@@ -179,6 +197,17 @@ const CodeEditorPage = () => {
       Export as PNG
     </Button>,
     <Button
+      key="rename-button"
+      id="rename-button"
+      variant="outlined"
+      disableElevation
+      onClick={handleRenameFormOpen}
+      color="secondary"
+    >
+      Rename
+    </Button>,
+
+    <Button
       key="help-button"
       id="help-button"
       variant="outlined"
@@ -212,6 +241,13 @@ const CodeEditorPage = () => {
       open={saveFormOpen}
       handleClose={handleFormClose}
       shaderCode={shaderCode}
+      updateShader={(shader) => setShader(shader)}
+    />,
+    <RenameFormDialog
+      key="rename-form"
+      open={renameFormOpen}
+      handleClose={handleRenameFormClose}
+      shader={shader}
       updateShader={(shader) => setShader(shader)}
     />,
   ];

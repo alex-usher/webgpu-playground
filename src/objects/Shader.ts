@@ -48,7 +48,7 @@ export const shaderTypeMap = new Map([
 export class Shader {
   id: string;
   readonly image: string; //http link to img src
-  readonly title: string;
+  title: string;
   isPublic: boolean;
   shaderCode: string;
 
