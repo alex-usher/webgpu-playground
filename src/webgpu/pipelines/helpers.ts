@@ -108,3 +108,65 @@ export const createViewProjection = (
     cameraOption,
   };
 };
+
+export const addViewParamsToBuffer = async (
+  device: GPUDevice,
+  commandEncoder: GPUCommandEncoder,
+  viewParamsBuffer: GPUBuffer,
+  time: number,
+  x: number,
+  y: number,
+  res_x: number,
+  res_y: number
+): Promise<void> => {
+  const timeBuffer = device.createBuffer({
+    size: 4,
+    usage: GPUBufferUsage.COPY_SRC,
+    mappedAtCreation: true,
+  });
+
+  const xBuffer = device.createBuffer({
+    size: 4,
+    usage: GPUBufferUsage.COPY_SRC,
+    mappedAtCreation: true,
+  });
+
+  const yBuffer = device.createBuffer({
+    size: 4,
+    usage: GPUBufferUsage.COPY_SRC,
+    mappedAtCreation: true,
+  });
+
+  const resXBuffer = device.createBuffer({
+    size: 4,
+    usage: GPUBufferUsage.COPY_SRC,
+    mappedAtCreation: true,
+  });
+
+  const resYBuffer = device.createBuffer({
+    size: 4,
+    usage: GPUBufferUsage.COPY_SRC,
+    mappedAtCreation: true,
+  });
+
+  new Float32Array(timeBuffer.getMappedRange()).set([time]);
+  timeBuffer.unmap();
+
+  new Float32Array(xBuffer.getMappedRange()).set([x]);
+  xBuffer.unmap();
+
+  new Float32Array(yBuffer.getMappedRange()).set([y]);
+  yBuffer.unmap();
+
+  new Float32Array(resXBuffer.getMappedRange()).set([res_x]);
+  resXBuffer.unmap();
+
+  new Float32Array(resYBuffer.getMappedRange()).set([res_y]);
+  resYBuffer.unmap();
+
+  commandEncoder.copyBufferToBuffer(timeBuffer, 0, viewParamsBuffer, 0, 4);
+  commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
+  commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
+  commandEncoder.copyBufferToBuffer(resXBuffer, 0, viewParamsBuffer, 12, 4);
+  commandEncoder.copyBufferToBuffer(resYBuffer, 0, viewParamsBuffer, 16, 4);
+};
