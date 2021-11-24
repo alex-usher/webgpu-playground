@@ -1,6 +1,7 @@
 import assert from "assert";
 import { structs } from "../shaders";
 import {
+  addViewParamsToBuffer,
   checkWebGPU,
   createGPUBuffer,
   createTransforms,
@@ -13,6 +14,7 @@ import { mat4 } from "gl-matrix";
 import { RenderLogger } from "../../objects/RenderLogger";
 import { MeshType } from "../../objects/Shader";
 import { getImageFromUrl } from "../../utils/imageHelper";
+import { rectangleMesh } from "../meshes/rectangle";
 
 const SWAPCHAIN_FORMAT = "bgra8unorm";
 const DEPTH_FORMAT = "depth24plus-stencil8";
@@ -71,66 +73,6 @@ const initialiseGPU = async (
   return { canvas, context, device, shaderModule };
 };
 
-const addViewParamsToBuffer = async (
-  device: GPUDevice,
-  commandEncoder: GPUCommandEncoder,
-  viewParamsBuffer: GPUBuffer,
-  time: number,
-  res_x: number,
-  res_y: number
-): Promise<void> => {
-  const timeBuffer = device.createBuffer({
-    size: 4,
-    usage: GPUBufferUsage.COPY_SRC,
-    mappedAtCreation: true,
-  });
-
-  const xBuffer = device.createBuffer({
-    size: 4,
-    usage: GPUBufferUsage.COPY_SRC,
-    mappedAtCreation: true,
-  });
-
-  const yBuffer = device.createBuffer({
-    size: 4,
-    usage: GPUBufferUsage.COPY_SRC,
-    mappedAtCreation: true,
-  });
-
-  const resXBuffer = device.createBuffer({
-    size: 4,
-    usage: GPUBufferUsage.COPY_SRC,
-    mappedAtCreation: true,
-  });
-
-  const resYBuffer = device.createBuffer({
-    size: 4,
-    usage: GPUBufferUsage.COPY_SRC,
-    mappedAtCreation: true,
-  });
-
-  new Float32Array(timeBuffer.getMappedRange()).set([time]);
-  timeBuffer.unmap();
-
-  new Float32Array(xBuffer.getMappedRange()).set([x]);
-  xBuffer.unmap();
-
-  new Float32Array(yBuffer.getMappedRange()).set([y]);
-  yBuffer.unmap();
-
-  new Float32Array(resXBuffer.getMappedRange()).set([res_x]);
-  resXBuffer.unmap();
-
-  new Float32Array(resYBuffer.getMappedRange()).set([res_y]);
-  resYBuffer.unmap();
-
-  commandEncoder.copyBufferToBuffer(timeBuffer, 0, viewParamsBuffer, 0, 4);
-  commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
-  commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
-  commandEncoder.copyBufferToBuffer(resXBuffer, 0, viewParamsBuffer, 12, 4);
-  commandEncoder.copyBufferToBuffer(resYBuffer, 0, viewParamsBuffer, 16, 4);
-};
-
 export const generateFrameFunction = (
   canvas: HTMLCanvasElement,
   context: GPUCanvasContext,
@@ -150,6 +92,8 @@ export const generateFrameFunction = (
         commandEncoder,
         viewParamsBuffer,
         time,
+        x,
+        y,
         res_x,
         res_y
       );
@@ -180,10 +124,11 @@ export const generateFrameFunction = (
   return frame;
 };
 
-export const renderTexturedShader = async (
+export const renderRectangleShader = async (
   shaderCode: string,
   renderLogger: RenderLogger,
-  imageUrl?: string
+  imageUrl?: string,
+  isTextured = false
 ): Promise<void> => {
   const init = await initialiseGPU(
     shaderCode,
@@ -193,52 +138,13 @@ export const renderTexturedShader = async (
 
   if (init === undefined) return;
 
+  // delay pattern match so we can test for error
   const { canvas, context, device, shaderModule } = init;
 
-  const viewParamsBuffer = device.createBuffer({
-    size: 4 * 5,
-    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-  });
-
-  // define vertices + colours
-  const dataBuffer = createGPUBuffer(device, texturedRectangleMesh);
-
-  const img = await getImageFromUrl(
-    imageUrl ||
-      "https://images.squarespace-cdn.com/content/v1/571fc5edd210b89083925aba/1542571642279-HPT4H2FNOPFSI8685H7Y/LiamWong_MinutesToMidnight_Tokyo.jpg?format=2500w"
-  );
-  const bitmap = await createImageBitmap(img);
-
-  const extent3dDict = {
-    width: img.width,
-    height: img.height,
-    depth: 1,
-  } as GPUExtent3DDict;
-
-  const texture2d = device.createTexture({
-    size: extent3dDict,
-    dimension: "2d",
-    format: SWAPCHAIN_FORMAT,
-    usage:
-      GPUTextureUsage.COPY_DST |
-      GPUTextureUsage.RENDER_ATTACHMENT |
-      GPUTextureUsage.TEXTURE_BINDING,
-  });
-
-  const sampler = device.createSampler({
-    magFilter: "linear",
-    minFilter: "nearest",
-  });
-
-  device.queue.copyExternalImageToTexture(
-    {
-      source: bitmap,
-    },
-    {
-      texture: texture2d,
-      mipLevel: 0,
-    },
-    extent3dDict
+  // allocate a buffer using the rectangle mesh
+  const dataBuffer = createGPUBuffer(
+    device,
+    isTextured ? texturedRectangleMesh : rectangleMesh
   );
 
   const bindGroupLayout = device.createBindGroupLayout({
@@ -248,33 +154,37 @@ export const renderTexturedShader = async (
         visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
         buffer: [{ type: "uniform" }],
       } as GPUBindGroupLayoutEntry,
-      {
-        binding: 1,
-        visibility: GPUShaderStage.FRAGMENT,
-        type: "sampler",
-        sampler: {
-          type: "filtering",
-        },
-      } as GPUBindGroupLayoutEntry,
-      {
-        binding: 2,
-        visibility: GPUShaderStage.FRAGMENT,
-        type: "sampled-texture",
-        texture: {
-          sampleType: "float",
-          viewDimension: "2d",
-          multisampled: false,
-        },
-      } as GPUBindGroupLayoutEntry,
+      ...(isTextured
+        ? [
+            {
+              binding: 1,
+              visibility: GPUShaderStage.FRAGMENT,
+              type: "sampler",
+              sampler: {
+                type: "filtering",
+              },
+            } as GPUBindGroupLayoutEntry,
+            {
+              binding: 2,
+              visibility: GPUShaderStage.FRAGMENT,
+              type: "sampled-texture",
+              texture: {
+                sampleType: "float",
+                viewDimension: "2d",
+                multisampled: false,
+              },
+            } as GPUBindGroupLayoutEntry,
+          ]
+        : []),
     ],
   });
 
-  const renderPipelineLayout = device.createPipelineLayout({
+  const layout = device.createPipelineLayout({
     bindGroupLayouts: [bindGroupLayout],
   });
 
   const renderPipeline = device.createRenderPipeline({
-    layout: renderPipelineLayout,
+    layout: layout,
     vertex: {
       module: shaderModule,
       entryPoint: "vertex_main",
@@ -294,28 +204,78 @@ export const renderTexturedShader = async (
       entryPoint: "fragment_main",
       targets: [{ format: SWAPCHAIN_FORMAT }],
     },
-    primitive: {
-      topology: "triangle-list",
-    },
   });
 
-  const bindGroup = device.createBindGroup({
-    layout: bindGroupLayout,
-    entries: [
-      { binding: 0, resource: { buffer: viewParamsBuffer } },
-      { binding: 1, resource: sampler },
-      { binding: 2, resource: texture2d.createView() },
-    ],
+  const viewParamsBuffer = device.createBuffer({
+    size: 4 * 5,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
+
+  let bindGroup: GPUBindGroup;
+
+  if (isTextured) {
+    const img = await getImageFromUrl(
+      imageUrl ||
+        "https://images.squarespace-cdn.com/content/v1/571fc5edd210b89083925aba/1542571642279-HPT4H2FNOPFSI8685H7Y/LiamWong_MinutesToMidnight_Tokyo.jpg?format=2500w"
+    );
+    const bitmap = await createImageBitmap(img);
+
+    const extent3dDict = {
+      width: img.width,
+      height: img.height,
+      depth: 1,
+    } as GPUExtent3DDict;
+
+    const texture2d = device.createTexture({
+      size: extent3dDict,
+      dimension: "2d",
+      format: SWAPCHAIN_FORMAT,
+      usage:
+        GPUTextureUsage.COPY_DST |
+        GPUTextureUsage.RENDER_ATTACHMENT |
+        GPUTextureUsage.TEXTURE_BINDING,
+    });
+
+    const sampler = device.createSampler({
+      magFilter: "linear",
+      minFilter: "nearest",
+    });
+
+    device.queue.copyExternalImageToTexture(
+      {
+        source: bitmap,
+      },
+      {
+        texture: texture2d,
+        mipLevel: 0,
+      },
+      extent3dDict
+    );
+
+    bindGroup = bindGroup = device.createBindGroup({
+      layout: bindGroupLayout,
+      entries: [
+        { binding: 0, resource: { buffer: viewParamsBuffer } },
+        { binding: 1, resource: sampler },
+        { binding: 2, resource: texture2d.createView() },
+      ],
+    });
+  } else {
+    bindGroup = device.createBindGroup({
+      layout: bindGroupLayout,
+      entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
+    });
+  }
 
   // track when canvas is visible and only render when true
   canvasVisible = false;
-  new IntersectionObserver(
+  const observer = new IntersectionObserver(
     (e) => {
       canvasVisible = e[0].isIntersecting;
     },
     { threshold: [0] }
-  ).observe(canvas);
+  );
+  observer.observe(canvas);
 
   time = 0;
   const frame = generateFrameFunction(
@@ -331,17 +291,10 @@ export const renderTexturedShader = async (
   renderFrame = requestAnimationFrame(frame);
 };
 
-export const renderShader = async (
+export const renderCubeShader = async (
   shaderCode: string,
-  meshType: MeshType,
-  renderLogger: RenderLogger,
-  imageUrl?: string
+  renderLogger: RenderLogger
 ): Promise<void> => {
-  if (meshType === MeshType.TEXTURED_RECTANGLE) {
-    // TODO: define a render handler that does the navigation to different functions
-    return renderTexturedShader(shaderCode, renderLogger, imageUrl);
-  }
-
   const init = await initialiseGPU(
     shaderCode,
     GPUTextureUsage.RENDER_ATTACHMENT,
@@ -359,26 +312,6 @@ export const renderShader = async (
   const vertexBuffer = createGPUBuffer(device, cubePositions);
   const colorBuffer = createGPUBuffer(device, cubeColours);
 
-  // --------------------------------------------------------------------------------------
-  // Define  layouts
-
-  // // allocate a buffer for up to 6 vertices
-  // const dataBuffer = device.createBuffer({
-  //   size: 6 * 6 * 4,
-  //   usage: GPUBufferUsage.VERTEX,
-  //   mappedAtCreation: true,
-  // });
-
-  // // this float 32 array is not necessary,
-  // // but with it you can do some cool things using the
-  // // VertexInput in the shader
-  // new Float32Array(dataBuffer.getMappedRange()).set([
-  //   1, 1, 1, 0, 0, 1, 1, -1, 0, 1, 0, 1, -1, -1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1,
-  //   -1, 1, 0, 1, 0, 1, -1, -1, 0, 0, 1, 1,
-  // ]);
-
-  // dataBuffer.unmap();
-
   const depthTexture = device.createTexture({
     size: [canvas.width, canvas.height, 1],
     format: DEPTH_FORMAT,
@@ -389,6 +322,11 @@ export const renderShader = async (
     entries: [
       {
         binding: 0,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        buffer: [{ type: "uniform" }],
+      } as GPUBindGroupLayoutEntry,
+      {
+        binding: 1,
         visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
         buffer: [{ type: "uniform" }],
       } as GPUBindGroupLayoutEntry,
@@ -446,10 +384,10 @@ export const renderShader = async (
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
-  const viewParamsBindGroup = device.createBindGroup({
-    layout: bindGroupLayout,
-    entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
-  });
+  // const viewParamsBindGroup = device.createBindGroup({
+  //   layout: bindGroupLayout,
+  //   entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
+  // });
 
   const uniformBuffer = device.createBuffer({
     size: 64,
@@ -458,7 +396,10 @@ export const renderShader = async (
 
   const uniformBindGroup = device.createBindGroup({
     layout: bindGroupLayout,
-    entries: [{ binding: 0, resource: { buffer: uniformBuffer } }],
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+      { binding: 1, resource: { buffer: viewParamsBuffer } },
+    ],
   });
 
   // track when canvas is visible and only render when true
@@ -478,16 +419,16 @@ export const renderShader = async (
     if (canvasVisible) {
       const commandEncoder = device.createCommandEncoder();
 
-      if (meshType === MeshType.RECTANGLE) {
-        addViewParamsToBuffer(
-          device,
-          commandEncoder,
-          viewParamsBuffer,
-          time,
-          res_x,
-          res_y
-        );
-      }
+      addViewParamsToBuffer(
+        device,
+        commandEncoder,
+        viewParamsBuffer,
+        time,
+        x,
+        y,
+        res_x,
+        res_y
+      );
 
       const renderPassDescription = {
         colorAttachments: [
@@ -521,11 +462,7 @@ export const renderShader = async (
         renderPassDescription as GPURenderPassDescriptor
       );
       renderPass.setPipeline(renderPipeline);
-      if (meshType === MeshType.RECTANGLE) {
-        renderPass.setBindGroup(0, viewParamsBindGroup);
-      } else if (meshType === MeshType.CUBE) {
-        renderPass.setBindGroup(0, uniformBindGroup);
-      }
+      renderPass.setBindGroup(0, uniformBindGroup);
       renderPass.setVertexBuffer(0, vertexBuffer);
       renderPass.setVertexBuffer(1, colorBuffer);
       renderPass.draw(numberOfVertices);
@@ -539,4 +476,22 @@ export const renderShader = async (
   };
 
   renderFrame = requestAnimationFrame(frame);
+};
+
+export const renderShader = async (
+  shaderCode: string,
+  meshType: MeshType,
+  renderLogger: RenderLogger,
+  imageUrl?: string
+): Promise<void> => {
+  switch (meshType) {
+    case MeshType.RECTANGLE:
+      return renderRectangleShader(shaderCode, renderLogger);
+    case MeshType.TEXTURED_RECTANGLE:
+      return renderRectangleShader(shaderCode, renderLogger, imageUrl, true);
+    case MeshType.CUBE:
+      return renderCubeShader(shaderCode, renderLogger);
+    default:
+      return;
+  }
 };

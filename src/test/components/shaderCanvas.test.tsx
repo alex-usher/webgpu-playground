@@ -7,12 +7,14 @@ import {
 
 import * as helpers from "../../webgpu/pipelines/helpers";
 import * as renders from "../../webgpu/pipelines/render";
+import { MeshType } from "../../objects/Shader";
 
 const renderShaderCanvas = (setMessages: (messages: string) => void) =>
   render(
     <ShaderCanvas
       shaderCode={`${shaderTriangleVertex}\n${shaderTriangleFragment}`}
       setMessages={setMessages}
+      meshType={MeshType.RECTANGLE}
     />
   );
 

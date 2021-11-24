@@ -2,7 +2,7 @@ import userEvent from "@testing-library/user-event";
 import { act, render, screen } from "@testing-library/react";
 import CodeEditorPage from "../../pages/CodeEditorPage";
 import { SnackbarProvider } from "notistack";
-import { Shader } from "../../objects/Shader";
+import { MeshType, Shader } from "../../objects/Shader";
 import * as helpers from "../../webgpu/pipelines/helpers";
 import * as renders from "../../webgpu/pipelines/render";
 import * as shaders from "../../webgpu/shaders";
@@ -17,7 +17,8 @@ const shader = new Shader(
   "test",
   "http://www.test.com",
   false,
-  `${shaders.rectangleVertex}\n${shaders.rectangleFragment}`
+  `${shaders.rectangleVertex}\n${shaders.rectangleFragment}`,
+  MeshType.RECTANGLE
 );
 
 const renderCodeEditorPage = async () =>
