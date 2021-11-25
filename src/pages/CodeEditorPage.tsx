@@ -214,7 +214,10 @@ const CodeEditorPage = () => {
     />,
     ...(meshType === MeshType.TEXTURED_RECTANGLE
       ? [
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div
+            key="upload-image-url-div"
+            style={{ display: "flex", justifyContent: "space-between" }}
+          >
             <TextField
               label="Image URL"
               variant="outlined"

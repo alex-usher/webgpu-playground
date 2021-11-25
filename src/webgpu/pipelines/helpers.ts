@@ -4,6 +4,34 @@ import { structsLength } from "../shaders";
 
 export const checkWebGPU = (): boolean => navigator.gpu != null;
 
+export const addUniformCode = (shaderCode: string): string => {
+  const splitOnFragmentDecl = shaderCode.split("[[stage(fragment)]]");
+  const splitInFragmentDecl = splitOnFragmentDecl[1].split(
+    RegExp(/{([\s\S]*)/),
+    2
+  );
+  const globalVars =
+    "\nvar<private> res: vec2<f32>;\n" +
+    "var<private> pos: vec2<f32>;\n" +
+    "var<private> time: f32;\n" +
+    "var<private> mouse: vec2<f32>;\n";
+  const uniformBoilerplate =
+    "\nres = vec2<f32>(view_params.res_x, view_params.res_y);\n" +
+    "pos = vec2<f32>(in.position[0], in.position[1]);\n" +
+    "time = view_params.time;\n" +
+    "mouse = vec2<f32>(view_params.x, view_params.y);\n";
+
+  return (
+    globalVars +
+    splitOnFragmentDecl[0] +
+    "[[stage(fragment)]]" +
+    splitInFragmentDecl[0] +
+    "{" +
+    uniformBoilerplate +
+    splitInFragmentDecl[1]
+  );
+};
+
 export const outputMessages = async (
   shaderModule: GPUShaderModule,
   renderLogger: RenderLogger

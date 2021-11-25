@@ -19,6 +19,12 @@ struct ViewParams {
 
 [[group(0), binding(0)]]
 var<uniform> view_params: ViewParams;
+
+// AVAILABLE UNIFORMS (pre-declared, available globally):
+// - res (resolution): vec2<f32>(width, height);
+// - pos (pixel position): vec2<f32>(x, y);
+// - time (elapsed since render): f32;
+// - mouse (mouse position): vec2<f32>(x, y);
 `;
 
 export const texture2dShader = `
@@ -42,71 +48,30 @@ fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32>
 
 export const structsLength = structs.split(/\r\n|\r|\n/).length + 1;
 
-export const rectangleVertex = `/*${structs}*/
+const structsMessage =
+  "To see the predefined uniforms that you have available to you, click the help button above";
+
+export const rectangleVertex = `/*${structsMessage}*/
 
 [[stage(vertex)]]
-fn vertex_main([[builtin(vertex_index)]] index: u32, vert: VertexInput) -> VertexOutput {
-    var pos = array<vec2<f32>, 6>(
-        vec2<f32>(1.0, 1.0),
-        vec2<f32>(view_params.x, view_params.y),
-        vec2<f32>(-1.0, -1.0),
-        vec2<f32>(1.0, 1.0),
-        vec2<f32>(-1.0, 1.0),
-        vec2<f32>(-1.0, -1.0)
-    );
-    
-    var color = array<vec3<f32>, 6>(
-        vec3<f32>(1.0, 0.0, 0.0),
-        vec3<f32>(0.0, 1.0, 0.0),
-        vec3<f32>(0.0, 0.0, 1.0),
-        vec3<f32>(1.0, 0.0, 0.0),
-        vec3<f32>(0.0, 1.0, 0.0),
-        vec3<f32>(0.0, 0.0, 1.0)
-    );
-
+fn vertex_main(vert: VertexInput) -> VertexOutput {
     var out: VertexOutput;
-    out.position = vec4<f32>(pos[index], 0.0, 1.0);
-    out.color = vert.color + vec4<f32>(color[index], 1.0);
+    out.position = vec4<f32>(vert.position, 0.0, 1.0);
+    out.color = vert.color;
     return out;
 };`;
 
 export const rectangleFragment = `[[stage(fragment)]]
-fn fragment_main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
-    return sin(view_params.time * 0.01) * color;
+fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+  var out = sin(time * 0.01) * in.color;
+  if (pos[0] < res[0]/2.0) {
+      out = sin(time * 0.01 + 3.14) * in.color;
+  }
+  if (length(mouse - pos) < 10.0) {
+      out = vec4<f32>(1.0, 1.0, 1.0, 1.0);
+  } 
+  return out;
 };`;
-
-export const shaderTriangleFragment = `[[stage(fragment)]]
-fn fragment_main([[location(0)]] vColor: vec4<f32>) -> [[location(0)]] vec4<f32> {
-    return vColor;
-}
-`;
-
-export const shaderTriangleVertex = `struct Output {
-    [[builtin(position)]] Position : vec4<f32>;
-    [[location(0)]] vColor : vec4<f32>;
-};
-
-[[stage(vertex)]]
-fn vertex_main([[builtin(vertex_index)]] index: u32) -> Output {
-    var pos = array<vec2<f32>, 3>(
-        vec2<f32>(0.0, 0.5),
-        vec2<f32>(-0.5, -0.5),
-        vec2<f32>(0.5, -0.5)
-    );
-    
-    var color = array<vec3<f32>, 3>(
-        vec3<f32>(1.0, 0.0, 0.0),
-        vec3<f32>(0.0, 1.0, 0.0),
-        vec3<f32>(0.0, 0.0, 1.0)
-    );
-    
-    var output: Output;
-    output.Position = vec4<f32>(pos[index], 0.0, 1.0);
-    output.vColor = vec4<f32>(color[index], 1.0);
-    
-    return output;
-}
-`;
 
 export const cubeVertex = `
 [[block]] struct Uniforms {

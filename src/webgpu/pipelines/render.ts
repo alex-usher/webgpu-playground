@@ -2,6 +2,7 @@ import assert from "assert";
 import { structs } from "../shaders";
 import {
   addViewParamsToBuffer,
+  addUniformCode,
   checkWebGPU,
   createGPUBuffer,
   createTransforms,
@@ -52,6 +53,9 @@ const initialiseGPU = async (
     format: SWAPCHAIN_FORMAT,
     usage: usage,
   });
+
+  // add in uniform constant code in fragment shader
+  code = addUniformCode(code);
 
   const shaderModule = device.createShaderModule({
     code: `${structs}\n${code}`,
@@ -383,11 +387,6 @@ export const renderCubeShader = async (
     size: 4 * 5,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
-
-  // const viewParamsBindGroup = device.createBindGroup({
-  //   layout: bindGroupLayout,
-  //   entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
-  // });
 
   const uniformBuffer = device.createBuffer({
     size: 64,

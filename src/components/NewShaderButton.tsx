@@ -17,7 +17,14 @@ const NewShaderButton = () => {
   const [meshString, setMeshString] = useState<string>(MeshType.RECTANGLE);
 
   const meshOptions = Object.values(MeshType).map((value) => {
-    return <FormControlLabel value={value} control={<Radio />} label={value} />;
+    return (
+      <FormControlLabel
+        key={value}
+        value={value}
+        control={<Radio />}
+        label={value}
+      />
+    );
   });
 
   return (
