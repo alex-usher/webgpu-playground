@@ -62,6 +62,10 @@ const CodeEditorPage = () => {
   const [editorWidth, setEditorWidth] = useState("100%");
   const [loginFormOpen, setLoginFormOpen] = useState(false);
 
+  let recording = false;
+  let mediaRecorder: MediaRecorder;
+  let recordedChunks: Array<BlobEvent["data"]>;
+
   useEffect(() => {
     if (shader.shaderCode === "") {
       getShaderCode(shader).then((shaderWithCode: Shader) => {
@@ -177,6 +181,53 @@ const CodeEditorPage = () => {
       color="primary"
     >
       Export as PNG
+    </Button>,
+    <Button
+      key="recording-button"
+      id="recording-button"
+      variant="outlined"
+      disableElevation
+      onClick={() => {
+        const canvas = document.getElementById(
+          "canvas-webgpu"
+        ) as HTMLCanvasElement;
+        const recordBtn = document.getElementById(
+          "recording-button"
+        ) as HTMLElement;
+
+        recording = !recording;
+        if (recording) {
+          recordBtn.textContent = "Stop";
+          const stream = canvas.captureStream(25);
+          mediaRecorder = new MediaRecorder(stream, {
+            mimeType: "video/webm;codecs=vp9",
+          });
+          recordedChunks = [];
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+              recordedChunks.push(e.data);
+            }
+          };
+          mediaRecorder.start();
+        } else {
+          recordBtn.textContent = "Record";
+          mediaRecorder && mediaRecorder.stop();
+          setTimeout(() => {
+            const blob = new Blob(recordedChunks, {
+              type: "video/webm",
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "recording.webm";
+            a.click();
+            URL.revokeObjectURL(url);
+          }, 0);
+        }
+      }}
+      color="primary"
+    >
+      Record
     </Button>,
     <Button
       key="help-button"
