@@ -9,10 +9,12 @@ import {
   applyShiftTab,
   applyCtrlSlash,
   insertTab,
+  insertEnter,
 } from "../utils/textareaActions";
 
 // Shortcut inputs in the editor, optional argument order: shift, ctrl, alt
 const tab = new KeyboardShortcut("Tab");
+const enter = new KeyboardShortcut("Enter");
 const shiftTab = new KeyboardShortcut("Tab", true);
 const ctrlSlash = new KeyboardShortcut("/", false, true);
 
@@ -57,6 +59,14 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
           shortcut: tab,
           action: () => {
             insertTab(ref);
+            update(ref.value);
+          },
+        },
+        {
+          shortcut: enter,
+          action: () => {
+            console.log("Enter");
+            insertEnter(ref);
             update(ref.value);
           },
         },

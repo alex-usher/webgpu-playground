@@ -56,15 +56,41 @@ const insertTab = (textareaRef: HTMLTextAreaElement): string => {
   return newState.text;
 };
 
+// Indents based of the previous line or expected indentation level
+// eslint-disable-next-line
+const insertEnter = (textareaRef: HTMLTextAreaElement, tabSize = 2) => {
+  const state = getTextareaState(textareaRef);
+  const { text, start, end } = state;
+
+  const newState: textareaState = { text: "", start: 0, end: 0 };
+
+  const currentLineIndex = getCurrentLineIndex(state);
+  // Use current nesting of curly braces as a proxy for expected indentation
+  const indentationLevel =
+    (text.slice(0, start).match(/{/g) || []).length -
+    (text.slice(0, start).match(/}/g) || []).length;
+  const currentLineIndentation = (
+    text.slice(currentLineIndex, start).match(/ {tabSize}|\t/g) || []
+  ).length;
+  const newIndentation = Math.max(indentationLevel, currentLineIndentation);
+  const indentationString = "\t".repeat(newIndentation);
+  newState.text =
+    text.slice(0, start) + "\r\n" + indentationString + text.slice(end);
+  newState.start = end + (newState.text.length - text.length) - 1;
+  newState.end = end + (newState.text.length - text.length) - 1;
+  setTextareaState(newState, textareaRef);
+};
+
 // Remove indents from the selection
-const applyShiftTab = (textareaRef: HTMLTextAreaElement) => {
+// eslint-disable-next-line
+const applyShiftTab = (textareaRef: HTMLTextAreaElement, tabSize = 2) => {
   const currentState = getTextareaState(textareaRef);
 
   // remove both spaces and tabs from the start of lines
   const stateWithoutTabs = replaceSelectionLineStart(currentState, "\t", "");
   const newState = replaceSelectionLineStart(
     stateWithoutTabs,
-    /\n( {2}| )/gm,
+    /\n( {tabSize}| )/gm,
     ""
   );
 
@@ -139,4 +165,4 @@ const replaceSelectionLineStart = (
   return { text: newText, start: newStart, end: newEnd };
 };
 
-export { insertTab, applyShiftTab, applyCtrlSlash };
+export { insertTab, insertEnter, applyShiftTab, applyCtrlSlash };
