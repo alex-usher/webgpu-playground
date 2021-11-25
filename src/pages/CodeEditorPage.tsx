@@ -45,7 +45,9 @@ import { addShortcuts } from "../utils/shortcutListener";
 // Shortcut patterns
 const altT = new KeyboardShortcut("T", false, false, true);
 const altH = new KeyboardShortcut("H", false, false, true);
+const altA = new KeyboardShortcut("A", false, false, true);
 const ctrlS = new KeyboardShortcut("S", false, true);
+const ctrlE = new KeyboardShortcut("E", false, true);
 
 const CodeEditorPage = () => {
   const [shader, setShader] = useState<Shader>(
@@ -58,6 +60,7 @@ const CodeEditorPage = () => {
   const editorWidthRef = useRef("100%");
   const helpBoxVisibleRef = React.useRef(false);
   const saveFormOpenRef = React.useRef(false);
+  const actionDrawerOpenRef = React.useRef(false);
 
   const [shaderCode, setShaderCode] = useState(shader.shaderCode);
   const [showCode, setShowCode] = useState(showCodeRef.current);
@@ -71,7 +74,9 @@ const CodeEditorPage = () => {
   //const isLoggedIn = auth.currentUser == null;
   const [editorWidth, setEditorWidth] = useState(editorWidthRef.current);
   const [saveFormOpen, setSaveFormOpen] = useState(saveFormOpenRef.current);
-  const [actionDrawerOpen, setActionDrawerOpen] = useState(false);
+  const [actionDrawerOpen, setActionDrawerOpen] = useState(
+    actionDrawerOpenRef.current
+  );
   const [shaderName, setShaderName] = useState("Untitled");
   const history = useHistory();
   const [helpBoxVisible, setHelpBoxVisible] = useState(
@@ -106,9 +111,21 @@ const CodeEditorPage = () => {
         },
       },
       {
+        shortcut: altA,
+        action: () => {
+          toggleActionDrawer();
+        },
+      },
+      {
         shortcut: ctrlS,
         action: async () => {
           await handleFormOpen();
+        },
+      },
+      {
+        shortcut: ctrlE,
+        action: () => {
+          exportAsPng();
         },
       },
     ];
@@ -166,10 +183,25 @@ const CodeEditorPage = () => {
   const toggleActionDrawer = () => {
     // Only allow the drawer to open if the code actions button is available
     if (isSmallWidth) {
-      setActionDrawerOpen(!actionDrawerOpen);
+      actionDrawerOpenRef.current = !actionDrawerOpenRef.current;
+      setActionDrawerOpen(actionDrawerOpenRef.current);
     } else {
-      setActionDrawerOpen(false);
+      actionDrawerOpenRef.current = !actionDrawerOpenRef.current;
+      setActionDrawerOpen(actionDrawerOpenRef.current);
     }
+  };
+
+  const exportAsPng = () => {
+    const canvas = document.getElementById(
+      "canvas-webgpu"
+    ) as HTMLCanvasElement;
+    const link = document.createElement("a");
+    link.download = "shader.png";
+
+    canvas.toBlob(function (blob) {
+      link.href = URL.createObjectURL(blob);
+      link.click();
+    }, "image/png");
   };
 
   const editorActionComponents = [
@@ -215,18 +247,7 @@ const CodeEditorPage = () => {
       id="export-button"
       variant="outlined"
       disableElevation
-      onClick={() => {
-        const canvas = document.getElementById(
-          "canvas-webgpu"
-        ) as HTMLCanvasElement;
-        const link = document.createElement("a");
-        link.download = "shader.png";
-
-        canvas.toBlob(function (blob) {
-          link.href = URL.createObjectURL(blob);
-          link.click();
-        }, "image/png");
-      }}
+      onClick={exportAsPng}
       color="primary"
     >
       Export as PNG

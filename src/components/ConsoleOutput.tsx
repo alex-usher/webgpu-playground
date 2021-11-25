@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Button from "@mui/material/Button";
 
 import "../assets/consoleOutput.css";
@@ -7,8 +7,29 @@ interface ConsoleOutputProps {
   messages: string;
 }
 
+import KeyboardShortcut from "../utils/keyboardShortcuts";
+import { addShortcuts } from "../utils/shortcutListener";
+
 export const ConsoleOutput = ({ messages }: ConsoleOutputProps) => {
-  const [viewConsole, setViewConsole] = useState(true);
+  const viewConsoleRef = useRef(true);
+  const [viewConsole, setViewConsole] = useState(viewConsoleRef.current);
+
+  useEffect(() => {
+    const shortcuts = [
+      {
+        shortcut: new KeyboardShortcut("E", false, false, true),
+        action: () => {
+          toggleViewConsole();
+        },
+      },
+    ];
+    addShortcuts("*", shortcuts);
+  }, []);
+
+  const toggleViewConsole = () => {
+    viewConsoleRef.current = !viewConsoleRef.current;
+    setViewConsole(viewConsoleRef.current);
+  };
 
   return (
     <div
@@ -25,7 +46,7 @@ export const ConsoleOutput = ({ messages }: ConsoleOutputProps) => {
       <Button
         variant="outlined"
         className="view-console-button"
-        onClick={() => setViewConsole(!viewConsole)}
+        onClick={toggleViewConsole}
       >
         {viewConsole ? "Hide Console" : "View Console"}
       </Button>
