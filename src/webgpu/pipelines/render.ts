@@ -219,8 +219,7 @@ export const renderRectangleShader = async (
 
   if (isTextured) {
     const img = await getImageFromUrl(
-      imageUrl ||
-        "https://images.squarespace-cdn.com/content/v1/571fc5edd210b89083925aba/1542571642279-HPT4H2FNOPFSI8685H7Y/LiamWong_MinutesToMidnight_Tokyo.jpg?format=2500w"
+      imageUrl || "https://i.ibb.co/M5Z06wy/triangle.png"
     );
     const bitmap = await createImageBitmap(img);
 
