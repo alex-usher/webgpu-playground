@@ -5,6 +5,7 @@ import {
   doc,
   DocumentData,
   DocumentSnapshot,
+  deleteDoc,
   getDoc,
   getDocs,
   limit,
@@ -13,6 +14,7 @@ import {
   runTransaction,
   startAfter,
 } from "@firebase/firestore/lite";
+import { ref, deleteObject } from "@firebase/storage";
 import { setDoc } from "@firebase/firestore/lite";
 
 import SnackbarUtils from "./Snackbar";
@@ -25,7 +27,7 @@ import {
   MeshType,
   ShaderTypeEnum,
 } from "../objects/Shader";
-import { auth, firedb } from "../firebase";
+import { auth, firedb, firestorage } from "../firebase";
 
 export const fetchPaginatedShaders = async (
   shaderTypeEnum: ShaderTypeEnum,
@@ -190,6 +192,30 @@ export const getShaderById = async (id: string): Promise<Shader> => {
   return data;
 };
 
+export const getShaderDataById = async (id: string): Promise<DocumentData> => {
+  const user = auth.currentUser;
+  let querySnapshot;
+
+  if (user) {
+    querySnapshot = await getDoc(doc(firedb, "users", user.uid, "shaders", id));
+  }
+
+  let data = querySnapshot?.data();
+  if (!data) {
+    querySnapshot = await getDoc(doc(firedb, "example-shaders", id));
+    data = querySnapshot?.data();
+    if (!data) {
+      querySnapshot = await getDoc(doc(firedb, "public-shaders", id));
+
+      data = querySnapshot?.data();
+      if (!data) {
+        throw new Error("Shader data could not be retrieved from Firebase");
+      }
+    }
+  }
+  return data;
+};
+
 class nameErr extends Error {
   dupedName: string;
   constructor(dupedName: string) {
@@ -198,19 +224,51 @@ class nameErr extends Error {
   }
 }
 
-// export const deleteShader = async (shader: Shader) => {
-//   // delete shader document from users, public and it's code file
-//   console.log(shader);
-// };
+export const deleteShader = async (shader: Shader): Promise<boolean> => {
+  // delete shader
+  try {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new loggedOutErr();
+    }
 
-// const deleteCodeFile = async (shader: Shader) => {
-//   // delete shader's code file
-//   console.log(shader);
-// };
+    if (shader.id === "") {
+      throw new Error("Cannot delete an unsaved shader.");
+    }
+
+    await deleteFiles(shader);
+    await deleteDoc(doc(firedb, "users", user.uid, "shaders", shader.id));
+    await deleteDoc(doc(firedb, "public-shaders", shader.id));
+    return true;
+  } catch (err) {
+    if (err instanceof loggedOutErr) {
+      SnackbarUtils.error("You must be logged in to delete a shader.");
+    } else {
+      SnackbarUtils.error("Error deleting shader.");
+    }
+    return false;
+  }
+};
+
+const deleteFiles = async (shader: Shader) => {
+  const shaderData = await getShaderDataById(shader.id);
+  await deleteCodeFile(shaderData);
+  await deleteImageFile(shaderData);
+};
+
+const deleteCodeFile = async (shaderData: DocumentData) => {
+  const shaderRef = ref(firestorage, shaderData.shader_code);
+  await deleteObject(shaderRef);
+};
+
+const deleteImageFile = async (shaderData: DocumentData) => {
+  const imageRef = ref(firestorage, shaderData.image);
+  await deleteObject(imageRef);
+};
 
 export const overwriteShader = async (shader: Shader) => {
   try {
-    // await deleteCodeFile(shader);
+    await deleteCodeFile(await getShaderDataById(shader.id));
     const shaderDoc = await shaderConverter.toFirestore(shader);
 
     const user = auth.currentUser;

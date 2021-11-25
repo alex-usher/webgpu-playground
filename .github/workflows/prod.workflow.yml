@@ -2,11 +2,11 @@
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
 name: Node.js PROD CI
-env: 
+env:
   CI: false
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
     types: closed
     branches:
@@ -22,7 +22,7 @@ jobs:
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v1.2
         with:
-          publish-dir: './dist'
+          publish-dir: "./dist"
           production-branch: master
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: "Deploy from GitHub Actions"
