@@ -17,7 +17,8 @@ export const outputMessages = async (
         renderLogger.logMessage(
           `(${message.lineNum - structsLength}, ${message.linePos}): ${
             message.message
-          }`
+          }`,
+          "error"
         );
         error = error || message.type === "error";
       }
