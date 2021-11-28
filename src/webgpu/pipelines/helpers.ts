@@ -107,8 +107,12 @@ export const createViewProjection = (
   cameraPosition: vec3 = [2, 2, 4],
   lookDirection: vec3 = [0, 0, 0],
   upDirection: vec3 = [0, 1, 0]
-  // eslint-disable-next-line
-): any => {
+): {
+  viewMatrix: mat4;
+  projectionMatrix: mat4;
+  viewProjectionMatrix: mat4;
+  cameraOption: { eye: vec3; center: vec3; zoomMax: number; zoomSpeed: number };
+} => {
   const viewMatrix = mat4.create();
   const projectionMatrix = mat4.create();
   const viewProjectionMatrix = mat4.create();
