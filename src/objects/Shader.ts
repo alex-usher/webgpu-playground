@@ -195,7 +195,7 @@ export const defaultShader = (meshType: MeshType): Shader => {
   // set shader to a default rectangle
   let shader = new Shader(
     uuidv4() + "example_textured_rectangle",
-    "Textured Rectange",
+    "Textured Rectangle",
     "https://i.ibb.co/M5Z06wy/triangle.png",
     false,
     `${rectangleVertex}\n${rectangleFragment}`,

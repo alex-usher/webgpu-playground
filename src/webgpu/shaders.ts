@@ -89,6 +89,6 @@ fn vertex_main([[location(0)]] pos: vec4<f32>, [[location(1)]] color: vec4<f32>)
 
 export const cubeFragment = `
 [[stage(fragment)]]
-fn fragment_main([[location(0)]] color: vec4<f32>) -> [[location(0)]] vec4<f32> {
-    return color;
+fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+    return in.color;
 }`;
