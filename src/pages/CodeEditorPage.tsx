@@ -15,7 +15,9 @@ import ShaderCanvas from "../components/ShaderCanvas";
 import HelpBanner from "../components/HelpBanner";
 import FormDialog from "../components/FormDialog";
 import Drawer from "@mui/material/Drawer";
+import SnackbarUtils from "../utils/Snackbar";
 import {
+  deleteShader,
   getShaderCode,
   overwriteShader,
   isCurrentUsersShader,
@@ -202,6 +204,21 @@ const CodeEditorPage = () => {
       color="secondary"
     >
       Help
+    </Button>,
+    <Button
+      key="delete-button"
+      id="delete-button"
+      variant="outlined"
+      disableElevation
+      color="error"
+      onClick={async () => {
+        if (await deleteShader(shader)) {
+          SnackbarUtils.success("Successfully deleted " + shaderName + ".");
+          history.goBack();
+        }
+      }}
+    >
+      Delete
     </Button>,
 
     <FormDialog
