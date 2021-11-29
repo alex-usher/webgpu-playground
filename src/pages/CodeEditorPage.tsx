@@ -75,8 +75,7 @@ const CodeEditorPage = () => {
   const [viewCodeText, setViewCodeText] = useState("View Code");
 
   const history = useHistory();
-  
-  
+
   let recording = false;
   let mediaRecorder: MediaRecorder;
   let recordedChunks: Array<BlobEvent["data"]>;
