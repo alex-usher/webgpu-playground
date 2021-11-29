@@ -84,7 +84,8 @@ export const generateFrameFunction = (
   dataBuffer: GPUBuffer,
   device: GPUDevice,
   renderPipeline: GPURenderPipeline,
-  viewParamsBuffer: GPUBuffer
+  viewParamsBuffer: GPUBuffer,
+  samplingTexture?: GPUTexture
 ): (() => void) => {
   const frame = (): void => {
     const res_x = canvas.width;
@@ -118,6 +119,19 @@ export const generateFrameFunction = (
       renderPass.draw(6, 1, 0, 0);
       renderPass.endPass();
 
+      if (samplingTexture) {
+        const currentTexture = context.getCurrentTexture();
+        commandEncoder.copyTextureToTexture(
+          {
+            texture: currentTexture,
+          },
+          {
+            texture: samplingTexture,
+          },
+          [canvas.width, canvas.height]
+        );
+      }
+
       device.queue.submit([commandEncoder.finish()]);
       time++;
     }
@@ -136,7 +150,9 @@ export const renderRectangleShader = async (
 ): Promise<void> => {
   const init = await initialiseGPU(
     shaderCode,
-    GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+    GPUTextureUsage.RENDER_ATTACHMENT |
+      GPUTextureUsage.TEXTURE_BINDING |
+      GPUTextureUsage.COPY_SRC,
     renderLogger
   );
 
@@ -176,6 +192,15 @@ export const renderRectangleShader = async (
                 sampleType: "float",
                 viewDimension: "2d",
                 multisampled: false,
+              },
+            } as GPUBindGroupLayoutEntry,
+            {
+              binding: 3,
+              visibility: GPUShaderStage.FRAGMENT,
+              type: "sampled-texture",
+              texture: {
+                sampleType: "float",
+                viewDimension: "2d",
               },
             } as GPUBindGroupLayoutEntry,
           ]
@@ -239,6 +264,16 @@ export const renderRectangleShader = async (
         GPUTextureUsage.TEXTURE_BINDING,
     });
 
+    const samplingTexture = device.createTexture({
+      size: {
+        width: canvas.clientWidth,
+        height: canvas.clientHeight,
+        depth: 1,
+      } as GPUExtent3DDict,
+      format: SWAPCHAIN_FORMAT,
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+    });
+
     const sampler = device.createSampler({
       magFilter: "linear",
       minFilter: "nearest",
@@ -261,6 +296,7 @@ export const renderRectangleShader = async (
         { binding: 0, resource: { buffer: viewParamsBuffer } },
         { binding: 1, resource: sampler },
         { binding: 2, resource: texture2d.createView() },
+        { binding: 3, resource: samplingTexture.createView() },
       ],
     });
   } else {
