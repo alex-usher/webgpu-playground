@@ -212,9 +212,13 @@ const CodeEditorPage = () => {
       disableElevation
       color="error"
       onClick={async () => {
-        if (await deleteShader(shader)) {
-          SnackbarUtils.success("Successfully deleted " + shaderName + ".");
-          history.goBack();
+        try {
+          await deleteShader(shader).then(() => {
+            SnackbarUtils.success("Successfully deleted " + shaderName + ".");
+            history.goBack();
+          });
+        } catch (error) {
+          SnackbarUtils.error("Failed to delete " + shaderName + ".");
         }
       }}
     >
