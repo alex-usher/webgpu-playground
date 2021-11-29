@@ -5,7 +5,9 @@ import {
   shaderTriangleVertex,
 } from "../sample_shaders/triangle";
 
-import * as shaders from "../../render";
+import * as helpers from "../../webgpu/pipelines/helpers";
+import * as renders from "../../webgpu/pipelines/render";
+import { MeshType } from "../../objects/Shader";
 import { RenderLogger } from "../../objects/RenderLogger";
 
 const renderShaderCanvas = (
@@ -14,6 +16,7 @@ const renderShaderCanvas = (
   render(
     <ShaderCanvas
       shaderCode={`${shaderTriangleVertex}\n${shaderTriangleFragment}`}
+      meshType={MeshType.RECTANGLE}
       setRenderLogger={setRenderLogger}
     />
   );
@@ -27,8 +30,8 @@ const setRenderLogger = jest.fn(() => {
 
 describe("Shader Canvas component tests", () => {
   beforeEach(() => {
-    checkWebGPUMock = jest.spyOn(shaders, "checkWebGPU");
-    simpleShaderMock = jest.spyOn(shaders, "renderShader");
+    checkWebGPUMock = jest.spyOn(helpers, "checkWebGPU");
+    simpleShaderMock = jest.spyOn(renders, "renderShader");
 
     simpleShaderMock.mockImplementation(() => {
       return new Promise((resolve) => resolve(""));

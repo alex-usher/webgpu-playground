@@ -1,12 +1,21 @@
 import FormDialog from "../../components/FormDialog";
 import userEvent from "@testing-library/user-event";
 import { act, render, screen } from "@testing-library/react";
-import { Shader } from "../../objects/Shader";
+import { MeshType, Shader } from "../../objects/Shader";
 import * as firebaseHelper from "../../utils/firebaseHelper";
 
 import { shaderTriangleVertex } from "../sample_shaders/triangle";
 
 import "@testing-library/jest-dom/extend-expect";
+
+const defaultShader = new Shader(
+  "testid",
+  "testfile",
+  "testimage",
+  false,
+  shaderTriangleVertex,
+  MeshType.RECTANGLE
+);
 
 const renderFormDialog = async (
   open: boolean,
@@ -21,17 +30,10 @@ const renderFormDialog = async (
         handleClose={handleClose}
         shaderCode={shaderCode}
         updateShader={updateShader}
+        meshType={defaultShader.meshType}
       />
     );
   });
-
-const defaultShader = new Shader(
-  "testid",
-  "testfile",
-  "testimage",
-  false,
-  shaderTriangleVertex
-);
 
 let saveNewShaderMock: jest.SpyInstance;
 let handleCloseMock: jest.MockedFunction<() => void>;
@@ -72,7 +74,14 @@ describe("Form Dialog component tests", () => {
 
     expect(saveNewShaderMock).toHaveBeenCalledTimes(1);
     expect(saveNewShaderMock).toHaveBeenCalledWith(
-      new Shader("", "Untitled", "", false, shaderTriangleVertex)
+      new Shader(
+        "",
+        "Untitled",
+        "",
+        false,
+        shaderTriangleVertex,
+        MeshType.RECTANGLE
+      )
     );
 
     expect(updateShaderMock).toHaveBeenCalledTimes(1);
@@ -98,7 +107,7 @@ describe("Form Dialog component tests", () => {
     });
 
     expect(saveNewShaderMock).toHaveBeenCalledWith(
-      new Shader("", "a", "", false, shaderTriangleVertex)
+      new Shader("", "a", "", false, shaderTriangleVertex, MeshType.RECTANGLE)
     );
   });
 });

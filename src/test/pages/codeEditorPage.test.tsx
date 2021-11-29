@@ -2,8 +2,10 @@ import userEvent from "@testing-library/user-event";
 import { act, render, screen } from "@testing-library/react";
 import CodeEditorPage from "../../pages/CodeEditorPage";
 import { SnackbarProvider } from "notistack";
-import { Shader } from "../../objects/Shader";
-import * as shaders from "../../render";
+import { MeshType, Shader } from "../../objects/Shader";
+import * as helpers from "../../webgpu/pipelines/helpers";
+import * as renders from "../../webgpu/pipelines/render";
+import * as shaders from "../../webgpu/shaders";
 import { v4 as uuidv4 } from "uuid";
 import routeData from "react-router";
 import { BrowserRouter } from "react-router-dom";
@@ -16,7 +18,8 @@ const shader = new Shader(
   "test",
   "http://www.test.com",
   false,
-  `${shaders.rectangleVertex}\n${shaders.rectangleFragment}`
+  `${shaders.rectangleVertex}\n${shaders.rectangleFragment}`,
+  MeshType.RECTANGLE
 );
 
 const renderCodeEditorPage = async () =>
@@ -53,9 +56,9 @@ const mockLocation = {
 const doMocks = () => {
   jest.spyOn(routeData, "useLocation").mockReturnValue(mockLocation);
 
-  checkWebGPUMock = jest.spyOn(shaders, "checkWebGPU");
+  checkWebGPUMock = jest.spyOn(helpers, "checkWebGPU");
   checkWebGPUMock.mockImplementation(() => true);
-  simpleShaderMock = jest.spyOn(shaders, "renderShader");
+  simpleShaderMock = jest.spyOn(renders, "renderShader");
   simpleShaderMock.mockImplementation(() => {
     return new Promise((resolve) => {
       resolve("");
