@@ -27,6 +27,7 @@ export enum MeshType {
   RECTANGLE = "Rectangle",
   TEXTURED_RECTANGLE = "Textured Rectangle",
   CUBE = "Cube",
+  CUSTOM = "Custom",
 }
 
 // TODO - find a neater way of handling parsing strings to enums
@@ -40,6 +41,8 @@ export const MeshTypeFromValue = (typeString: string): MeshType => {
       return MeshType.TEXTURED_RECTANGLE;
     case "Cube":
       return MeshType.CUBE;
+    case "Custom":
+      return MeshType.CUSTOM;
   }
   return MeshType.RECTANGLE;
 };
@@ -52,6 +55,8 @@ export const StringFromMeshType = (meshType: MeshType | FieldValue) => {
       return "Textured Rectangle";
     case MeshType.CUBE:
       return "Cube";
+    case MeshType.CUSTOM:
+      return "Custom";
   }
 };
 

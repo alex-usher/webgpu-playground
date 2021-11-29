@@ -30,8 +30,6 @@ import "../assets/codeEditorPage.css";
 
 import { auth } from "../firebase";
 
-import { useTheme } from "@mui/material/styles";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { TextField } from "@mui/material";
 import { ConsoleOutput } from "../components/ConsoleOutput";
 import { MeshType } from "../objects/Shader";
@@ -70,9 +68,10 @@ const CodeEditorPage = () => {
   );
   const [saveFormOpen, setSaveFormOpen] = useState(false);
   const [shaderCode, setShaderCode] = useState(shader.shaderCode);
-  const [shaderName, setShaderName] = useState("Untitled" + meshType);
+  const [shaderName, setShaderName] = useState("Untitled " + meshType);
   const [showCode, setShowCode] = useState(false);
   const [viewCodeText, setViewCodeText] = useState("View Code");
+  const [bufferModalOpen, setBufferModalOpen] = useState(false);
 
   const history = useHistory();
 
@@ -115,8 +114,6 @@ const CodeEditorPage = () => {
     }
   };
 
-  const isSmallWidth = useMediaQuery(useTheme().breakpoints.down("xl"));
-
   const toggleHelpVisible = () => {
     setHelpBoxVisible(!helpBoxVisible);
     {
@@ -124,53 +121,7 @@ const CodeEditorPage = () => {
     }
   };
 
-  const toggleActionDrawer = () => {
-    // Only allow the drawer to open if the code actions button is available
-    if (isSmallWidth) {
-      setActionDrawerOpen(!actionDrawerOpen);
-    } else {
-      setActionDrawerOpen(false);
-    }
-  };
-
   const editorActionComponents = [
-    <Button
-      key="compile-button"
-      id="compile-button"
-      variant="outlined"
-      disableElevation
-      color={
-        renderLogger.hasErrors()
-          ? "error"
-          : renderLogger.hasWarnings()
-          ? "warning"
-          : "success"
-      }
-      onClick={() => {
-        setRenderedShaderCode(shaderCode);
-      }}
-    >
-      Compile
-    </Button>,
-    <div key="save-div">
-      <Button
-        key="save-button"
-        id="save-button"
-        variant="outlined"
-        disableElevation
-        fullWidth
-        color="success"
-        onClick={handleFormOpen}
-      >
-        Save
-      </Button>
-      <Dialog open={loginFormOpen} onClose={handleFormClose}>
-        <DialogTitle>Sign in to save a shader</DialogTitle>
-        <DialogContent style={{ display: "flex", justifyContent: "center" }}>
-          <SignInButton />
-        </DialogContent>
-      </Dialog>
-    </div>,
     <Button
       key="export-button"
       id="export-button"
@@ -199,7 +150,7 @@ const CodeEditorPage = () => {
       disableElevation
       onClick={() => {
         toggleHelpVisible();
-        toggleActionDrawer();
+        setActionDrawerOpen(!actionDrawerOpen);
       }}
       color="secondary"
     >
@@ -330,18 +281,57 @@ const CodeEditorPage = () => {
                 {viewCodeText}
               </Button>
             </Grid>
-            {showCode && !isSmallWidth ? (
-              <Grid item>
-                <Stack direction="row" spacing={2}>
-                  {editorActionComponents}
-                </Stack>
-              </Grid>
-            ) : (
-              <></>
+            {showCode && (
+              <>
+                <Grid item>
+                  <Button
+                    key="buffers-button"
+                    variant="outlined"
+                    disableElevation
+                    fullWidth
+                    onClick={() => setBufferModalOpen(true)}
+                  >
+                    Buffers
+                  </Button>
+                  <Dialog
+                    open={bufferModalOpen}
+                    onClose={() => setBufferModalOpen(false)}
+                  >
+                    <DialogTitle>Define custom buffers</DialogTitle>
+                    <DialogContent
+                      style={{ display: "flex", justifyContent: "center" }}
+                    >
+                      <textarea className="vertices" />
+                      <textarea className="colours" />
+                      <textarea className="vertexCount" />
+                    </DialogContent>
+                  </Dialog>
+                </Grid>
+                <Grid item>
+                  <Button
+                    key="save-button"
+                    id="save-button"
+                    variant="outlined"
+                    disableElevation
+                    fullWidth
+                    color="success"
+                    onClick={handleFormOpen}
+                  >
+                    Save
+                  </Button>
+                  <Dialog open={loginFormOpen} onClose={handleFormClose}>
+                    <DialogTitle>Sign in to save a shader</DialogTitle>
+                    <DialogContent
+                      style={{ display: "flex", justifyContent: "center" }}
+                    >
+                      <SignInButton />
+                    </DialogContent>
+                  </Dialog>
+                </Grid>
+              </>
             )}
           </Grid>
 
-          {/* Shader title (roughly spaced on either side) */}
           <Grid container direction="row" justifyContent="left">
             <Grid item>
               <Typography
@@ -380,42 +370,33 @@ const CodeEditorPage = () => {
                 )}
               </IconButton>
             </Grid>
-            <>
-              {/* Display editor opacity normally if screen is wide, hide in a drawer otherwise */}
-              {!isSmallWidth ? (
-                <>{opacitySliderComponent}</>
-              ) : (
-                <>
-                  <Button
-                    id="editor-action-dropdown"
-                    variant="outlined"
-                    disableElevation
-                    color="primary"
-                    endIcon={<ArrowDropDownIcon />}
-                    onClick={toggleActionDrawer}
-                  >
-                    {"Code Actions"}
-                  </Button>
-                  <Drawer
-                    anchor={"right"}
-                    open={actionDrawerOpen}
-                    onClose={toggleActionDrawer}
-                  >
-                    <Stack
-                      direction="column"
-                      spacing={5}
-                      style={{
-                        paddingTop: "5vh",
-                        paddingLeft: "2vh",
-                        paddingRight: "2vh",
-                      }}
-                    >
-                      {editorActionComponents.concat([opacitySliderComponent])}
-                    </Stack>
-                  </Drawer>
-                </>
-              )}{" "}
-            </>
+            <Button
+              id="editor-action-dropdown"
+              variant="outlined"
+              disableElevation
+              color="primary"
+              endIcon={<ArrowDropDownIcon />}
+              onClick={() => setActionDrawerOpen(!actionDrawerOpen)}
+            >
+              {"Code Actions"}
+            </Button>
+            <Drawer
+              anchor={"right"}
+              open={actionDrawerOpen}
+              onClose={() => setActionDrawerOpen(!actionDrawerOpen)}
+            >
+              <Stack
+                direction="column"
+                spacing={5}
+                style={{
+                  paddingTop: "5vh",
+                  paddingLeft: "2vh",
+                  paddingRight: "2vh",
+                }}
+              >
+                {editorActionComponents.concat([opacitySliderComponent])}
+              </Stack>
+            </Drawer>
           </Grid>
         </Stack>
       </div>
