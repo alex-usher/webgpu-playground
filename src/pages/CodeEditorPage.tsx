@@ -1,30 +1,29 @@
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
-import { useEffect, useState } from "react";
-import { useHistory, useLocation } from "react-router-dom";
+import Grid from "@mui/material/Grid";
+import Stack from "@mui/material/Stack";
+import Slider from "@mui/material/Slider";
+import Typography from "@mui/material/Typography";
 import { defaultShader, Shader } from "../objects/Shader";
+import DoneIcon from "@mui/icons-material/Done";
 import Editor from "../components/Editor";
 import ShaderCanvas from "../components/ShaderCanvas";
 import HelpBanner from "../components/HelpBanner";
 import FormDialog from "../components/FormDialog";
+import Drawer from "@mui/material/Drawer";
+import SnackbarUtils from "../utils/Snackbar";
 import {
-  Drawer,
-  Grid,
-  Stack,
-  Slider,
-  Typography,
-  Button,
-  IconButton,
-} from "@mui/material";
-import {
-  getShaderCode,
   deleteShader,
+  getShaderCode,
   overwriteShader,
   isCurrentUsersShader,
 } from "../utils/firebaseHelper";
-import SnackbarUtils from "../utils/Snackbar";
+import { useEffect, useState } from "react";
+import { useHistory, useLocation } from "react-router-dom";
 
 import "../assets/style.css";
 import "../assets/codeEditorPage.css";
@@ -33,35 +32,51 @@ import { auth } from "../firebase";
 
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { Dialog, DialogContent, DialogTitle } from "@mui/material";
+import { TextField } from "@mui/material";
 import { ConsoleOutput } from "../components/ConsoleOutput";
-import React from "react";
+import { MeshType } from "../objects/Shader";
+import { Dialog, DialogContent, DialogTitle } from "@mui/material";
 import SignInButton from "../components/SignInButton";
 import { RenderLogger } from "../objects/RenderLogger";
 
 const CodeEditorPage = () => {
+  const state = useLocation().state as {
+    shader: Shader;
+    meshType: MeshType;
+  };
+  const isLoadedShader = state.shader;
+  // TODO - this has a default for now but in the future this should never be empty
+  // Firebase should always save the type of mesh a shader uses
+  const meshType = state.meshType ? state.meshType : isLoadedShader.meshType;
+
+  // Get the loaded shader code if is a loaded shader, else get the default corresponding to the mesh
   const [shader, setShader] = useState<Shader>(
-    useLocation().state
+    isLoadedShader
       ? (useLocation().state as { shader: Shader }).shader
-      : defaultShader
+      : defaultShader(meshType)
   );
-  const [shaderCode, setShaderCode] = useState(shader.shaderCode);
-  const [showCode, setShowCode] = useState(false);
-  const [viewCodeText, setViewCodeText] = useState("View Code");
+
+  const [actionDrawerOpen, setActionDrawerOpen] = useState(false);
+  const [editorWidth, setEditorWidth] = useState("100%");
+  const [editorOpacity, setEditorOpacity] = useState(0.5);
+  const [helpBoxVisible, setHelpBoxVisible] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
+  const [inFullscreen, setInFullscreen] = useState(false);
+  const [loginFormOpen, setLoginFormOpen] = useState(false);
+  const [renderedImageUrl, setRenderedImageUrl] = useState("");
+  const [renderLogger, setRenderLogger] = useState(new RenderLogger());
   const [renderedShaderCode, setRenderedShaderCode] = useState(
     shader.shaderCode
   );
-  const [renderLogger, setRenderLogger] = useState(new RenderLogger());
-  const [inFullscreen, setInFullscreen] = useState(false);
-  const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [saveFormOpen, setSaveFormOpen] = useState(false);
-  const [actionDrawerOpen, setActionDrawerOpen] = useState(false);
-  const [shaderName, setShaderName] = useState("Untitled");
-  const history = useHistory();
-  const [helpBoxVisible, setHelpBoxVisible] = useState(false);
-  const [editorWidth, setEditorWidth] = useState("100%");
-  const [loginFormOpen, setLoginFormOpen] = useState(false);
+  const [shaderCode, setShaderCode] = useState(shader.shaderCode);
+  const [shaderName, setShaderName] = useState("Untitled" + meshType);
+  const [showCode, setShowCode] = useState(false);
+  const [viewCodeText, setViewCodeText] = useState("View Code");
 
+  const history = useHistory();
+  
+  
   let recording = false;
   let mediaRecorder: MediaRecorder;
   let recordedChunks: Array<BlobEvent["data"]>;
@@ -243,15 +258,19 @@ const CodeEditorPage = () => {
       Help
     </Button>,
     <Button
-      key={10}
+      key="delete-button"
       id="delete-button"
       variant="outlined"
       disableElevation
       color="error"
       onClick={async () => {
-        if (await deleteShader(shader)) {
-          SnackbarUtils.success("Successfully deleted " + shaderName + ".");
-          history.goBack();
+        try {
+          await deleteShader(shader).then(() => {
+            SnackbarUtils.success("Successfully deleted " + shaderName + ".");
+            history.goBack();
+          });
+        } catch (error) {
+          SnackbarUtils.error("Failed to delete " + shaderName + ".");
         }
       }}
     >
@@ -264,7 +283,29 @@ const CodeEditorPage = () => {
       handleClose={handleFormClose}
       shaderCode={shaderCode}
       updateShader={(shader) => setShader(shader)}
+      meshType={shader.meshType}
     />,
+    ...(meshType === MeshType.TEXTURED_RECTANGLE
+      ? [
+          <div
+            key="upload-image-url-div"
+            style={{ display: "flex", justifyContent: "space-between" }}
+          >
+            <TextField
+              label="Image URL"
+              variant="outlined"
+              size="small"
+              onChange={(event) => setImageUrl(event.target.value)}
+            />
+            <IconButton
+              size="small"
+              onClick={() => setRenderedImageUrl(imageUrl)}
+            >
+              <DoneIcon />
+            </IconButton>
+          </div>,
+        ]
+      : []),
   ];
 
   const opacitySliderComponent = (
@@ -433,7 +474,9 @@ const CodeEditorPage = () => {
 
       <ShaderCanvas
         shaderCode={renderedShaderCode}
+        meshType={meshType}
         setRenderLogger={setRenderLogger}
+        imageUrl={renderedImageUrl}
       />
       {showCode ? (
         <ConsoleOutput messages={renderLogger.getMessages()} />
