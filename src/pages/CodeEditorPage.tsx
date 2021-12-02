@@ -51,7 +51,7 @@ const CodeEditorPage = () => {
   const [editorOpacity, setEditorOpacity] = useState(0.5);
   const [helpBoxVisible, setHelpBoxVisible] = useState(false);
   const [inFullscreen, setInFullscreen] = useState(false);
-  const [renderedImageUrl, setRenderedImageUrl] = useState("");
+  const [renderedImageUrl, setRenderedImageUrl] = useState(shader.imageUrl);
   const [saveFormOpen, setSaveFormOpen] = useState(false);
   const [loginFormOpen, setLoginFormOpen] = useState(false);
   const [renderLogger, setRenderLogger] = useState(new RenderLogger());
@@ -100,6 +100,7 @@ const CodeEditorPage = () => {
         setVertexBuffer(shader.vertexBuffer);
         setColourBuffer(shader.colourBuffer);
         setNumberOfVertices(shader.numberOfVertices.toString());
+        setRenderedImageUrl(shader.imageUrl);
         // Only set the name if getting an existing shader - new shaders will display "untitled"
         setShaderName(shader.title);
       });
@@ -111,7 +112,14 @@ const CodeEditorPage = () => {
     shader.vertexBuffer = vertexBuffer;
     shader.colourBuffer = colourBuffer;
     shader.numberOfVertices = numberOfVertices;
-  }, [shaderCode, vertexBuffer, colourBuffer, numberOfVertices]);
+    shader.imageUrl = renderedImageUrl;
+  }, [
+    shaderCode,
+    vertexBuffer,
+    colourBuffer,
+    numberOfVertices,
+    renderedImageUrl,
+  ]);
 
   return (
     <div id="body">
@@ -188,6 +196,7 @@ const CodeEditorPage = () => {
                     vertexBuffer={vertexBuffer}
                     colourBuffer={colourBuffer}
                     numberOfVertices={numberOfVertices}
+                    imageUrl={renderedImageUrl}
                   />
                 </Grid>
                 <Grid item>

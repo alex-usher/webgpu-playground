@@ -106,6 +106,7 @@ export class Shader {
   vertexBuffer: string;
   colourBuffer: string;
   numberOfVertices: string;
+  imageUrl: string;
 
   constructor(
     id: string,
@@ -116,7 +117,8 @@ export class Shader {
     meshType: MeshType,
     vertexBuffer: string = rectangleVertexBuffer,
     colourBuffer: string = rectangleColourBuffer,
-    numberOfVertices: string = rectangleNumberOfVertices.toString()
+    numberOfVertices: string = rectangleNumberOfVertices.toString(),
+    imageUrl = ""
   ) {
     this.id = id;
     this.title = title;
@@ -127,6 +129,7 @@ export class Shader {
     this.vertexBuffer = vertexBuffer;
     this.colourBuffer = colourBuffer;
     this.numberOfVertices = numberOfVertices;
+    this.imageUrl = imageUrl;
   }
 }
 
@@ -162,6 +165,7 @@ export const shaderConverter = {
       vertexBuffer: shader.vertexBuffer,
       colourBuffer: shader.colourBuffer,
       numberOfVertices: shader.numberOfVertices,
+      imageUrl: shader.imageUrl,
     };
   },
   fromFirestore(snapshot: QueryDocumentSnapshot): Shader {
@@ -181,7 +185,8 @@ export const shaderConverter = {
       data.colourBuffer ? data.colourBuffer : rectangleColourBuffer,
       data.numberOfVertices
         ? data.numberOfVertices
-        : rectangleNumberOfVertices.toString()
+        : rectangleNumberOfVertices.toString(),
+      data.imageUrl ? data.imageUrl : ""
     );
   },
 };
@@ -235,6 +240,8 @@ export const defaultShader = (meshType: MeshType): Shader => {
     shader.shaderCode = texture2dShader;
     shader.id = uuidv4() + "example_textured_rectangle";
     shader.title = "Textured Rectangle";
+    shader.meshType = MeshType.TEXTURED_RECTANGLE;
+    shader.imageUrl = shader.image;
   } else if (meshType === MeshType.CUBE) {
     // TODO change to return a default cube shader
     shader = new Shader(
