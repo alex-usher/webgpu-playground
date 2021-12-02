@@ -1,18 +1,10 @@
-import axios from "axios";
 import {
-  rectangleVertex,
-  rectangleFragment,
-  cubeFragment,
-  cubeVertex,
-  texture2dShader,
-} from "../webgpu/shaders";
-import {
-  doc,
-  getDoc,
   DocumentData,
+  FieldValue,
   QueryDocumentSnapshot,
   WithFieldValue,
-  FieldValue,
+  doc,
+  getDoc,
 } from "@firebase/firestore/lite";
 import {
   getDownloadURL,
@@ -20,8 +12,23 @@ import {
   uploadBytes,
   uploadString,
 } from "@firebase/storage";
-import { auth, firedb, firestorage } from "../firebase";
+import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
+
+import { auth, firedb, firestorage } from "../firebase";
+import { cubeColourBuffer, cubeVertexBuffer } from "../webgpu/meshes/cube";
+import {
+  rectangleColourBuffer,
+  rectangleNumberOfVertices,
+  rectangleVertexBuffer,
+} from "../webgpu/meshes/rectangle";
+import {
+  cubeFragment,
+  cubeVertex,
+  rectangleFragment,
+  rectangleVertex,
+  texture2dShader,
+} from "../webgpu/shaders";
 
 export enum MeshType {
   RECTANGLE = "Rectangle",
@@ -92,10 +99,13 @@ export const shaderTypeMap = new Map([
 export class Shader {
   id: string;
   readonly image: string; //http link to img src
-  readonly title: string;
+  title: string;
   isPublic: boolean;
   shaderCode: string;
   meshType: MeshType;
+  vertexBuffer: string;
+  colourBuffer: string;
+  numberOfVertices: string;
 
   constructor(
     id: string,
@@ -103,7 +113,10 @@ export class Shader {
     image: string,
     isPublic: boolean,
     shaderCode: string,
-    meshType: MeshType
+    meshType: MeshType,
+    vertexBuffer: string = rectangleVertexBuffer,
+    colourBuffer: string = rectangleColourBuffer,
+    numberOfVertices: string = rectangleNumberOfVertices.toString()
   ) {
     this.id = id;
     this.title = title;
@@ -111,6 +124,9 @@ export class Shader {
     this.isPublic = isPublic;
     this.shaderCode = shaderCode;
     this.meshType = meshType;
+    this.vertexBuffer = vertexBuffer;
+    this.colourBuffer = colourBuffer;
+    this.numberOfVertices = numberOfVertices;
   }
 }
 
@@ -143,6 +159,9 @@ export const shaderConverter = {
       image: downloadUrl,
       isPublic: shader.isPublic,
       meshType: StringFromMeshType(shader.meshType),
+      vertexBuffer: shader.vertexBuffer,
+      colourBuffer: shader.colourBuffer,
+      numberOfVertices: shader.numberOfVertices,
     };
   },
   fromFirestore(snapshot: QueryDocumentSnapshot): Shader {
@@ -157,7 +176,12 @@ export const shaderConverter = {
       data.image ? data.image : "https://i.ibb.co/M5Z06wy/triangle.png", // image of shader
       data.isPublic,
       "",
-      mesh_type
+      mesh_type,
+      data.vertexBuffer ? data.vertexBuffer : rectangleVertexBuffer,
+      data.colourBuffer ? data.colourBuffer : rectangleColourBuffer,
+      data.numberOfVertices
+        ? data.numberOfVertices
+        : rectangleNumberOfVertices.toString()
     );
   },
 };
@@ -199,8 +223,8 @@ export interface ShaderProps {
 export const defaultShader = (meshType: MeshType): Shader => {
   // set shader to a default rectangle
   let shader = new Shader(
-    uuidv4() + "example_textured_rectangle",
-    "Textured Rectangle",
+    uuidv4() + "example_rectangle",
+    "Rectangle",
     "https://i.ibb.co/M5Z06wy/triangle.png",
     false,
     `${rectangleVertex}\n${rectangleFragment}`,
@@ -209,6 +233,8 @@ export const defaultShader = (meshType: MeshType): Shader => {
 
   if (meshType === MeshType.TEXTURED_RECTANGLE) {
     shader.shaderCode = texture2dShader;
+    shader.id = uuidv4() + "example_textured_rectangle";
+    shader.title = "Textured Rectangle";
   } else if (meshType === MeshType.CUBE) {
     // TODO change to return a default cube shader
     shader = new Shader(
@@ -217,8 +243,14 @@ export const defaultShader = (meshType: MeshType): Shader => {
       "https://i.ibb.co/M5Z06wy/triangle.png",
       false,
       `${cubeVertex}\n${cubeFragment}`,
-      MeshType.CUBE
+      MeshType.CUBE,
+      cubeVertexBuffer,
+      cubeColourBuffer
     );
+  } else if (meshType === MeshType.CUSTOM) {
+    shader.id = uuidv4() + "custom_mesh";
+    shader.title = "Custom Mesh";
+    shader.meshType = MeshType.CUSTOM;
   }
   return shader;
 };

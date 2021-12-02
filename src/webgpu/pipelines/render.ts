@@ -1,21 +1,23 @@
 import assert from "assert";
+
+import { mat4 } from "gl-matrix";
+
+import { RenderLogger } from "../../objects/RenderLogger";
+import { MeshType } from "../../objects/Shader";
+import { getImageFromUrl } from "../../utils/imageHelper";
+import { cubeColours, cubePositions } from "../meshes/cube";
+import { rectangleMesh } from "../meshes/rectangle";
+import { texturedRectangleMesh } from "../meshes/texturedRectangle";
 import { structs } from "../shaders";
 import {
-  addViewParamsToBuffer,
   addUniformCode,
+  addViewParamsToBuffer,
   checkWebGPU,
   createGPUBuffer,
   createTransforms,
   createViewProjection,
   outputMessages,
 } from "./helpers";
-import { texturedRectangleMesh } from "../meshes/texturedRectangle";
-import { cubeColours, cubePositions } from "../meshes/cube";
-import { mat4 } from "gl-matrix";
-import { RenderLogger } from "../../objects/RenderLogger";
-import { MeshType } from "../../objects/Shader";
-import { getImageFromUrl } from "../../utils/imageHelper";
-import { rectangleMesh } from "../meshes/rectangle";
 
 const SWAPCHAIN_FORMAT = "bgra8unorm";
 const DEPTH_FORMAT = "depth24plus-stencil8";
@@ -627,10 +629,10 @@ export const renderShader = async (
   shaderCode: string,
   meshType: MeshType,
   renderLogger: RenderLogger,
-  imageUrl?: string,
-  vertices?: Float32Array,
-  colours?: Float32Array,
-  vertexCount?: number
+  vertices: string,
+  colours: string,
+  vertexCount: string,
+  imageUrl?: string
 ): Promise<void> => {
   switch (meshType) {
     case MeshType.RECTANGLE:
@@ -641,13 +643,22 @@ export const renderShader = async (
       return renderCubeShader(shaderCode, renderLogger);
     case MeshType.CUSTOM:
       if (vertices && colours && vertexCount) {
-        return renderCustomShader(
-          shaderCode,
-          renderLogger,
-          vertices,
-          colours,
-          vertexCount
-        );
+        try {
+          const vertexBuffer = new Float32Array(JSON.parse(vertices));
+          const colourBuffer = new Float32Array(JSON.parse(colours));
+          const numberOfVertices = parseInt(vertexCount);
+
+          return renderCustomShader(
+            shaderCode,
+            renderLogger,
+            vertexBuffer,
+            colourBuffer,
+            numberOfVertices
+          );
+        } catch (e) {
+          console.log("Error parsing the custom buffers");
+          return;
+        }
       }
       break;
     default:

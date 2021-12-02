@@ -60,6 +60,12 @@ const CodeEditorPage = () => {
   const [showCode, setShowCode] = useState(false);
   const [viewCodeText, setViewCodeText] = useState("View Code");
   const [currTab, setCurrTab] = useState("0");
+  // states for custom buffers
+  const [vertexBuffer, setVertexBuffer] = useState(shader.vertexBuffer);
+  const [colourBuffer, setColourBuffer] = useState(shader.colourBuffer);
+  const [numberOfVertices, setNumberOfVertices] = useState(
+    shader.numberOfVertices.toString()
+  );
 
   const handleFormOpen = async () => {
     if (!auth.currentUser) {
@@ -91,6 +97,9 @@ const CodeEditorPage = () => {
       getShaderCode(shader).then((shaderWithCode: Shader) => {
         setShader(shaderWithCode);
         setShaderCode(shader.shaderCode);
+        setVertexBuffer(shader.vertexBuffer);
+        setColourBuffer(shader.colourBuffer);
+        setNumberOfVertices(shader.numberOfVertices.toString());
         // Only set the name if getting an existing shader - new shaders will display "untitled"
         setShaderName(shader.title);
       });
@@ -99,7 +108,10 @@ const CodeEditorPage = () => {
 
   useEffect(() => {
     shader.shaderCode = shaderCode;
-  }, [shaderCode]);
+    shader.vertexBuffer = vertexBuffer;
+    shader.colourBuffer = colourBuffer;
+    shader.numberOfVertices = numberOfVertices;
+  }, [shaderCode, vertexBuffer, colourBuffer, numberOfVertices]);
 
   return (
     <div id="body">
@@ -173,6 +185,9 @@ const CodeEditorPage = () => {
                     shaderCode={shaderCode}
                     updateShader={(shader) => setShader(shader)}
                     meshType={shader.meshType}
+                    vertexBuffer={vertexBuffer}
+                    colourBuffer={colourBuffer}
+                    numberOfVertices={numberOfVertices}
                   />
                 </Grid>
                 <Grid item>
@@ -251,6 +266,9 @@ const CodeEditorPage = () => {
         shaderCode={shaderCode}
         meshType={meshType}
         setRenderLogger={setRenderLogger}
+        vertexBuffer={vertexBuffer}
+        colourBuffer={colourBuffer}
+        numberOfVertices={numberOfVertices}
         imageUrl={renderedImageUrl}
       />
 
@@ -274,8 +292,8 @@ const CodeEditorPage = () => {
                 toggleHelpVisible={toggleHelpVisible}
                 editorOpacity={editorOpacity}
                 editorWidth={editorWidth}
-                code={"hehehe"}
-                setCode={setShaderCode}
+                code={vertexBuffer}
+                setCode={setVertexBuffer}
                 renderLogger={renderLogger}
               />
             </TabPanel>
@@ -285,8 +303,8 @@ const CodeEditorPage = () => {
                 toggleHelpVisible={toggleHelpVisible}
                 editorOpacity={editorOpacity}
                 editorWidth={editorWidth}
-                code={":3"}
-                setCode={setShaderCode}
+                code={colourBuffer}
+                setCode={setColourBuffer}
                 renderLogger={renderLogger}
               />
             </TabPanel>
@@ -296,8 +314,8 @@ const CodeEditorPage = () => {
                 toggleHelpVisible={toggleHelpVisible}
                 editorOpacity={editorOpacity}
                 editorWidth={editorWidth}
-                code={">:("}
-                setCode={setShaderCode}
+                code={numberOfVertices}
+                setCode={setNumberOfVertices}
                 renderLogger={renderLogger}
               />
             </TabPanel>
