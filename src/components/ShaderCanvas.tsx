@@ -16,6 +16,7 @@ interface ShaderCanvasInput {
   meshType: MeshType;
   imageUrl?: string;
 }
+
 const ShaderCanvas = ({
   shaderCode,
   setRenderLogger,
@@ -29,6 +30,7 @@ const ShaderCanvas = ({
     window.innerWidth / WIDTH_ASPECT,
     window.innerHeight / HEIGHT_ASPECT
   );
+
   useEffect(() => {
     if (shaderCode !== "" && shaderCode !== undefined) {
       renderShader(shaderCode, meshType, renderLogger, imageUrl).then(() => {
