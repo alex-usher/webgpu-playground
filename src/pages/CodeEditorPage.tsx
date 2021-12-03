@@ -199,19 +199,23 @@ const CodeEditorPage = () => {
                     imageUrl={renderedImageUrl}
                   />
                 </Grid>
-                <Grid item>
-                  <div className="tabs">
-                    <Tabs
-                      value={currTab}
-                      onChange={(e, newTab: string) => setCurrTab(newTab)}
-                    >
-                      <Tab label="main" value="0" />
-                      <Tab label="vertex buffer" value="1" />
-                      <Tab label="colour buffer" value="2" />
-                      <Tab label="no of vertices" value="3" />
-                    </Tabs>
-                  </div>
-                </Grid>
+                {meshType === MeshType.CUSTOM ? (
+                  <Grid item>
+                    <div className="tabs">
+                      <Tabs
+                        value={currTab}
+                        onChange={(e, newTab: string) => setCurrTab(newTab)}
+                      >
+                        <Tab label="main" value="0" />
+                        <Tab label="vertex buffer" value="1" />
+                        <Tab label="colour buffer" value="2" />
+                        <Tab label="no of vertices" value="3" />
+                      </Tabs>
+                    </div>
+                  </Grid>
+                ) : (
+                  <></>
+                )}
               </>
             )}
           </Grid>
@@ -282,7 +286,7 @@ const CodeEditorPage = () => {
       />
 
       {showCode ? (
-        <>
+        meshType === MeshType.CUSTOM ? (
           <TabContext value={currTab}>
             <TabPanel value="0">
               <CodeEditor
@@ -329,7 +333,17 @@ const CodeEditorPage = () => {
               />
             </TabPanel>
           </TabContext>
-        </>
+        ) : (
+          <CodeEditor
+            helpBoxVisible={helpBoxVisible}
+            toggleHelpVisible={toggleHelpVisible}
+            editorOpacity={editorOpacity}
+            editorWidth={editorWidth}
+            code={shaderCode}
+            setCode={setShaderCode}
+            renderLogger={renderLogger}
+          />
+        )
       ) : (
         <></>
       )}
