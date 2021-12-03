@@ -13,10 +13,13 @@ import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
+import EditFormDialog from "../components/EditFormDialog";
 import { ShaderProps } from "../objects/Shader";
-// import { useState } from "react";
+import { useState } from "react";
 
 const UserShaderCard = ({ shader }: ShaderProps) => {
+  const [editFormOpen, setEditFormOpen] = useState(false);
+
   return (
     // <Paper elevation={3} style={{ height: "20vh", width: "100%" }}>
     <Card style={{ height: "20vh", width: "100%", borderRadius: "1.5vh" }}>
@@ -67,20 +70,34 @@ const UserShaderCard = ({ shader }: ShaderProps) => {
         <Stack
           direction="column"
           alignContent="center"
-          style={{ paddingRight: "3%", paddingLeft: "2%" }}
+          style={{ paddingLeft: "2%", paddingRight: "3%", paddingTop: "0.3%" }}
           justifyContent="center"
-          spacing={4}
+          spacing={1.5}
         >
-          <IconButton>
+          <Typography variant="h6" style={{ color: "lightGrey" }}>
+            {shader.isPublic ? "Public" : "Private"}
+          </Typography>
+          <IconButton
+            onClick={() => setEditFormOpen(true)}
+            style={{ borderRadius: "10%" }}
+          >
             <EditIcon />
           </IconButton>
-          <IconButton>
+          <IconButton style={{ borderRadius: "10%" }}>
             <DeleteIcon />
           </IconButton>
         </Stack>
       </Stack>
+
+      <EditFormDialog
+        key="edit-form"
+        open={editFormOpen}
+        shader={shader}
+        handleClose={() => {
+          setEditFormOpen(false);
+        }}
+      />
     </Card>
-    // </Paper>
   );
 };
 
