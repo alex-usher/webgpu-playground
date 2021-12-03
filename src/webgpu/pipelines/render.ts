@@ -19,6 +19,8 @@ import {
   outputMessages,
 } from "./helpers";
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const createCamera = require("3d-view-controls");
 const SWAPCHAIN_FORMAT = "bgra8unorm";
 const DEPTH_FORMAT = "depth24plus-stencil8";
 
@@ -409,8 +411,6 @@ export const renderCubeShader = async (
               format: "float32x3",
               offset: 0,
             },
-            // { format: "float32x2", offset: 0, shaderLocation: 0 },
-            // { format: "float32x4", offset: 2 * 4, shaderLocation: 1 },
           ],
         },
       ],
@@ -444,6 +444,16 @@ export const renderCubeShader = async (
       { binding: 1, resource: { buffer: viewParamsBuffer } },
     ],
   });
+
+  // create uniform data
+  const modelMatrix = mat4.create();
+  const mvpMatrix = mat4.create();
+  let vpMatrix = mat4.create();
+  const vp = createViewProjection(canvas.width / canvas.height);
+  vpMatrix = vp.viewProjectionMatrix;
+  let vMatrix = mat4.create();
+  const body = document.getElementById("body") as HTMLCanvasElement;
+  const camera = createCamera(body, vp.cameraOption);
 
   // track when canvas is visible and only render when true
   let canvasVisible = false;
@@ -490,12 +500,11 @@ export const renderCubeShader = async (
         },
       };
 
-      // create uniform data
-      const modelMatrix = mat4.create();
-      const mvpMatrix = mat4.create();
-      let vpMatrix = mat4.create();
-      const vp = createViewProjection(canvas.width / canvas.height);
-      vpMatrix = vp.viewProjectionMatrix;
+      if (camera.tick()) {
+        const pMatrix = vp.projectionMatrix;
+        vMatrix = camera.matrix;
+        mat4.multiply(vpMatrix, pMatrix, vMatrix);
+      }
 
       createTransforms(modelMatrix);
       mat4.multiply(mvpMatrix, vpMatrix, modelMatrix);
