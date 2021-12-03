@@ -7,7 +7,8 @@ import { useEffect, useState } from "react";
 
 import "../assets/style.css";
 import { getUserShaders } from "../utils/firebaseHelper";
-import ShaderContainerLarge from "../components/ShaderContainerLarge";
+// import ShaderContainerLarge from "../components/ShaderContainerLarge";
+import UserShaderCard from "../components/UserShaderCard";
 import { Typography } from "@mui/material";
 import HeaderComponent from "../components/HeaderComponent";
 
@@ -24,6 +25,10 @@ const UserPage = () => {
   useEffect(() => {
     getUserShaders().then((shaders: Shader[]) => setShaders(shaders));
   }, []);
+
+  const shaderCards = shaders.map((shader, _) => (
+    <UserShaderCard shader={shader} />
+  )); //<div key={i}></div>)
 
   // Redirect to the homepage if the user logs out
   if (!isLoggedIn) {
@@ -45,7 +50,10 @@ const UserPage = () => {
             My Shaders
           </Typography>
         </Grid>
-        <ShaderContainerLarge shaderList={shaders} />
+        {/* <ShaderContainerLarge shaderList={shaders} /> */}
+      </Grid>
+      <Grid container spacing={2} style={{ paddingTop: "5vh" }}>
+        {shaderCards}
       </Grid>
     </Container>
   );
