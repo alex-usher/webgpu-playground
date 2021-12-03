@@ -28,9 +28,10 @@ var<uniform> view_params: ViewParams;
 `;
 
 export const texture2dShader = `
-[[group(0), binding(1)]] var my_sampler: sampler;
-[[group(0), binding(2)]] var my_texture: texture_2d<f32>;
-[[group(0), binding(3)]] var frame_sample: texture_2d<f32>;
+[[group(0), binding(1)]] var frame_sampler: sampler;
+[[group(0), binding(2)]] var previous_frame: texture_2d<f32>;
+[[group(0), binding(3)]] var my_sampler: sampler;
+[[group(0), binding(4)]] var my_texture: texture_2d<f32>;
 
 [[stage(vertex)]]
 fn vertex_main(vert: VertexInput) -> VertexOutput
@@ -62,7 +63,11 @@ fn vertex_main(vert: VertexInput) -> VertexOutput {
     return out;
 };`;
 
-export const rectangleFragment = `[[stage(fragment)]]
+export const rectangleFragment = `
+[[group(0), binding(1)]] var frame_sampler: sampler;
+[[group(0), binding(2)]] var previous_frame: texture_2d<f32>;
+
+[[stage(fragment)]]
 fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
   var out = sin(time * 0.01) * in.color;
   if (pos[0] < res[0]/2.0) {
