@@ -1,14 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "../assets/shaderCanvas.css";
 import { checkWebGPU } from "../webgpu/pipelines/helpers";
-import { renderShader } from "../webgpu/pipelines/render";
+import { renderShader, updateCoordinates } from "../webgpu/pipelines/render";
 import Typography from "@mui/material/Typography";
 import { RenderLogger } from "../objects/RenderLogger";
 import { MeshType } from "../objects/Shader";
 
 const WIDTH_ASPECT = 968;
 const HEIGHT_ASPECT = 720;
-// const ASPECT_RATIO = 0.9;
+const ASPECT_RATIO = 0.9;
 
 interface ShaderCanvasInput {
   shaderCode: string;
@@ -16,7 +16,6 @@ interface ShaderCanvasInput {
   meshType: MeshType;
   imageUrl?: string;
 }
-
 const ShaderCanvas = ({
   shaderCode,
   setRenderLogger,
@@ -24,13 +23,12 @@ const ShaderCanvas = ({
   imageUrl,
 }: ShaderCanvasInput) => {
   const renderLogger = new RenderLogger();
-  // const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [position, setPosition] = useState({ x: 0, y: 0 });
 
   const aspectMultiple = Math.min(
     window.innerWidth / WIDTH_ASPECT,
     window.innerHeight / HEIGHT_ASPECT
   );
-
   useEffect(() => {
     if (shaderCode !== "" && shaderCode !== undefined) {
       renderShader(shaderCode, meshType, renderLogger, imageUrl).then(() => {
@@ -39,26 +37,26 @@ const ShaderCanvas = ({
     }
   }, [shaderCode, imageUrl]);
 
-  // useEffect(() => {
-  //   const setFromEvent = (e: MouseEvent) => {
-  //     const canvas = document.getElementById(
-  //       "canvas-webgpu"
-  //     ) as HTMLCanvasElement;
-  //     const offsetLeft =
-  //       canvas != null ? canvas.getBoundingClientRect().left : 0.0;
-  //     const offsetTop =
-  //       canvas != null ? canvas.getBoundingClientRect().top : 0.0;
-  //     const xCoord = (e.pageX - offsetLeft) / ASPECT_RATIO;
-  //     const yCoord = (e.pageY - offsetTop) / ASPECT_RATIO;
-  //     setPosition({ x: xCoord, y: yCoord });
-  //     updateCoordinates(position);
-  //   };
-  //   window.addEventListener("mousemove", setFromEvent);
+  useEffect(() => {
+    const setFromEvent = (e: MouseEvent) => {
+      const canvas = document.getElementById(
+        "canvas-webgpu"
+      ) as HTMLCanvasElement;
+      const offsetLeft =
+        canvas != null ? canvas.getBoundingClientRect().left : 0.0;
+      const offsetTop =
+        canvas != null ? canvas.getBoundingClientRect().top : 0.0;
+      const xCoord = (e.pageX - offsetLeft) / ASPECT_RATIO;
+      const yCoord = (e.pageY - offsetTop) / ASPECT_RATIO;
+      setPosition({ x: xCoord, y: yCoord });
+      updateCoordinates(position);
+    };
+    window.addEventListener("mousemove", setFromEvent);
 
-  //   return () => {
-  //     window.removeEventListener("mousemove", setFromEvent);
-  //   };
-  // }, [position, aspectMultiple]);
+    return () => {
+      window.removeEventListener("mousemove", setFromEvent);
+    };
+  }, [position, aspectMultiple]);
 
   return (
     <div style={{ color: "white", height: "90%" }}>
