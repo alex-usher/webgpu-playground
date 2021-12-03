@@ -1,17 +1,17 @@
+import "./assets/style.css";
+
+import { ThemeProvider, createTheme } from "@mui/material";
+import { green, red, yellow } from "@mui/material/colors";
+import { SnackbarProvider } from "notistack";
 import React from "react";
 import ReactDOM from "react-dom";
-import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import { Route, BrowserRouter as Router, Switch } from "react-router-dom";
 
-import HomePage from "./pages/HomePage";
 import CodeEditorPage from "./pages/CodeEditorPage";
-import UserPage from "./pages/UserPage";
+import HomePage from "./pages/HomePage";
 import ShadersPage from "./pages/ShadersPage";
-import { SnackbarProvider } from "notistack";
+import UserPage from "./pages/UserPage";
 import { SnackbarUtilsConfigurator } from "./utils/Snackbar";
-
-import "./assets/style.css";
-import { createTheme, ThemeProvider } from "@mui/material";
-import { green, red, yellow } from "@mui/material/colors";
 
 const darkTheme = createTheme({
   palette: {

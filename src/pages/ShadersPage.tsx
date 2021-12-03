@@ -1,10 +1,17 @@
-import Grid from "@mui/material/Grid";
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import { useLocation } from "react-router-dom";
-
 import "../assets/homePage.css";
 import "../assets/infiniteScroll.css";
+
+import { DocumentSnapshot } from "@firebase/firestore/lite";
+import Container from "@mui/material/Container";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
+import { useEffect, useState } from "react";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { Loading } from "react-loading-dot/lib";
+import { useLocation } from "react-router-dom";
+
+import HeaderComponent from "../components/HeaderComponent";
+import { ShaderCard } from "../components/ShaderCard";
 import {
   ExampleShaderType,
   Shader,
@@ -12,13 +19,6 @@ import {
   ShaderTypeEnum,
   shaderTypeMap,
 } from "../objects/Shader";
-import HeaderComponent from "../components/HeaderComponent";
-import { Loading } from "react-loading-dot/lib";
-import InfiniteScroll from "react-infinite-scroll-component";
-import { useEffect, useState } from "react";
-import { ShaderCard } from "../components/ShaderCard";
-
-import { DocumentSnapshot } from "@firebase/firestore/lite";
 import { fetchPaginatedShaders } from "../utils/firebaseHelper";
 
 interface ShadersPageProps {

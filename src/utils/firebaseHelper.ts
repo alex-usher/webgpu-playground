@@ -1,11 +1,11 @@
 import {
-  addDoc,
-  collection,
   CollectionReference,
-  doc,
   DocumentData,
   DocumentSnapshot,
+  addDoc,
+  collection,
   deleteDoc,
+  doc,
   getDoc,
   getDocs,
   limit,
@@ -14,20 +14,19 @@ import {
   runTransaction,
   startAfter,
 } from "@firebase/firestore/lite";
-import { ref, deleteObject } from "@firebase/storage";
 import { setDoc } from "@firebase/firestore/lite";
+import { deleteObject, ref } from "@firebase/storage";
 
-import SnackbarUtils from "./Snackbar";
-
+import { auth, firedb, firestorage } from "../firebase";
 import {
+  MeshType,
+  Shader,
+  ShaderTypeEnum,
   defaultShader,
   downloadShaderCode,
-  Shader,
   shaderConverter,
-  MeshType,
-  ShaderTypeEnum,
 } from "../objects/Shader";
-import { auth, firedb, firestorage } from "../firebase";
+import SnackbarUtils from "./Snackbar";
 
 export const fetchPaginatedShaders = async (
   shaderTypeEnum: ShaderTypeEnum,
