@@ -26,8 +26,8 @@ const UserPage = () => {
     getUserShaders().then((shaders: Shader[]) => setShaders(shaders));
   }, []);
 
-  const shaderCards = shaders.map((shader, _) => (
-    <UserShaderCard shader={shader} />
+  const shaderCards = shaders.map((shader, i) => (
+    <UserShaderCard key={i} shader={shader} />
   )); //<div key={i}></div>)
 
   // Redirect to the homepage if the user logs out

@@ -10,15 +10,28 @@ import { Link } from "react-router-dom";
 import Typography from "@mui/material/Typography";
 // import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
-import EditIcon from "@mui/icons-material/Edit";
+// import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-import EditFormDialog from "../components/EditFormDialog";
+import FormGroup from "@mui/material/FormGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Switch from "@mui/material/Switch";
+
 import { ShaderProps } from "../objects/Shader";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import {
+  deleteShader,
+  makeShaderPublic,
+  makeShaderPrivate,
+} from "../utils/firebaseHelper";
 
 const UserShaderCard = ({ shader }: ShaderProps) => {
-  const [editFormOpen, setEditFormOpen] = useState(false);
+  const [publicChecked, setPublicChecked] = useState(shader.isPublic);
+
+  useEffect(() => {
+    console.log(shader.isPublic);
+  }, [shader.isPublic]);
 
   return (
     // <Paper elevation={3} style={{ height: "20vh", width: "100%" }}>
@@ -72,31 +85,36 @@ const UserShaderCard = ({ shader }: ShaderProps) => {
           alignContent="center"
           style={{ paddingLeft: "2%", paddingRight: "3%", paddingTop: "0.3%" }}
           justifyContent="center"
-          spacing={1.5}
+          spacing={2.5}
         >
-          <Typography variant="h6" style={{ color: "lightGrey" }}>
-            {shader.isPublic ? "Public" : "Private"}
-          </Typography>
+          <FormGroup>
+            <FormControlLabel
+              onChange={async (e) => {
+                const checked = (e.target as HTMLInputElement).checked;
+                setPublicChecked(checked);
+                shader.isPublic = checked;
+                if (checked) {
+                  console.log("here");
+                  await makeShaderPublic(shader);
+                  console.log("set");
+                } else {
+                  await makeShaderPrivate(shader);
+                }
+              }}
+              control={<Switch checked={publicChecked} />}
+              labelPlacement="top"
+              label={publicChecked ? "Public" : "Private"}
+            />
+          </FormGroup>
+
           <IconButton
-            onClick={() => setEditFormOpen(true)}
             style={{ borderRadius: "10%" }}
+            onClick={() => deleteShader(shader)}
           >
-            <EditIcon />
-          </IconButton>
-          <IconButton style={{ borderRadius: "10%" }}>
             <DeleteIcon />
           </IconButton>
         </Stack>
       </Stack>
-
-      <EditFormDialog
-        key="edit-form"
-        open={editFormOpen}
-        shader={shader}
-        handleClose={() => {
-          setEditFormOpen(false);
-        }}
-      />
     </Card>
   );
 };
