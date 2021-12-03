@@ -72,9 +72,9 @@ const UserShaderCard = ({ shader }: ShaderProps) => {
               <img src={shader.image} style={{ backgroundColor: "black" }} />
             </Box>
             <Typography
-              variant="h2"
+              variant="h4"
               align="center"
-              style={{ paddingTop: "6vh" }}
+              style={{ paddingTop: "10vh", fontWeight: "lighter" }}
             >
               {shader.title}
             </Typography>
