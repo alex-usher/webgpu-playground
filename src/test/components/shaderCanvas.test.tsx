@@ -18,6 +18,9 @@ const renderShaderCanvas = (
       shaderCode={`${shaderTriangleVertex}\n${shaderTriangleFragment}`}
       meshType={MeshType.RECTANGLE}
       setRenderLogger={setRenderLogger}
+      vertexBuffer={""}
+      colourBuffer={""}
+      numberOfVertices={"6"}
     />
   );
 
