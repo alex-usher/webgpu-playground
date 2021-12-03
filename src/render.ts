@@ -3,13 +3,15 @@ import { RenderLogger } from "./objects/RenderLogger";
 
 export const checkWebGPU = (): boolean => navigator.gpu != null;
 
-const NUM_PARTICLES = 20000;
-const PARTICLE_SIZE = 2;
+const NUM_PARTICLES = 2000;
+const PARTICLE_SIZE = 7;
+
+//const PARTICLE_STRIDE = NUM_PARTICLES * 16;
 
 const computeCode = `
   // can access in array by positionsIn.in[]
   [[block]] struct ParticleProperty {
-    all: [[stride(${NUM_PARTICLES})]] array<vec4<f32>>;
+    all: [[stride(16)]] array<vec4<f32>>;
   };
   [[block]] struct Mass {
     mass1Position: vec4<f32>;
@@ -26,8 +28,8 @@ const computeCode = `
   [[group(0), binding(3)]] var<storage, write> velocityOut: ParticleProperty;
   [[group(0), binding(4)]] var<uniform> m: Mass;
 
-  // almost guaranteed to be incorrect :)
-  [[stage(compute), workgroup_size(1)]]
+
+  [[stage(compute), workgroup_size(64)]]
   fn compute_main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {
     var index: u32 = GlobalInvocationID.x;
     
@@ -51,6 +53,26 @@ const computeCode = `
     velocityOut.all[index] = vec4<f32>(velocity, 0.0);
   };
 `;
+
+/* var index: u32 = GlobalInvocationID.x;
+var position = vec3<f32>(positionsIn.all[index][0], positionsIn.all[index][1], positionsIn.all[index][2]);
+    var velocity = vec3<f32>(velocityIn.all[index][0], velocityIn.all[index][1], velocityIn.all[index][2]);
+
+    var massVec = vec3<f32>(m.mass1Position[0], m.mass1Position[1], m.mass1Position[2]) - position;
+    var massDist2 = max(0.01, dot(massVec, massVec));
+    var acceleration = m.mass1Factor * normalize(massVec) / massDist2;
+    massVec = vec3<f32>(m.mass2Position[0], m.mass2Position[1], m.mass2Position[2]) - position;
+    massDist2 = max(0.01, dot(massVec, massVec));
+    acceleration = acceleration + (m.mass2Factor * normalize(massVec) / massDist2);
+    massVec = vec3<f32>(m.mass3Position[0], m.mass3Position[1], m.mass3Position[2]) - position;
+    massDist2 = max(0.01, dot(massVec, massVec));
+    acceleration = acceleration + (m.mass3Factor * normalize(massVec) / massDist2);
+
+    velocity = velocity + acceleration;
+    velocity = velocity * 0.9999;
+
+    positionsOut.all[index] = vec4<f32>(position + velocity, 1.0);
+    velocityOut.all[index] = vec4<f32>(velocity, 0.0);*/
 
 export const structs = `struct VertexInput {
     [[location(0)]] position: vec2<f32>;
@@ -235,6 +257,7 @@ export const renderShader = async (
   // cancel the previous render once we know the next render will compile
   if (renderFrame != -1) {
     cancelAnimationFrame(renderFrame);
+    renderFrame = -1;
   }
 
   // COMPUTE CODE STARTS HERE FOR A BIT
@@ -586,6 +609,8 @@ export const renderShader = async (
   );
   observer.observe(canvas);
 
+  let currentPositionBuffer = positionBufferB;
+
   //let time = 0;
   //const res_x = canvas.width;
   //const res_y = canvas.height;
@@ -654,8 +679,6 @@ export const renderShader = async (
 
       // COMPUTE CODE STARTS HERE AGAIN
 
-      let currentPositionBuffer = positionBufferB;
-
       const currentComputeBindGroup =
         currentPositionBuffer === positionBufferA
           ? computeBindGroupB2A
@@ -672,7 +695,6 @@ export const renderShader = async (
       computePass.setBindGroup(0, currentComputeBindGroup);
       computePass.dispatch(NUM_PARTICLES);
       computePass.endPass();
-
       renderPassDescription.colorAttachments[0].view = context
         .getCurrentTexture()
         .createView();
@@ -689,6 +711,7 @@ export const renderShader = async (
       renderPass.endPass();
       device.queue.submit([commandEncoder.finish()]);
       //time++;
+
       currentPositionBuffer =
         currentPositionBuffer === positionBufferA
           ? positionBufferB
