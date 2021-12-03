@@ -1,18 +1,20 @@
-import { useState } from "react";
-import Grid from "@mui/material/Grid";
-import Button from "@mui/material/Button";
+import "../assets/shaderGallery.css";
+
 import {
-  getAuth,
-  signInWithPopup,
   GoogleAuthProvider,
+  getAuth,
   onAuthStateChanged,
+  signInWithPopup,
   signOut,
 } from "@firebase/auth";
-import { firedb } from "../firebase";
 import { doc, setDoc } from "@firebase/firestore/lite";
-import Avatar from "@mui/material/Avatar";
 import GoogleIcon from "@mui/icons-material/Google";
-import "../assets/shaderGallery.css";
+import Avatar from "@mui/material/Avatar";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import { useState } from "react";
+
+import { firedb } from "../firebase";
 
 const SignInButton = () => {
   const auth = getAuth();

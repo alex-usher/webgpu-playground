@@ -1,15 +1,15 @@
-import SignInButton from "../components/SignInButton";
-import Grid from "@mui/material/Grid";
-import Button from "@mui/material/Button";
-import LinkMui from "@mui/material/Link";
-import { getAuth, onAuthStateChanged } from "@firebase/auth";
-import { Link } from "react-router-dom";
-import { useState } from "react";
-
-import NewShaderButton from "./NewShaderButton";
-
 import "../assets/homePage.css";
 import "../assets/shaderGallery.css";
+
+import { getAuth, onAuthStateChanged } from "@firebase/auth";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import LinkMui from "@mui/material/Link";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+
+import SignInButton from "../components/SignInButton";
+import NewShaderButton from "./NewShaderButton";
 
 interface HeaderComponentProps {
   usersPage: boolean;
