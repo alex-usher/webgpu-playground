@@ -1,17 +1,19 @@
-import userEvent from "@testing-library/user-event";
+import "@testing-library/jest-dom/extend-expect";
+
+import assert from "assert";
+
 import { act, render, screen } from "@testing-library/react";
-import CodeEditorPage from "../../pages/CodeEditorPage";
+import userEvent from "@testing-library/user-event";
 import { SnackbarProvider } from "notistack";
+import routeData from "react-router";
+import { BrowserRouter } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
+
 import { MeshType, Shader } from "../../objects/Shader";
+import CodeEditorPage from "../../pages/CodeEditorPage";
 import * as helpers from "../../webgpu/pipelines/helpers";
 import * as renders from "../../webgpu/pipelines/render";
 import * as shaders from "../../webgpu/shaders";
-import { v4 as uuidv4 } from "uuid";
-import routeData from "react-router";
-import { BrowserRouter } from "react-router-dom";
-
-import "@testing-library/jest-dom/extend-expect";
-import assert from "assert";
 
 const shader = new Shader(
   uuidv4() + "example_triangle_shader",
@@ -153,7 +155,7 @@ describe("Code editor tests", () => {
 
     document.getElementById(SHOW_CODE_ID)?.click();
     const textAreas: HTMLElement[] = screen.getAllByRole("textbox");
-    codeEditor = textAreas[1];
+    codeEditor = textAreas[0];
   });
 
   afterEach(() => {
