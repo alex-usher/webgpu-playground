@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
 import "../assets/editor.css";
 import "../assets/prism.css";
+
 import Prism from "prismjs";
+import React, { useEffect } from "react";
 
 interface EditorProps {
   value: string;

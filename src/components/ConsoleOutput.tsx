@@ -1,13 +1,13 @@
-import { useState } from "react";
-import Button from "@mui/material/Button";
-
 import "../assets/consoleOutput.css";
+
+import Button from "@mui/material/Button";
+import { useState } from "react";
 
 interface ConsoleOutputProps {
   messages: string;
 }
 
-export const ConsoleOutput = ({ messages }: ConsoleOutputProps) => {
+const ConsoleOutput = ({ messages }: ConsoleOutputProps) => {
   const [viewConsole, setViewConsole] = useState(true);
 
   return (
@@ -44,3 +44,5 @@ export const ConsoleOutput = ({ messages }: ConsoleOutputProps) => {
     </div>
   );
 };
+
+export default ConsoleOutput;

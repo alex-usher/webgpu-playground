@@ -1,8 +1,9 @@
+import "../assets/homePage.css";
+
 import Grid from "@mui/material/Grid";
 
-import "../assets/homePage.css";
-import { Shader } from "../objects/Shader";
 import { ShaderCard } from "../components/ShaderCard";
+import { Shader } from "../objects/Shader";
 
 interface ShadersContainerProps {
   shaderList: Shader[];

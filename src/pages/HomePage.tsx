@@ -1,14 +1,15 @@
-import Grid from "@mui/material/Grid";
-import Container from "@mui/material/Container";
-import { CardCarousel } from "../components/CardCarousel";
-import { ExampleShaderType, PublicShaderType, Shader } from "../objects/Shader";
-import { useEffect, useState } from "react";
-
 import "../assets/homePage.css";
 import "../assets/shaderGallery.css";
-import { getExampleShaders, getPublicShaders } from "../utils/firebaseHelper";
-import HeaderComponent from "../components/HeaderComponent";
+
+import Container from "@mui/material/Container";
+import Grid from "@mui/material/Grid";
+import { useEffect, useState } from "react";
+
+import { CardCarousel } from "../components/CardCarousel";
 import FooterComponent from "../components/FooterComponent";
+import HeaderComponent from "../components/HeaderComponent";
+import { ExampleShaderType, PublicShaderType, Shader } from "../objects/Shader";
+import { getExampleShaders, getPublicShaders } from "../utils/firebaseHelper";
 
 const PAGE_LENGTH = 10;
 
