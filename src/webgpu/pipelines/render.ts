@@ -16,7 +16,7 @@ import { RenderLogger } from "../../objects/RenderLogger";
 import { MeshType } from "../../objects/Shader";
 import { getImageFromUrl } from "../../utils/imageHelper";
 import { rectangleMesh } from "../meshes/rectangle";
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const createCamera = require("3d-view-controls");
 const SWAPCHAIN_FORMAT = "bgra8unorm";
 const DEPTH_FORMAT = "depth24plus-stencil8";
@@ -442,8 +442,6 @@ export const renderCubeShader = async (
   const vp = createViewProjection(canvas.width / canvas.height);
   vpMatrix = vp.viewProjectionMatrix;
   let vMatrix = mat4.create();
-  // add rotation and camera:
-  // let rotation = vec3.fromValues(0, 0, 0);
   const body = document.getElementById("body") as HTMLCanvasElement;
   const camera = createCamera(body, vp.cameraOption);
 
