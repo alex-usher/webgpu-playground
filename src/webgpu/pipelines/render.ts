@@ -257,11 +257,6 @@ export const renderRectangleShader = async (
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
-  console.log(`canvas dim: (${canvas.width}, ${canvas.height})`);
-  console.log(
-    `canvas client dim: (${canvas.clientWidth}, ${canvas.clientHeight})`
-  );
-
   const samplingTexture = device.createTexture({
     size: {
       width: canvas.width,
@@ -689,7 +684,6 @@ export const renderShader = async (
             numberOfVertices
           );
         } catch (e) {
-          console.log("Error parsing the custom buffers");
           return;
         }
       }
