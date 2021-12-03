@@ -36,7 +36,8 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
 const initialiseGPU = async (
   code: string,
   usage: number,
-  renderLogger: RenderLogger
+  renderLogger: RenderLogger,
+  defaultUsage = false
 ) => {
   if (!checkWebGPU()) {
     return undefined;
@@ -49,11 +50,18 @@ const initialiseGPU = async (
   const device = await adapter.requestDevice();
   const context = canvas.getContext("webgpu") as unknown as GPUCanvasContext;
 
-  context.configure({
-    device: device,
-    format: SWAPCHAIN_FORMAT,
-    usage: usage,
-  });
+  if (defaultUsage === false) {
+    context.configure({
+      device: device,
+      format: SWAPCHAIN_FORMAT,
+      usage: usage,
+    });
+  } else {
+    context.configure({
+      device: device,
+      format: SWAPCHAIN_FORMAT,
+    });
+  }
 
   // add in uniform constant code in fragment shader
   code = addUniformCode(code);
@@ -417,9 +425,135 @@ export const renderCubeShader = async (
     },
   });
 
-  const viewParamsBuffer = device.createBuffer({
-    size: 4 * 5,
+  const uniformBuffer = device.createBuffer({
+    size: 64,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+
+  const uniformBindGroup = device.createBindGroup({
+    layout: bindGroupLayout,
+    entries: [{ binding: 0, resource: { buffer: uniformBuffer } }],
+  });
+
+  const frame = () => {
+    const commandEncoder = device.createCommandEncoder();
+
+    const renderPassDescription = {
+      colorAttachments: [
+        {
+          view: context.getCurrentTexture().createView(),
+          loadValue: [0.0, 0.0, 0.0, 1.0],
+          storeOp: "store",
+        },
+      ],
+      depthStencilAttachment: {
+        view: depthTexture.createView(),
+        depthLoadValue: 1.0,
+        depthStoreOp: "store",
+        stencilLoadValue: 0,
+        stencilStoreOp: "store",
+      },
+    };
+
+    // create uniform data
+    const modelMatrix = mat4.create();
+    const mvpMatrix = mat4.create();
+    let vpMatrix = mat4.create();
+    const vp = createViewProjection(canvas.width / canvas.height);
+    vpMatrix = vp.viewProjectionMatrix;
+    let vMatrix = mat4.create();
+    // add rotation and camera:
+    // let rotation = vec3.fromValues(0, 0, 0);
+    const camera = createCamera(canvas, vp.cameraOption);
+
+    if (camera.tick()) {
+      const pMatrix = vp.projectionMatrix;
+      vMatrix = camera.matrix;
+      mat4.multiply(vpMatrix, pMatrix, vMatrix);
+    }
+
+    createTransforms(modelMatrix);
+    mat4.multiply(mvpMatrix, vpMatrix, modelMatrix);
+    device.queue.writeBuffer(uniformBuffer, 0, mvpMatrix as ArrayBuffer);
+
+    const renderPass = commandEncoder.beginRenderPass(
+      renderPassDescription as GPURenderPassDescriptor
+    );
+    renderPass.setPipeline(renderPipeline);
+    renderPass.setBindGroup(0, uniformBindGroup);
+    renderPass.setVertexBuffer(0, vertexBuffer);
+    renderPass.setVertexBuffer(1, colorBuffer);
+    renderPass.draw(numberOfVertices);
+    renderPass.endPass();
+
+    device.queue.submit([commandEncoder.finish()]);
+  };
+
+  requestAnimationFrame(frame);
+};
+
+export const renderCubeShader2 = async (
+  shaderCode: string,
+  renderLogger: RenderLogger
+): Promise<void> => {
+  const init = await initialiseGPU(
+    shaderCode,
+    GPUTextureUsage.RENDER_ATTACHMENT,
+    renderLogger,
+    true
+  );
+
+  if (init === undefined) return;
+
+  // delay pattern match so we can test for error
+  const { canvas, context, device, shaderModule } = init;
+
+  // --------------------------------------------------------------------------------------
+  // create buffers
+  const numberOfVertices = cubePositions.length / 3;
+  const vertexBuffer = createGPUBuffer(device, cubePositions);
+  const colorBuffer = createGPUBuffer(device, cubeColours);
+
+  const renderPipeline = device.createRenderPipeline({
+    vertex: {
+      module: shaderModule,
+      entryPoint: "vertex_main",
+      buffers: [
+        {
+          arrayStride: 12,
+          attributes: [
+            {
+              shaderLocation: 0,
+              format: "float32x3",
+              offset: 0,
+            },
+          ],
+        },
+        {
+          arrayStride: 12,
+          attributes: [
+            {
+              shaderLocation: 1,
+              format: "float32x3",
+              offset: 0,
+            },
+          ],
+        },
+      ],
+    },
+    fragment: {
+      module: shaderModule,
+      entryPoint: "fragment_main",
+      targets: [{ format: SWAPCHAIN_FORMAT }],
+    },
+    primitive: {
+      topology: "triangle-list",
+    },
+    depthStencil: {
+      format: "depth24plus",
+      depthWriteEnabled: true,
+      depthCompare: "less",
+    },
   });
 
   const uniformBuffer = device.createBuffer({
@@ -428,97 +562,79 @@ export const renderCubeShader = async (
   });
 
   const uniformBindGroup = device.createBindGroup({
-    layout: bindGroupLayout,
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: viewParamsBuffer } },
-    ],
+    layout: renderPipeline.getBindGroupLayout(0),
+    entries: [{ binding: 0, resource: { buffer: uniformBuffer } }],
   });
 
-  // track when canvas is visible and only render when true
-  let canvasVisible = false;
-  const observer = new IntersectionObserver(
-    (e) => {
-      canvasVisible = e[0].isIntersecting;
+  let textureView = context.getCurrentTexture().createView();
+  const depthTexture = device.createTexture({
+    size: [canvas.width, canvas.height, 1],
+    format: "depth24plus",
+    usage: GPUTextureUsage.RENDER_ATTACHMENT,
+  });
+
+  const renderPassDescription = {
+    colorAttachments: [
+      {
+        view: textureView,
+        loadValue: [0.0, 0.0, 0.0, 1.0],
+        storeOp: "store",
+      },
+    ],
+    depthStencilAttachment: {
+      view: depthTexture.createView(),
+      depthLoadValue: 1.0,
+      depthStoreOp: "store",
+      stencilLoadValue: 0,
+      stencilStoreOp: "store",
     },
-    { threshold: [0] }
-  );
-  observer.observe(canvas);
-
-  let time = 0;
-  const res_x = canvas.width;
-  const res_y = canvas.height;
-  const frame = () => {
-    if (canvasVisible) {
-      const commandEncoder = device.createCommandEncoder();
-
-      addViewParamsToBuffer(
-        device,
-        commandEncoder,
-        viewParamsBuffer,
-        time,
-        x,
-        y,
-        res_x,
-        res_y
-      );
-
-      const renderPassDescription = {
-        colorAttachments: [
-          {
-            view: context.getCurrentTexture().createView(),
-            loadValue: [0.0, 0.0, 0.0, 1.0],
-            storeOp: "store",
-          },
-        ],
-        depthStencilAttachment: {
-          view: depthTexture.createView(),
-          depthLoadValue: 1.0,
-          depthStoreOp: "store",
-          stencilLoadValue: 0,
-          stencilStoreOp: "store",
-        },
-      };
-
-      // create uniform data
-      const modelMatrix = mat4.create();
-      const mvpMatrix = mat4.create();
-      let vpMatrix = mat4.create();
-      const vp = createViewProjection(canvas.width / canvas.height);
-      vpMatrix = vp.viewProjectionMatrix;
-      let vMatrix = mat4.create();
-      // add rotation and camera:
-      // let rotation = vec3.fromValues(0, 0, 0);
-      const camera = createCamera(canvas, vp.cameraOption);
-
-      if (camera.tick()) {
-        const pMatrix = vp.projectionMatrix;
-        vMatrix = camera.matrix;
-        mat4.multiply(vpMatrix, pMatrix, vMatrix);
-      }
-
-      createTransforms(modelMatrix);
-      mat4.multiply(mvpMatrix, vpMatrix, modelMatrix);
-      device.queue.writeBuffer(uniformBuffer, 0, mvpMatrix as ArrayBuffer);
-
-      const renderPass = commandEncoder.beginRenderPass(
-        renderPassDescription as GPURenderPassDescriptor
-      );
-      renderPass.setPipeline(renderPipeline);
-      renderPass.setBindGroup(0, uniformBindGroup);
-      renderPass.setVertexBuffer(0, vertexBuffer);
-      renderPass.setVertexBuffer(1, colorBuffer);
-      renderPass.draw(numberOfVertices);
-      renderPass.endPass();
-
-      device.queue.submit([commandEncoder.finish()]);
-      time++;
-    }
-
-    renderFrame = requestAnimationFrame(frame);
   };
 
-  renderFrame = requestAnimationFrame(frame);
+  // create uniform data
+  const modelMatrix = mat4.create();
+  const mvpMatrix = mat4.create();
+  let vpMatrix = mat4.create();
+  const vp = createViewProjection(canvas.width / canvas.height);
+  vpMatrix = vp.viewProjectionMatrix;
+  let vMatrix = mat4.create();
+  // add rotation and camera:
+  // let rotation = vec3.fromValues(0, 0, 0);
+  const camera = createCamera(canvas, vp.cameraOption);
+
+  // eslint ignore-next-line
+  function draw() {
+    if (camera.tick()) {
+      const pMatrix = vp.projectionMatrix;
+      vMatrix = camera.matrix;
+      mat4.multiply(vpMatrix, pMatrix, vMatrix);
+    }
+
+    createTransforms(modelMatrix);
+    mat4.multiply(mvpMatrix, vpMatrix, modelMatrix);
+    device.queue.writeBuffer(uniformBuffer, 0, mvpMatrix as ArrayBuffer);
+
+    textureView = context.getCurrentTexture().createView();
+    renderPassDescription.colorAttachments[0].view = textureView;
+    const commandEncoder = device.createCommandEncoder();
+    const renderPass = commandEncoder.beginRenderPass(
+      renderPassDescription as GPURenderPassDescriptor
+    );
+    renderPass.setPipeline(renderPipeline);
+    renderPass.setVertexBuffer(0, vertexBuffer);
+    renderPass.setVertexBuffer(1, colorBuffer);
+    renderPass.setBindGroup(0, uniformBindGroup);
+    renderPass.draw(numberOfVertices);
+    renderPass.endPass();
+
+    device.queue.submit([commandEncoder.finish()]);
+  }
+
+  // eslint ignore-next-line
+  function step() {
+    draw();
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
 };
 
 export const renderShader = async (
@@ -533,7 +649,7 @@ export const renderShader = async (
     case MeshType.TEXTURED_RECTANGLE:
       return renderRectangleShader(shaderCode, renderLogger, imageUrl, true);
     case MeshType.CUBE:
-      return renderCubeShader(shaderCode, renderLogger);
+      return renderCubeShader2(shaderCode, renderLogger);
     default:
       return;
   }
