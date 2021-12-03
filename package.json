@@ -9,6 +9,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "3d-view-controls": "^2.2.2",
         "@emotion/react": "^11.5.0",
         "@emotion/styled": "^11.3.0",
         "@firebase/analytics": "^0.7.2",
