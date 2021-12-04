@@ -1,22 +1,27 @@
-import userEvent from "@testing-library/user-event";
+import "@testing-library/jest-dom/extend-expect";
+
+import assert from "assert";
+
 import { act, render, screen } from "@testing-library/react";
-import CodeEditorPage from "../../pages/CodeEditorPage";
+import userEvent from "@testing-library/user-event";
 import { SnackbarProvider } from "notistack";
-import { Shader } from "../../objects/Shader";
-import * as shaders from "../../render";
-import { v4 as uuidv4 } from "uuid";
 import routeData from "react-router";
 import { BrowserRouter } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
 
-import "@testing-library/jest-dom/extend-expect";
-import assert from "assert";
+import { MeshType, Shader } from "../../objects/Shader";
+import CodeEditorPage from "../../pages/CodeEditorPage";
+import * as helpers from "../../webgpu/pipelines/helpers";
+import * as renders from "../../webgpu/pipelines/render";
+import * as shaders from "../../webgpu/shaders";
 
 const shader = new Shader(
   uuidv4() + "example_triangle_shader",
   "test",
   "http://www.test.com",
   false,
-  `${shaders.rectangleVertex}\n${shaders.rectangleFragment}`
+  `${shaders.rectangleVertex}\n${shaders.rectangleFragment}`,
+  MeshType.RECTANGLE
 );
 
 const renderCodeEditorPage = async () =>
@@ -38,7 +43,7 @@ let simpleShaderMock: jest.SpyInstance;
 
 // helper constants defining the button texts and ids
 const SHOW_CODE_ID = "show-code-button";
-const COMPILE_ID = "compile-button";
+const SAVE_ID = "save-button";
 const EDITOR_CLASS = "editors";
 const SHOW_CODE_TEXT = "View Code";
 const HIDE_CODE_TEXT = "Hide Code";
@@ -53,9 +58,9 @@ const mockLocation = {
 const doMocks = () => {
   jest.spyOn(routeData, "useLocation").mockReturnValue(mockLocation);
 
-  checkWebGPUMock = jest.spyOn(shaders, "checkWebGPU");
+  checkWebGPUMock = jest.spyOn(helpers, "checkWebGPU");
   checkWebGPUMock.mockImplementation(() => true);
-  simpleShaderMock = jest.spyOn(shaders, "renderShader");
+  simpleShaderMock = jest.spyOn(renders, "renderShader");
   simpleShaderMock.mockImplementation(() => {
     return new Promise((resolve) => {
       resolve("");
@@ -112,10 +117,10 @@ describe("Button Click Tests", () => {
     }
   });
 
-  test("Clicking the show code button displays the compile button", () => {
+  test("Clicking the show code button displays the save button", () => {
     if (showCodeButton) {
       showCodeButton.click();
-      expect(document.getElementById(COMPILE_ID)).toBeInTheDocument();
+      expect(document.getElementById(SAVE_ID)).toBeInTheDocument();
     } else {
       fail("Show code button null");
     }
@@ -131,16 +136,14 @@ describe("Button Click Tests", () => {
     expect(textAreas[1]).toBeInTheDocument();
   });
 
-  test("Clicking the compile code button results in calling the WebGPU render function", () => {
-    expect(simpleShaderMock).toHaveBeenCalled();
-    showCodeButton?.click();
-    const compileCodeButton = document.getElementById(COMPILE_ID);
+  // we can save this for the live recompiling test
+  //   test("Clicking the compile code button results in calling the WebGPU render function", () => {
+  //     expect(simpleShaderMock).toHaveBeenCalled();
+  //     showCodeButton?.click();
+  //     const compileCodeButton = document.getElementById(COMPILE_ID);
 
-    compileCodeButton?.click();
-
-    expect(checkWebGPUMock).toHaveBeenCalled();
-    expect(simpleShaderMock).toHaveBeenCalled();
-  });
+  //     compileCodeButton?.click();
+  //   });
 });
 
 describe("Code editor tests", () => {
@@ -152,7 +155,7 @@ describe("Code editor tests", () => {
 
     document.getElementById(SHOW_CODE_ID)?.click();
     const textAreas: HTMLElement[] = screen.getAllByRole("textbox");
-    codeEditor = textAreas[1];
+    codeEditor = textAreas[0];
   });
 
   afterEach(() => {

@@ -6,6 +6,12 @@
   height: 88%;
 }
 
+/* .tabs {
+  position: fixed;
+  left: 20%;
+  top: 2%;
+} */
+
 .css-1yjjitx-MuiSwitch-track {
   background-color: lightgray !important;
 }

@@ -1,15 +1,16 @@
-import React, { useEffect } from "react";
 import "../assets/editor.css";
 import "../assets/prism.css";
+
 import Prism from "prismjs";
+import React, { useEffect } from "react";
 
 import KeyboardShortcut from "../utils/keyboardShortcuts";
 import { addShortcuts } from "../utils/shortcutListener";
 import {
-  applyShiftTab,
   applyCtrlSlash,
-  insertTab,
+  applyShiftTab,
   insertEnter,
+  insertTab,
 } from "../utils/textareaActions";
 
 // Shortcut inputs in the editor, optional argument order: shift, ctrl, alt

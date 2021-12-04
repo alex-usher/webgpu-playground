@@ -1,4 +1,4 @@
-import { useSnackbar, VariantType, WithSnackbarProps } from "notistack";
+import { VariantType, WithSnackbarProps, useSnackbar } from "notistack";
 import * as React from "react";
 
 interface IProps {

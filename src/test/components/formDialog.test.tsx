@@ -1,12 +1,26 @@
-import FormDialog from "../../components/FormDialog";
-import userEvent from "@testing-library/user-event";
-import { act, render, screen } from "@testing-library/react";
-import { Shader } from "../../objects/Shader";
-import * as firebaseHelper from "../../utils/firebaseHelper";
+import "@testing-library/jest-dom/extend-expect";
 
+import { act, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+
+import FormDialog from "../../components/FormDialog";
+import { MeshType, Shader } from "../../objects/Shader";
+import * as firebaseHelper from "../../utils/firebaseHelper";
+import { rectangleNumberOfVertices } from "../../webgpu/meshes/rectangle";
 import { shaderTriangleVertex } from "../sample_shaders/triangle";
 
-import "@testing-library/jest-dom/extend-expect";
+const defaultShader = new Shader(
+  "testid",
+  "testfile",
+  "testimage",
+  false,
+  shaderTriangleVertex,
+  MeshType.RECTANGLE,
+  "",
+  "",
+  "6",
+  "testimageurl.com/image"
+);
 
 const renderFormDialog = async (
   open: boolean,
@@ -21,17 +35,14 @@ const renderFormDialog = async (
         handleClose={handleClose}
         shaderCode={shaderCode}
         updateShader={updateShader}
+        meshType={defaultShader.meshType}
+        vertexBuffer={defaultShader.vertexBuffer}
+        colourBuffer={defaultShader.colourBuffer}
+        numberOfVertices={defaultShader.numberOfVertices}
+        imageUrl={defaultShader.imageUrl}
       />
     );
   });
-
-const defaultShader = new Shader(
-  "testid",
-  "testfile",
-  "testimage",
-  false,
-  shaderTriangleVertex
-);
 
 let saveNewShaderMock: jest.SpyInstance;
 let handleCloseMock: jest.MockedFunction<() => void>;
@@ -72,7 +83,18 @@ describe("Form Dialog component tests", () => {
 
     expect(saveNewShaderMock).toHaveBeenCalledTimes(1);
     expect(saveNewShaderMock).toHaveBeenCalledWith(
-      new Shader("", "Untitled", "", false, shaderTriangleVertex)
+      new Shader(
+        "",
+        "Untitled",
+        "testimageurl.com/image",
+        false,
+        shaderTriangleVertex,
+        MeshType.RECTANGLE,
+        "",
+        "",
+        rectangleNumberOfVertices.toString(),
+        "testimageurl.com/image"
+      )
     );
 
     expect(updateShaderMock).toHaveBeenCalledTimes(1);
@@ -98,7 +120,18 @@ describe("Form Dialog component tests", () => {
     });
 
     expect(saveNewShaderMock).toHaveBeenCalledWith(
-      new Shader("", "a", "", false, shaderTriangleVertex)
+      new Shader(
+        "",
+        "a",
+        "testimageurl.com/image",
+        false,
+        shaderTriangleVertex,
+        MeshType.RECTANGLE,
+        "",
+        "",
+        rectangleNumberOfVertices.toString(),
+        "testimageurl.com/image"
+      )
     );
   });
 });

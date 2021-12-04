@@ -1,14 +1,14 @@
-import { useEffect, useState, useRef } from "react";
-import Button from "@mui/material/Button";
-
 import "../assets/consoleOutput.css";
+
+import Button from "@mui/material/Button";
+import { useEffect, useRef, useState } from "react";
+
+import KeyboardShortcut from "../utils/keyboardShortcuts";
+import { addShortcuts } from "../utils/shortcutListener";
 
 interface ConsoleOutputProps {
   messages: string;
 }
-
-import KeyboardShortcut from "../utils/keyboardShortcuts";
-import { addShortcuts } from "../utils/shortcutListener";
 
 export const ConsoleOutput = ({ messages }: ConsoleOutputProps) => {
   const viewConsoleRef = useRef(true);
@@ -65,3 +65,5 @@ export const ConsoleOutput = ({ messages }: ConsoleOutputProps) => {
     </div>
   );
 };
+
+export default ConsoleOutput;

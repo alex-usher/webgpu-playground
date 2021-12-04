@@ -1,13 +1,15 @@
-import SignInButton from "../components/SignInButton";
-import Grid from "@mui/material/Grid";
-import Button from "@mui/material/Button";
-import LinkMui from "@mui/material/Link";
-import { getAuth, onAuthStateChanged } from "@firebase/auth";
-import { Link } from "react-router-dom";
-import { useState } from "react";
-
 import "../assets/homePage.css";
 import "../assets/shaderGallery.css";
+
+import { getAuth, onAuthStateChanged } from "@firebase/auth";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import LinkMui from "@mui/material/Link";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+
+import SignInButton from "../components/SignInButton";
+import NewShaderButton from "./NewShaderButton";
 
 interface HeaderComponentProps {
   usersPage: boolean;
@@ -39,15 +41,7 @@ const HeaderComponent = ({ usersPage }: HeaderComponentProps) => {
         spacing={3}
       >
         <Grid item>
-          <Button
-            variant="outlined"
-            disableElevation
-            component={Link}
-            to="/editor"
-            className="header-button"
-          >
-            New Shader Sandbox
-          </Button>
+          <NewShaderButton />
         </Grid>
 
         {!usersPage && isLoggedIn ? (

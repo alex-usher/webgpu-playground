@@ -1,8 +1,10 @@
+import "@testing-library/jest-dom/extend-expect";
+
 import assert from "assert";
-import { ConsoleOutput } from "../../components/ConsoleOutput";
+
 import { render, screen } from "@testing-library/react";
 
-import "@testing-library/jest-dom/extend-expect";
+import ConsoleOutput from "../../components/ConsoleOutput";
 
 const testMessageSuccess = "Compilation completed successfully";
 const VIEW_CONSOLE_TEXT = "View Console";

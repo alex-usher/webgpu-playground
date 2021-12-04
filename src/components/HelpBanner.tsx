@@ -1,7 +1,7 @@
 import { Close } from "@mui/icons-material";
-import { Card, Grid, Typography, IconButton } from "@mui/material";
+import { Card, Grid, IconButton, Typography } from "@mui/material";
 
-import { structs } from "../render";
+import { structs } from "../webgpu/shaders";
 
 interface BannerProps {
   opacity?: number;
