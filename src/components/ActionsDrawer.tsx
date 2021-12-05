@@ -39,7 +39,6 @@ const ActionsDrawer = ({
   meshType,
   setRenderedImageUrl,
 }: ActionsDrawerProps) => {
-  //const [open, setIsOpen] = useState(actionsDrawerVisible);
   const [imageUrl, setImageUrl] = useState("");
 
   const history = useHistory();
@@ -131,7 +130,6 @@ const ActionsDrawer = ({
       disableElevation
       onClick={() => {
         toggleHelpVisible();
-        //setIsOpen(!open);
         toggleActionsDrawerVisible();
       }}
       color="secondary"
@@ -219,7 +217,6 @@ const ActionsDrawer = ({
         color="primary"
         endIcon={<ArrowDropDownIcon />}
         onClick={() => {
-          //setIsOpen(!open);
           toggleActionsDrawerVisible();
         }}
       >

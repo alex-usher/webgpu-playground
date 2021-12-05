@@ -13,7 +13,10 @@ Alt + H   => Toggle help
 Alt + E   => Toggle error console
 Alt + A   => Toggle code actions 
 Ctrl + S  => Save shader
-Ctrl + E  => Export`;
+Ctrl + E  => Export
+
+For custom buffer shaders: 
+Alt + Left/Right Arrow   => Switch between tabs`;
 
 export const HelpBanner = ({
   opacity = 0.5,
