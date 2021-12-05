@@ -13,7 +13,7 @@ import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 
 import ActionsDrawer from "../components/ActionsDrawer";
@@ -30,6 +30,17 @@ import {
   isCurrentUsersShader,
   overwriteShader,
 } from "../utils/firebaseHelper";
+import KeyboardShortcut from "../utils/keyboardShortcuts";
+import { addShortcuts } from "../utils/shortcutListener";
+
+// Shortcut patterns
+const altT = new KeyboardShortcut("T", false, false, true);
+const altH = new KeyboardShortcut("H", false, false, true);
+const altA = new KeyboardShortcut("A", false, false, true);
+const ctrlS = new KeyboardShortcut("S", false, true);
+const ctrlE = new KeyboardShortcut("E", false, true);
+const altLeft = new KeyboardShortcut("ArrowLeft", false, false, true);
+const altRight = new KeyboardShortcut("ArrowRight", false, false, true);
 
 const CodeEditorPage = () => {
   const state = useLocation().state as {
@@ -47,19 +58,32 @@ const CodeEditorPage = () => {
       ? (useLocation().state as { shader: Shader }).shader
       : defaultShader(meshType)
   );
-  const [editorWidth, setEditorWidth] = useState("100%");
+
+  const showCodeRef = useRef(false);
+  const helpBoxVisibleRef = useRef(false);
+  const saveFormOpenRef = useRef(false);
+  const actionsDrawerOpenRef = useRef(false);
+  const editorWidthRef = useRef("100%");
+  const currTabRef = useRef("0");
+
+  const [editorWidth, setEditorWidth] = useState(editorWidthRef.current);
   const [editorOpacity, setEditorOpacity] = useState(0.5);
-  const [helpBoxVisible, setHelpBoxVisible] = useState(false);
+  const [helpBoxVisible, setHelpBoxVisible] = useState(
+    helpBoxVisibleRef.current
+  );
+  const [actionsDrawerOpen, setActionsDrawerOpen] = useState(
+    actionsDrawerOpenRef.current
+  );
   const [inFullscreen, setInFullscreen] = useState(false);
   const [renderedImageUrl, setRenderedImageUrl] = useState(shader.imageUrl);
-  const [saveFormOpen, setSaveFormOpen] = useState(false);
+  const [saveFormOpen, setSaveFormOpen] = useState(saveFormOpenRef.current);
   const [loginFormOpen, setLoginFormOpen] = useState(false);
   const [renderLogger, setRenderLogger] = useState(new RenderLogger());
   const [shaderCode, setShaderCode] = useState(shader.shaderCode);
   const [shaderName, setShaderName] = useState("Untitled " + meshType);
   const [showCode, setShowCode] = useState(false);
   const [viewCodeText, setViewCodeText] = useState("View Code");
-  const [currTab, setCurrTab] = useState("0");
+  const [currTab, setCurrTab] = useState(currTabRef.current);
   // states for custom buffers
   const [vertexBuffer, setVertexBuffer] = useState(shader.vertexBuffer);
   const [colourBuffer, setColourBuffer] = useState(shader.colourBuffer);
@@ -67,30 +91,68 @@ const CodeEditorPage = () => {
     shader.numberOfVertices.toString()
   );
 
-  const handleFormOpen = async () => {
-    if (!auth.currentUser) {
-      setLoginFormOpen(true);
-    } else if ((await isCurrentUsersShader(shader)) && shader.id) {
-      overwriteShader(shader);
-    } else {
-      setSaveFormOpen(true);
-    }
-  };
-
-  const handleFormClose = () => {
-    setShaderName(shader.title);
-    setSaveFormOpen(false);
-    setLoginFormOpen(false);
-  };
-
-  const toggleHelpVisible = () => {
-    setHelpBoxVisible(!helpBoxVisible);
-    {
-      helpBoxVisible ? setEditorWidth("100%") : setEditorWidth("75%");
-    }
-  };
-
   const history = useHistory();
+
+  useEffect(() => {
+    const shortcuts = [
+      {
+        shortcut: altT,
+        action: () => {
+          toggleShowCode();
+        },
+      },
+      {
+        shortcut: altH,
+        action: () => {
+          toggleHelpVisible();
+        },
+      },
+      {
+        shortcut: altA,
+        action: () => {
+          toggleActionDrawer();
+        },
+      },
+      {
+        shortcut: ctrlS,
+        action: async () => {
+          await handleFormOpen();
+        },
+      },
+      {
+        shortcut: ctrlE,
+        action: () => {
+          exportAsPng();
+        },
+      },
+    ];
+    addShortcuts("*", shortcuts);
+  }, []);
+
+  // Add shortcuts for navigating the tabs for custom mesh shaders
+  useEffect(() => {
+    if (shader.meshType == MeshType.CUSTOM) {
+      const shortcuts = [
+        {
+          shortcut: altLeft,
+          action: () => {
+            addToTabContext(-1);
+          },
+        },
+        {
+          shortcut: altRight,
+          action: () => {
+            addToTabContext(1);
+          },
+        },
+      ];
+      addShortcuts("*", shortcuts);
+    }
+  }, []);
+
+  useEffect(() => {
+    shader.shaderCode = shaderCode;
+  }, [shaderCode]);
 
   useEffect(() => {
     if (shader.shaderCode === "") {
@@ -121,6 +183,67 @@ const CodeEditorPage = () => {
     renderedImageUrl,
   ]);
 
+  const toggleActionDrawer = () => {
+    // Only allow the drawer to open if the code actions button is available
+    actionsDrawerOpenRef.current = !actionsDrawerOpenRef.current;
+    setActionsDrawerOpen(actionsDrawerOpenRef.current);
+  };
+
+  const exportAsPng = () => {
+    const canvas = document.getElementById(
+      "canvas-webgpu"
+    ) as HTMLCanvasElement;
+    const link = document.createElement("a");
+    link.download = "shader.png";
+
+    canvas.toBlob(function (blob) {
+      link.href = URL.createObjectURL(blob);
+      link.click();
+    }, "image/png");
+  };
+
+  const handleFormOpen = async () => {
+    if (!auth.currentUser) {
+      setLoginFormOpen(true);
+    } else if ((await isCurrentUsersShader(shader)) && shader.id) {
+      overwriteShader(shader);
+    } else {
+      saveFormOpenRef.current = true;
+      setSaveFormOpen(saveFormOpenRef.current);
+    }
+  };
+
+  const handleFormClose = () => {
+    setShaderName(shader.title);
+    saveFormOpenRef.current = false;
+    setSaveFormOpen(saveFormOpenRef.current);
+    setLoginFormOpen(false);
+  };
+
+  const toggleShowCode = () => {
+    showCodeRef.current = !showCodeRef.current;
+    setShowCode(showCodeRef.current);
+    setViewCodeText(showCode ? "View Code" : "Hide Code");
+  };
+
+  const toggleHelpVisible = () => {
+    helpBoxVisibleRef.current = !helpBoxVisibleRef.current;
+    setHelpBoxVisible(helpBoxVisibleRef.current);
+    {
+      !helpBoxVisibleRef.current
+        ? (editorWidthRef.current = "100%")
+        : (editorWidthRef.current = "75%");
+    }
+    setEditorWidth(editorWidthRef.current);
+  };
+
+  const addToTabContext = (delta: number) => {
+    const currentContext = parseInt(currTabRef.current);
+    const newContext = (delta + currentContext + 4) % 4;
+    currTabRef.current = newContext.toString();
+    setCurrTab(currTabRef.current);
+  };
+
   return (
     <div id="body">
       <div className="paddedDiv">
@@ -133,7 +256,7 @@ const CodeEditorPage = () => {
             container
             direction="row"
             spacing={2}
-            style={{ minWidth: "55%", maxWidth: "55%" }}
+            style={{ minWidth: "30%", maxWidth: "65%", width: "auto" }}
             alignItems="center"
           >
             <Grid item>
@@ -155,10 +278,7 @@ const CodeEditorPage = () => {
                 id="show-code-button"
                 variant="outlined"
                 disableElevation
-                onClick={() => {
-                  setShowCode(!showCode);
-                  setViewCodeText(showCode ? "View Code" : "Hide Code");
-                }}
+                onClick={toggleShowCode}
                 color={"primary"}
               >
                 {viewCodeText}
@@ -178,26 +298,6 @@ const CodeEditorPage = () => {
                   >
                     Save
                   </Button>
-                  <Dialog open={loginFormOpen} onClose={handleFormClose}>
-                    <DialogTitle>Sign in to save a shader</DialogTitle>
-                    <DialogContent
-                      style={{ display: "flex", justifyContent: "center" }}
-                    >
-                      <SignInButton />
-                    </DialogContent>
-                  </Dialog>
-                  <FormDialog
-                    key="save-form"
-                    open={saveFormOpen}
-                    handleClose={handleFormClose}
-                    shaderCode={shaderCode}
-                    updateShader={(shader) => setShader(shader)}
-                    meshType={shader.meshType}
-                    vertexBuffer={vertexBuffer}
-                    colourBuffer={colourBuffer}
-                    numberOfVertices={numberOfVertices}
-                    imageUrl={renderedImageUrl}
-                  />
                 </Grid>
                 {meshType === MeshType.CUSTOM ? (
                   <Grid item>
@@ -207,9 +307,9 @@ const CodeEditorPage = () => {
                         onChange={(e, newTab: string) => setCurrTab(newTab)}
                       >
                         <Tab label="main" value="0" />
-                        <Tab label="vertex buffer" value="1" />
-                        <Tab label="colour buffer" value="2" />
-                        <Tab label="no of vertices" value="3" />
+                        <Tab label="vertices" value="1" />
+                        <Tab label="colours" value="2" />
+                        <Tab label="vertex no" value="3" />
                       </Tabs>
                     </div>
                   </Grid>
@@ -220,26 +320,46 @@ const CodeEditorPage = () => {
             )}
           </Grid>
 
-          <Grid container direction="row" justifyContent="flex-end">
-            <Grid item>
-              <Typography
-                variant="h5"
-                style={{
-                  color: "lightGrey",
-                  fontSize: "3vh",
-                  fontStyle: "italic",
-                }}
-              >
-                {shaderName}
-              </Typography>
-            </Grid>
-          </Grid>
+          <Dialog open={loginFormOpen} onClose={handleFormClose}>
+            <DialogTitle>Sign in to save a shader</DialogTitle>
+            <DialogContent
+              style={{ display: "flex", justifyContent: "center" }}
+            >
+              <SignInButton />
+            </DialogContent>
+          </Dialog>
+          <FormDialog
+            key="save-form"
+            open={saveFormOpen}
+            handleClose={handleFormClose}
+            shaderCode={shaderCode}
+            updateShader={(shader) => setShader(shader)}
+            meshType={shader.meshType}
+            vertexBuffer={vertexBuffer}
+            colourBuffer={colourBuffer}
+            numberOfVertices={numberOfVertices}
+            imageUrl={renderedImageUrl}
+          />
+
+          <div style={{ display: "flex" }}>
+            <Typography
+              variant="h5"
+              style={{
+                color: "lightGrey",
+                fontSize: "3vh",
+                fontStyle: "italic",
+              }}
+            >
+              {shaderName}
+            </Typography>
+          </div>
 
           <Grid
             container
             direction="row"
             alignItems="center"
             justifyContent="flex-end"
+            style={{ maxWidth: "25%", width: "auto" }}
           >
             <Grid item>
               <IconButton
@@ -264,6 +384,8 @@ const CodeEditorPage = () => {
             </Grid>
             <ActionsDrawer
               toggleHelpVisible={toggleHelpVisible}
+              toggleActionsDrawerVisible={toggleActionDrawer}
+              actionsDrawerVisible={actionsDrawerOpen}
               editorOpacity={editorOpacity}
               setEditorOpacity={setEditorOpacity}
               shader={shader}
@@ -288,7 +410,7 @@ const CodeEditorPage = () => {
       {showCode ? (
         meshType === MeshType.CUSTOM ? (
           <TabContext value={currTab}>
-            <TabPanel value="0">
+            <TabPanel value="0" className="tab-panel">
               <CodeEditor
                 helpBoxVisible={helpBoxVisible}
                 toggleHelpVisible={toggleHelpVisible}
@@ -299,7 +421,7 @@ const CodeEditorPage = () => {
                 renderLogger={renderLogger}
               />
             </TabPanel>
-            <TabPanel value="1">
+            <TabPanel value="1" className="tab-panel">
               <CodeEditor
                 helpBoxVisible={helpBoxVisible}
                 toggleHelpVisible={toggleHelpVisible}
@@ -310,7 +432,7 @@ const CodeEditorPage = () => {
                 renderLogger={renderLogger}
               />
             </TabPanel>
-            <TabPanel value="2">
+            <TabPanel value="2" className="tab-panel">
               <CodeEditor
                 helpBoxVisible={helpBoxVisible}
                 toggleHelpVisible={toggleHelpVisible}
@@ -321,7 +443,7 @@ const CodeEditorPage = () => {
                 renderLogger={renderLogger}
               />
             </TabPanel>
-            <TabPanel value="3">
+            <TabPanel value="3" className="tab-panel">
               <CodeEditor
                 helpBoxVisible={helpBoxVisible}
                 toggleHelpVisible={toggleHelpVisible}

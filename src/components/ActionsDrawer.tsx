@@ -17,6 +17,9 @@ import SnackbarUtils from "../utils/Snackbar";
 
 interface ActionsDrawerProps {
   toggleHelpVisible: () => void;
+  // following 2 params needed to correctly update states with keyboard shortcuts
+  toggleActionsDrawerVisible: () => void;
+  actionsDrawerVisible: boolean;
   editorOpacity: number;
   setEditorOpacity: (opacity: number) => void;
   shader: Shader;
@@ -27,6 +30,8 @@ interface ActionsDrawerProps {
 
 const ActionsDrawer = ({
   toggleHelpVisible,
+  toggleActionsDrawerVisible,
+  actionsDrawerVisible,
   editorOpacity,
   setEditorOpacity,
   shader,
@@ -34,7 +39,6 @@ const ActionsDrawer = ({
   meshType,
   setRenderedImageUrl,
 }: ActionsDrawerProps) => {
-  const [open, setIsOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
 
   const history = useHistory();
@@ -126,7 +130,7 @@ const ActionsDrawer = ({
       disableElevation
       onClick={() => {
         toggleHelpVisible();
-        setIsOpen(!open);
+        toggleActionsDrawerVisible();
       }}
       color="secondary"
     >
@@ -212,11 +216,17 @@ const ActionsDrawer = ({
         disableElevation
         color="primary"
         endIcon={<ArrowDropDownIcon />}
-        onClick={() => setIsOpen(!open)}
+        onClick={() => {
+          toggleActionsDrawerVisible();
+        }}
       >
         {"Code Actions"}
       </Button>
-      <Drawer anchor={"right"} open={open} onClose={() => setIsOpen(!open)}>
+      <Drawer
+        anchor={"right"}
+        open={actionsDrawerVisible}
+        onClose={() => toggleActionsDrawerVisible()}
+      >
         <Stack
           direction="column"
           spacing={5}

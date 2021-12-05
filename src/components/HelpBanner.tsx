@@ -8,6 +8,16 @@ interface BannerProps {
   toggleVisibility: () => void;
 }
 
+const shortcutText = `Alt + T   => Toggle editor
+Alt + H   => Toggle help
+Alt + E   => Toggle error console
+Alt + A   => Toggle code actions 
+Ctrl + S  => Save shader
+Ctrl + E  => Export
+
+For custom buffer shaders: 
+Alt + Left/Right Arrow   => Switch between tabs`;
+
 export const HelpBanner = ({
   opacity = 0.5,
   toggleVisibility,
@@ -59,6 +69,21 @@ export const HelpBanner = ({
             >
               <Close />
             </IconButton>
+          </Grid>
+          <Grid item sx={{ padding: "0.5em" }}>
+            <Typography variant="h6" color="white">
+              Shortcuts:
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: "monospace",
+                padding: "0.2em",
+                fontSize: "0.86em",
+                color: "rgba(208, 208, 208, 0.9)",
+              }}
+            >
+              {shortcutText}
+            </Typography>
           </Grid>
         </Grid>
       </Card>
