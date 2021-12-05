@@ -1,14 +1,14 @@
 import { render } from "@testing-library/react";
+
 import ShaderCanvas from "../../components/ShaderCanvas";
+import { RenderLogger } from "../../objects/RenderLogger";
+import { MeshType } from "../../objects/Shader";
+import * as helpers from "../../webgpu/pipelines/helpers";
+import * as renders from "../../webgpu/pipelines/render";
 import {
   shaderTriangleFragment,
   shaderTriangleVertex,
 } from "../sample_shaders/triangle";
-
-import * as helpers from "../../webgpu/pipelines/helpers";
-import * as renders from "../../webgpu/pipelines/render";
-import { MeshType } from "../../objects/Shader";
-import { RenderLogger } from "../../objects/RenderLogger";
 
 const renderShaderCanvas = (
   setRenderLogger: (renderLogger: RenderLogger) => void
@@ -18,6 +18,9 @@ const renderShaderCanvas = (
       shaderCode={`${shaderTriangleVertex}\n${shaderTriangleFragment}`}
       meshType={MeshType.RECTANGLE}
       setRenderLogger={setRenderLogger}
+      vertexBuffer={""}
+      colourBuffer={""}
+      numberOfVertices={"6"}
     />
   );
 

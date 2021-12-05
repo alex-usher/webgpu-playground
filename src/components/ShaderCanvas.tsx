@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
 import "../assets/shaderCanvas.css";
-import { checkWebGPU } from "../webgpu/pipelines/helpers";
-import { renderShader, updateCoordinates } from "../webgpu/pipelines/render";
+
 import Typography from "@mui/material/Typography";
+import { useEffect, useState } from "react";
+
 import { RenderLogger } from "../objects/RenderLogger";
 import { MeshType } from "../objects/Shader";
+import { checkWebGPU } from "../webgpu/pipelines/helpers";
+import { renderShader, updateCoordinates } from "../webgpu/pipelines/render";
 
 const WIDTH_ASPECT = 968;
 const HEIGHT_ASPECT = 720;
@@ -14,6 +16,9 @@ interface ShaderCanvasInput {
   shaderCode: string;
   setRenderLogger: (renderLogger: RenderLogger) => void;
   meshType: MeshType;
+  vertexBuffer: string;
+  colourBuffer: string;
+  numberOfVertices: string;
   imageUrl?: string;
 }
 
@@ -21,6 +26,9 @@ const ShaderCanvas = ({
   shaderCode,
   setRenderLogger,
   meshType,
+  vertexBuffer,
+  colourBuffer,
+  numberOfVertices,
   imageUrl,
 }: ShaderCanvasInput) => {
   const renderLogger = new RenderLogger();
@@ -31,13 +39,23 @@ const ShaderCanvas = ({
     window.innerHeight / HEIGHT_ASPECT
   );
 
+  const webGPUAvailable = checkWebGPU();
+
   useEffect(() => {
-    if (shaderCode !== "" && shaderCode !== undefined) {
-      renderShader(shaderCode, meshType, renderLogger, imageUrl).then(() => {
+    if (shaderCode !== "" && shaderCode !== undefined && webGPUAvailable) {
+      renderShader(
+        shaderCode,
+        meshType,
+        renderLogger,
+        vertexBuffer,
+        colourBuffer,
+        numberOfVertices,
+        imageUrl
+      ).then(() => {
         setRenderLogger(renderLogger);
       });
     }
-  }, [shaderCode, imageUrl]);
+  }, [shaderCode, vertexBuffer, colourBuffer, numberOfVertices, imageUrl]);
 
   useEffect(() => {
     const setFromEvent = (e: MouseEvent) => {
@@ -62,7 +80,7 @@ const ShaderCanvas = ({
 
   return (
     <div style={{ color: "white", height: "90%" }}>
-      {checkWebGPU() ? (
+      {webGPUAvailable ? (
         <div className="canvas-container">
           <canvas
             id="canvas-webgpu"
@@ -71,8 +89,18 @@ const ShaderCanvas = ({
           />
         </div>
       ) : (
-        <Typography variant="h2">
-          WebGPU support not enabled! Are you using Chrome Canary?
+        <Typography
+          variant="h2"
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translateY(-50%) translateX(-50%)",
+            display: "inline-block",
+          }}
+        >
+          {`WebGPU support not enabled!\n
+          Are you using Chrome Canary?`}
         </Typography>
       )}
     </div>

@@ -1,21 +1,19 @@
+import "../assets/style.css";
+
+import { getAuth, onAuthStateChanged } from "@firebase/auth";
+import { Typography } from "@mui/material";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
+import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
-import MenuItem from "@mui/material/MenuItem";
-import { Shader } from "../objects/Shader";
-import { getAuth, onAuthStateChanged } from "@firebase/auth";
-import { Redirect } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { Redirect } from "react-router-dom";
 
-import "../assets/style.css";
-import { getUserShaders } from "../utils/firebaseHelper";
-// import ShaderContainerLarge from "../components/ShaderContainerLarge";
-import UserShaderCard from "../components/UserShaderCard";
-import { Typography } from "@mui/material";
 import HeaderComponent from "../components/HeaderComponent";
-
-import { MeshType, StringFromMeshType } from "../objects/Shader";
+import UserShaderCard from "../components/UserShaderCard";
+import { MeshType, Shader, StringFromMeshType } from "../objects/Shader";
+import { getUserShaders } from "../utils/firebaseHelper";
 
 const UserPage = () => {
   const auth = getAuth();

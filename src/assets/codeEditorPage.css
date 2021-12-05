@@ -6,6 +6,10 @@
   height: 88%;
 }
 
+.tab-panel {
+  padding: 0 !important;
+}
+
 .css-1yjjitx-MuiSwitch-track {
   background-color: lightgray !important;
 }

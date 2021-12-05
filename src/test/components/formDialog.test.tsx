@@ -1,12 +1,13 @@
-import FormDialog from "../../components/FormDialog";
-import userEvent from "@testing-library/user-event";
+import "@testing-library/jest-dom/extend-expect";
+
 import { act, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+
+import FormDialog from "../../components/FormDialog";
 import { MeshType, Shader } from "../../objects/Shader";
 import * as firebaseHelper from "../../utils/firebaseHelper";
-
+import { rectangleNumberOfVertices } from "../../webgpu/meshes/rectangle";
 import { shaderTriangleVertex } from "../sample_shaders/triangle";
-
-import "@testing-library/jest-dom/extend-expect";
 
 const defaultShader = new Shader(
   "testid",
@@ -14,7 +15,11 @@ const defaultShader = new Shader(
   "testimage",
   false,
   shaderTriangleVertex,
-  MeshType.RECTANGLE
+  MeshType.RECTANGLE,
+  "",
+  "",
+  "6",
+  "testimageurl.com/image"
 );
 
 const renderFormDialog = async (
@@ -31,6 +36,10 @@ const renderFormDialog = async (
         shaderCode={shaderCode}
         updateShader={updateShader}
         meshType={defaultShader.meshType}
+        vertexBuffer={defaultShader.vertexBuffer}
+        colourBuffer={defaultShader.colourBuffer}
+        numberOfVertices={defaultShader.numberOfVertices}
+        imageUrl={defaultShader.imageUrl}
       />
     );
   });
@@ -77,10 +86,14 @@ describe("Form Dialog component tests", () => {
       new Shader(
         "",
         "Untitled",
-        "",
+        "testimageurl.com/image",
         false,
         shaderTriangleVertex,
-        MeshType.RECTANGLE
+        MeshType.RECTANGLE,
+        "",
+        "",
+        rectangleNumberOfVertices.toString(),
+        "testimageurl.com/image"
       )
     );
 
@@ -107,7 +120,18 @@ describe("Form Dialog component tests", () => {
     });
 
     expect(saveNewShaderMock).toHaveBeenCalledWith(
-      new Shader("", "a", "", false, shaderTriangleVertex, MeshType.RECTANGLE)
+      new Shader(
+        "",
+        "a",
+        "testimageurl.com/image",
+        false,
+        shaderTriangleVertex,
+        MeshType.RECTANGLE,
+        "",
+        "",
+        rectangleNumberOfVertices.toString(),
+        "testimageurl.com/image"
+      )
     );
   });
 });

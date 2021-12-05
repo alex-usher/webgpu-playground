@@ -1,98 +1,108 @@
 {
-    "name": "webgpu",
-    "version": "0.1.0",
-    "private": true,
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/alex-usher/webgpu-playground-frontend.git"
-    },
-    "author": "",
-    "license": "ISC",
-    "dependencies": {
-        "@emotion/react": "^11.5.0",
-        "@emotion/styled": "^11.3.0",
-        "@firebase/analytics": "^0.7.2",
-        "@firebase/app": "^0.7.5",
-        "@firebase/auth": "^0.19.0",
-        "@firebase/firestore": "^3.2.0",
-        "@firebase/storage": "^0.8.4",
-        "@mui/icons-material": "^5.2.0",
-        "@mui/material": "^5.0.4",
-        "@types/node": "^16.11.1",
-        "@types/react-dom": "^17.0.9",
-        "@types/react-router-dom": "^5.3.1",
-        "@types/uuid": "^8.3.1",
-        "@webgpu/types": "^0.1.6",
-        "axios": "^0.24.0",
-        "eslint-plugin-react": "^7.26.1",
-        "gl-matrix": "^3.4.3",
-        "notistack": "^2.0.2",
-        "npm": "^6.14.15",
-        "Prism": "^2.0.0",
-        "prismjs": "^1.25.0",
-        "react": "^17.0.2",
-        "react-dom": "^17.0.2",
-        "react-google-button": "^0.7.2",
-        "react-infinite-scroll-component": "^6.1.0",
-        "react-loading-dot": "^1.0.6",
-        "react-router-dom": "^5.3.0",
-        "react-scripts": "^4.0.3",
-        "react-scroll-sync": "^0.9.0",
-        "uuid": "^8.3.2",
-        "web-vitals": "^1.1.2"
-    },
-    "devDependencies": {
-        "@testing-library/jest-dom": "^4.2.4",
-        "@testing-library/react": "^11.2.7",
-        "@testing-library/user-event": "^12.8.3",
-        "@types/jest": "^27.0.2",
-        "@types/prismjs": "^1.16.6",
-        "@types/react": "^17.0.34",
-        "@types/react-scroll-sync": "^0.8.3",
-        "@typescript-eslint/eslint-plugin": "^5.2.0",
-        "@typescript-eslint/parser": "^5.2.0",
-        "eslint-config-prettier": "^8.3.0",
-        "eslint-plugin-prettier": "^4.0.0",
-        "husky": "^4.3.8",
-        "lint-staged": "^11.2.6",
-        "prettier": "^2.4.1",
-        "typescript": "^4.4.4"
-    },
-    "scripts": {
-        "start": "react-scripts start",
-        "build": "react-scripts build",
-        "test": "react-scripts test",
-        "eject": "react-scripts eject"
-    },
-    "eslintConfig": {
-        "extends": [
-            "react-app",
-            "react-app/jest"
-        ]
-    },
-    "browserslist": {
-        "production": [
-            ">0.2%",
-            "not dead",
-            "not op_mini all"
-        ],
-        "development": [
-            "last 1 chrome version",
-            "last 1 firefox version",
-            "last 1 safari version"
-        ]
-    },
-    "optionalDependencies": {
-        "fsevents": "^2.3.2"
-    },
-    "husky": {
-        "hooks": {
-            "pre-commit": "lint-staged"
-        }
-    },
-    "lint-staged": {
-        "src/**/*.{ts,tsx}": [
-            "eslint --fix"
-        ]
+  "name": "webgpu",
+  "version": "0.1.0",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alex-usher/webgpu-playground-frontend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "3d-view-controls": "2.2.2",
+    "@emotion/react": "^11.5.0",
+    "@emotion/styled": "^11.3.0",
+    "@firebase/analytics": "^0.7.2",
+    "@firebase/app": "^0.7.5",
+    "@firebase/auth": "^0.19.0",
+    "@firebase/firestore": "^3.2.0",
+    "@firebase/storage": "^0.8.4",
+    "@mui/icons-material": "^5.2.0",
+    "@mui/lab": "^5.0.0-alpha.58",
+    "@mui/material": "^5.0.4",
+    "@types/node": "^16.11.1",
+    "@types/react-dom": "^17.0.9",
+    "@types/react-router-dom": "^5.3.1",
+    "@types/uuid": "^8.3.1",
+    "@webgpu/types": "^0.1.6",
+    "axios": "^0.24.0",
+    "eslint-plugin-react": "^7.26.1",
+    "gl-matrix": "^3.4.3",
+    "notistack": "^2.0.2",
+    "npm": "^6.14.15",
+    "Prism": "^2.0.0",
+    "prismjs": "^1.25.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-google-button": "^0.7.2",
+    "react-infinite-scroll-component": "^6.1.0",
+    "react-loading-dot": "^1.0.6",
+    "react-router-dom": "^5.3.0",
+    "react-scripts": "^4.0.3",
+    "react-scroll-sync": "^0.9.0",
+    "uuid": "^8.3.2",
+    "web-vitals": "^1.1.2"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^11.2.7",
+    "@testing-library/user-event": "^12.8.3",
+    "@types/jest": "^27.0.2",
+    "@types/prismjs": "^1.16.6",
+    "@types/react": "^17.0.34",
+    "@types/react-scroll-sync": "^0.8.3",
+    "@typescript-eslint/eslint-plugin": "^5.2.0",
+    "@typescript-eslint/parser": "^5.2.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "husky": "^4.3.8",
+    "import-sort-style-module": "^6.0.0",
+    "lint-staged": "^11.2.6",
+    "prettier": "^2.5.0",
+    "prettier-plugin-import-sort": "^0.0.7",
+    "typescript": "^4.4.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "optionalDependencies": {
+    "fsevents": "^2.3.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
     }
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "eslint --fix"
+    ]
+  },
+  "importSort": {
+    ".js, .jsx, .ts, .tsx": {
+      "style": "module",
+      "parser": "typescript"
+    }
+  }
 }

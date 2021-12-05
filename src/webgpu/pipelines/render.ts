@@ -1,22 +1,26 @@
 import assert from "assert";
+
+import { mat4 } from "gl-matrix";
+
+import { RenderLogger } from "../../objects/RenderLogger";
+import { MeshType } from "../../objects/Shader";
+import { getImageFromUrl } from "../../utils/imageHelper";
+import { cubeColours, cubePositions } from "../meshes/cube";
+import { rectangleMesh } from "../meshes/rectangle";
+import { texturedRectangleMesh } from "../meshes/texturedRectangle";
 import { structs } from "../shaders";
 import {
-  addViewParamsToBuffer,
   addUniformCode,
+  addViewParamsToBuffer,
   checkWebGPU,
   createGPUBuffer,
   createTransforms,
   createViewProjection,
   outputMessages,
 } from "./helpers";
-import { texturedRectangleMesh } from "../meshes/texturedRectangle";
-import { cubeColours, cubePositions } from "../meshes/cube";
-import { mat4 } from "gl-matrix";
-import { RenderLogger } from "../../objects/RenderLogger";
-import { MeshType } from "../../objects/Shader";
-import { getImageFromUrl } from "../../utils/imageHelper";
-import { rectangleMesh } from "../meshes/rectangle";
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const createCamera = require("3d-view-controls");
 const SWAPCHAIN_FORMAT = "bgra8unorm";
 const DEPTH_FORMAT = "depth24plus-stencil8";
 
@@ -81,7 +85,9 @@ export const generateFrameFunction = (
   canvas: HTMLCanvasElement,
   context: GPUCanvasContext,
   bindGroup: GPUBindGroup,
-  dataBuffer: GPUBuffer,
+  vertexCount: number,
+  vertexBuffer: GPUBuffer,
+  colourBuffer: GPUBuffer | null,
   device: GPUDevice,
   renderPipeline: GPURenderPipeline,
   viewParamsBuffer: GPUBuffer,
@@ -114,16 +120,18 @@ export const generateFrameFunction = (
       });
 
       renderPass.setPipeline(renderPipeline);
-      renderPass.setVertexBuffer(0, dataBuffer);
+      renderPass.setVertexBuffer(0, vertexBuffer);
+      if (colourBuffer) {
+        renderPass.setVertexBuffer(1, colourBuffer);
+      }
       renderPass.setBindGroup(0, bindGroup);
-      renderPass.draw(6, 1, 0, 0);
+      renderPass.draw(vertexCount);
       renderPass.endPass();
 
       if (samplingTexture) {
-        const currentTexture = context.getCurrentTexture();
         commandEncoder.copyTextureToTexture(
           {
-            texture: currentTexture,
+            texture: context.getCurrentTexture(),
           },
           {
             texture: samplingTexture,
@@ -174,10 +182,28 @@ export const renderRectangleShader = async (
         visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
         buffer: [{ type: "uniform" }],
       } as GPUBindGroupLayoutEntry,
+      {
+        binding: 1,
+        visibility: GPUShaderStage.FRAGMENT,
+        type: "sampler",
+        sampler: {
+          type: "filtering",
+        },
+      } as GPUBindGroupLayoutEntry,
+      {
+        binding: 2,
+        visibility: GPUShaderStage.FRAGMENT,
+        type: "sampled-texture",
+        texture: {
+          sampleType: "float",
+          viewDimension: "2d",
+          multisampled: false,
+        },
+      } as GPUBindGroupLayoutEntry,
       ...(isTextured
         ? [
             {
-              binding: 1,
+              binding: 3,
               visibility: GPUShaderStage.FRAGMENT,
               type: "sampler",
               sampler: {
@@ -185,22 +211,13 @@ export const renderRectangleShader = async (
               },
             } as GPUBindGroupLayoutEntry,
             {
-              binding: 2,
+              binding: 4,
               visibility: GPUShaderStage.FRAGMENT,
               type: "sampled-texture",
               texture: {
                 sampleType: "float",
                 viewDimension: "2d",
                 multisampled: false,
-              },
-            } as GPUBindGroupLayoutEntry,
-            {
-              binding: 3,
-              visibility: GPUShaderStage.FRAGMENT,
-              type: "sampled-texture",
-              texture: {
-                sampleType: "float",
-                viewDimension: "2d",
               },
             } as GPUBindGroupLayoutEntry,
           ]
@@ -240,6 +257,21 @@ export const renderRectangleShader = async (
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
+  const samplingTexture = device.createTexture({
+    size: {
+      width: canvas.width,
+      height: canvas.height,
+      depth: 1,
+    } as GPUExtent3DDict,
+    format: SWAPCHAIN_FORMAT,
+    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+  });
+
+  const samplingSampler = device.createSampler({
+    magFilter: "linear",
+    minFilter: "nearest",
+  });
+
   let bindGroup: GPUBindGroup;
 
   if (isTextured) {
@@ -254,6 +286,11 @@ export const renderRectangleShader = async (
       depth: 1,
     } as GPUExtent3DDict;
 
+    const textureSampler = device.createSampler({
+      magFilter: "linear",
+      minFilter: "nearest",
+    });
+
     const texture2d = device.createTexture({
       size: extent3dDict,
       dimension: "2d",
@@ -262,21 +299,6 @@ export const renderRectangleShader = async (
         GPUTextureUsage.COPY_DST |
         GPUTextureUsage.RENDER_ATTACHMENT |
         GPUTextureUsage.TEXTURE_BINDING,
-    });
-
-    const samplingTexture = device.createTexture({
-      size: {
-        width: canvas.clientWidth,
-        height: canvas.clientHeight,
-        depth: 1,
-      } as GPUExtent3DDict,
-      format: SWAPCHAIN_FORMAT,
-      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
-    });
-
-    const sampler = device.createSampler({
-      magFilter: "linear",
-      minFilter: "nearest",
     });
 
     device.queue.copyExternalImageToTexture(
@@ -290,19 +312,24 @@ export const renderRectangleShader = async (
       extent3dDict
     );
 
-    bindGroup = bindGroup = device.createBindGroup({
+    bindGroup = device.createBindGroup({
       layout: bindGroupLayout,
       entries: [
         { binding: 0, resource: { buffer: viewParamsBuffer } },
-        { binding: 1, resource: sampler },
-        { binding: 2, resource: texture2d.createView() },
-        { binding: 3, resource: samplingTexture.createView() },
+        { binding: 1, resource: samplingSampler },
+        { binding: 2, resource: samplingTexture.createView() },
+        { binding: 3, resource: textureSampler },
+        { binding: 4, resource: texture2d.createView() },
       ],
     });
   } else {
     bindGroup = device.createBindGroup({
       layout: bindGroupLayout,
-      entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
+      entries: [
+        { binding: 0, resource: { buffer: viewParamsBuffer } },
+        { binding: 1, resource: samplingSampler },
+        { binding: 2, resource: samplingTexture.createView() },
+      ],
     });
   }
 
@@ -321,10 +348,13 @@ export const renderRectangleShader = async (
     canvas,
     context,
     bindGroup,
+    6,
     dataBuffer,
+    null,
     device,
     renderPipeline,
-    viewParamsBuffer
+    viewParamsBuffer,
+    samplingTexture
   );
 
   renderFrame = requestAnimationFrame(frame);
@@ -400,8 +430,6 @@ export const renderCubeShader = async (
               format: "float32x3",
               offset: 0,
             },
-            // { format: "float32x2", offset: 0, shaderLocation: 0 },
-            // { format: "float32x4", offset: 2 * 4, shaderLocation: 1 },
           ],
         },
       ],
@@ -435,6 +463,16 @@ export const renderCubeShader = async (
       { binding: 1, resource: { buffer: viewParamsBuffer } },
     ],
   });
+
+  // create uniform data
+  const modelMatrix = mat4.create();
+  const mvpMatrix = mat4.create();
+  let vpMatrix = mat4.create();
+  const vp = createViewProjection(canvas.width / canvas.height);
+  vpMatrix = vp.viewProjectionMatrix;
+  let vMatrix = mat4.create();
+  const body = document.getElementById("body") as HTMLCanvasElement;
+  const camera = createCamera(body, vp.cameraOption);
 
   // track when canvas is visible and only render when true
   let canvasVisible = false;
@@ -481,12 +519,11 @@ export const renderCubeShader = async (
         },
       };
 
-      // create uniform data
-      const modelMatrix = mat4.create();
-      const mvpMatrix = mat4.create();
-      let vpMatrix = mat4.create();
-      const vp = createViewProjection(canvas.width / canvas.height);
-      vpMatrix = vp.viewProjectionMatrix;
+      if (camera.tick()) {
+        const pMatrix = vp.projectionMatrix;
+        vMatrix = camera.matrix;
+        mat4.multiply(vpMatrix, pMatrix, vMatrix);
+      }
 
       createTransforms(modelMatrix);
       mat4.multiply(mvpMatrix, vpMatrix, modelMatrix);
@@ -512,10 +549,117 @@ export const renderCubeShader = async (
   renderFrame = requestAnimationFrame(frame);
 };
 
+export const renderCustomShader = async (
+  shaderCode: string,
+  renderLogger: RenderLogger,
+  vertices: Float32Array,
+  colours: Float32Array,
+  vertexCount: number
+): Promise<void> => {
+  const init = await initialiseGPU(
+    shaderCode,
+    GPUTextureUsage.RENDER_ATTACHMENT |
+      GPUTextureUsage.TEXTURE_BINDING |
+      GPUTextureUsage.COPY_SRC,
+    renderLogger
+  );
+
+  if (init === undefined) return;
+
+  // delay pattern match so we can test for error
+  const { canvas, context, device, shaderModule } = init;
+
+  // allocate a buffer using the rectangle mesh
+  const vertexBuffer = createGPUBuffer(device, vertices);
+
+  const colourBuffer = createGPUBuffer(device, colours);
+
+  const bindGroupLayout = device.createBindGroupLayout({
+    entries: [
+      {
+        binding: 0,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        buffer: [{ type: "uniform" }],
+      } as GPUBindGroupLayoutEntry,
+    ],
+  });
+
+  const layout = device.createPipelineLayout({
+    bindGroupLayouts: [bindGroupLayout],
+  });
+
+  const renderPipeline = device.createRenderPipeline({
+    layout: layout,
+    vertex: {
+      module: shaderModule,
+      entryPoint: "vertex_main",
+      buffers: [
+        {
+          arrayStride: 2 * 4,
+          attributes: [{ format: "float32x2", offset: 0, shaderLocation: 0 }],
+        },
+        {
+          arrayStride: 4 * 4,
+          attributes: [
+            {
+              format: "float32x4",
+              offset: 0,
+              shaderLocation: 1,
+            },
+          ],
+        },
+      ],
+    },
+    fragment: {
+      module: shaderModule,
+      entryPoint: "fragment_main",
+      targets: [{ format: SWAPCHAIN_FORMAT }],
+    },
+  });
+
+  const viewParamsBuffer = device.createBuffer({
+    size: 4 * 5,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+
+  const bindGroup = device.createBindGroup({
+    layout: bindGroupLayout,
+    entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
+  });
+
+  // track when canvas is visible and only render when true
+  canvasVisible = false;
+  const observer = new IntersectionObserver(
+    (e) => {
+      canvasVisible = e[0].isIntersecting;
+    },
+    { threshold: [0] }
+  );
+  observer.observe(canvas);
+
+  time = 0;
+  const frame = generateFrameFunction(
+    canvas,
+    context,
+    bindGroup,
+    vertexCount,
+    vertexBuffer,
+    colourBuffer,
+    device,
+    renderPipeline,
+    viewParamsBuffer
+  );
+
+  renderFrame = requestAnimationFrame(frame);
+};
+
 export const renderShader = async (
   shaderCode: string,
   meshType: MeshType,
   renderLogger: RenderLogger,
+  vertices: string,
+  colours: string,
+  vertexCount: string,
   imageUrl?: string
 ): Promise<void> => {
   switch (meshType) {
@@ -525,6 +669,25 @@ export const renderShader = async (
       return renderRectangleShader(shaderCode, renderLogger, imageUrl, true);
     case MeshType.CUBE:
       return renderCubeShader(shaderCode, renderLogger);
+    case MeshType.CUSTOM:
+      if (vertices && colours && vertexCount) {
+        try {
+          const vertexBuffer = new Float32Array(JSON.parse(vertices));
+          const colourBuffer = new Float32Array(JSON.parse(colours));
+          const numberOfVertices = parseInt(vertexCount);
+
+          return renderCustomShader(
+            shaderCode,
+            renderLogger,
+            vertexBuffer,
+            colourBuffer,
+            numberOfVertices
+          );
+        } catch (e) {
+          return;
+        }
+      }
+      break;
     default:
       return;
   }

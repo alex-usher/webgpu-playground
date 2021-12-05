@@ -1,5 +1,5 @@
 import { Close } from "@mui/icons-material";
-import { Card, Grid, Typography, IconButton } from "@mui/material";
+import { Card, Grid, IconButton, Typography } from "@mui/material";
 
 import { structs } from "../webgpu/shaders";
 
@@ -7,6 +7,16 @@ interface BannerProps {
   opacity?: number;
   toggleVisibility: () => void;
 }
+
+const shortcutText = `Alt + T   => Toggle editor
+Alt + H   => Toggle help
+Alt + E   => Toggle error console
+Alt + A   => Toggle code actions 
+Ctrl + S  => Save shader
+Ctrl + E  => Export
+
+For custom buffer shaders: 
+Alt + Left/Right Arrow   => Switch between tabs`;
 
 export const HelpBanner = ({
   opacity = 0.5,
@@ -59,6 +69,21 @@ export const HelpBanner = ({
             >
               <Close />
             </IconButton>
+          </Grid>
+          <Grid item sx={{ padding: "0.5em" }}>
+            <Typography variant="h6" color="white">
+              Shortcuts:
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: "monospace",
+                padding: "0.2em",
+                fontSize: "0.86em",
+                color: "rgba(208, 208, 208, 0.9)",
+              }}
+            >
+              {shortcutText}
+            </Typography>
           </Grid>
         </Grid>
       </Card>

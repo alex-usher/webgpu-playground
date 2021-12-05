@@ -1,10 +1,12 @@
-import { Shader, ShaderType } from "../objects/Shader";
-import { ShaderCard } from "./ShaderCard";
-import Typography from "@mui/material/Typography";
+import "../assets/cardCarousel.css";
+
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
 import { Link } from "react-router-dom";
-import "../assets/cardCarousel.css";
+
+import { Shader, ShaderType } from "../objects/Shader";
+import { ShaderCard } from "./ShaderCard";
 
 interface CarouselProps {
   shaderType: ShaderType;

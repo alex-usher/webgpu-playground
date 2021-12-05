@@ -1,15 +1,13 @@
 import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
-
-import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import FormGroup from "@mui/material/FormGroup";
 import Switch from "@mui/material/Switch";
-
+import TextField from "@mui/material/TextField";
 import { useState } from "react";
 
 import { MeshType, Shader } from "../objects/Shader";
@@ -21,6 +19,10 @@ interface FormDialogProps {
   shaderCode: string;
   updateShader: (shader: Shader) => void;
   meshType: MeshType;
+  vertexBuffer: string;
+  colourBuffer: string;
+  numberOfVertices: string;
+  imageUrl: string;
 }
 
 const FormDialog = ({
@@ -29,6 +31,10 @@ const FormDialog = ({
   shaderCode,
   updateShader,
   meshType,
+  vertexBuffer,
+  colourBuffer,
+  numberOfVertices,
+  imageUrl,
 }: FormDialogProps) => {
   const [fileName, setFileName] = useState("Untitled");
   const [isPublic, setIsPublic] = useState(false);
@@ -72,7 +78,18 @@ const FormDialog = ({
         <Button
           onClick={async () => {
             const shader = await saveNewShader(
-              new Shader("", fileName, "", isPublic, shaderCode, meshType)
+              new Shader(
+                "",
+                fileName,
+                imageUrl,
+                isPublic,
+                shaderCode,
+                meshType,
+                vertexBuffer,
+                colourBuffer,
+                numberOfVertices,
+                imageUrl
+              )
             );
             if (shader) {
               updateShader(shader);

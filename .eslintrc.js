@@ -24,6 +24,7 @@ module.exports = {
   rules: {
     "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     "prettier/prettier": ["error", { endOfLine: "auto" }],
+    "no-control-regex": 0
   },
   overrides: [
     {

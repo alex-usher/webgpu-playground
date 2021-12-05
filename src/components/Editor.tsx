@@ -1,7 +1,23 @@
-import React, { useEffect } from "react";
 import "../assets/editor.css";
 import "../assets/prism.css";
+
 import Prism from "prismjs";
+import React, { useEffect } from "react";
+
+import KeyboardShortcut from "../utils/keyboardShortcuts";
+import { addShortcuts } from "../utils/shortcutListener";
+import {
+  applyCtrlSlash,
+  applyShiftTab,
+  insertEnter,
+  insertTab,
+} from "../utils/textareaActions";
+
+// Shortcut inputs in the editor, optional argument order: shift, ctrl, alt
+const tab = new KeyboardShortcut("Tab");
+const enter = new KeyboardShortcut("Enter");
+const shiftTab = new KeyboardShortcut("Tab", true);
+const ctrlSlash = new KeyboardShortcut("/", false, true);
 
 interface EditorProps {
   value: string;
@@ -30,7 +46,49 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
     if (editorRef?.current) {
       Prism.highlightAll();
     }
-  });
+  }, [editorRef?.current?.value]);
+
+  // Add the shortcut listeners once after render
+  useEffect(() => {
+    if (editorRef?.current) {
+      const ref = document.querySelector(
+        ".code-text-editor"
+      ) as HTMLTextAreaElement;
+
+      const textareaShortcuts = [
+        {
+          shortcut: tab,
+          action: () => {
+            insertTab(ref);
+            update(ref.value);
+          },
+        },
+        {
+          shortcut: enter,
+          action: () => {
+            console.log("Enter");
+            insertEnter(ref);
+            update(ref.value);
+          },
+        },
+        {
+          shortcut: shiftTab,
+          action: () => {
+            applyShiftTab(ref);
+            update(ref.value);
+          },
+        },
+        {
+          shortcut: ctrlSlash,
+          action: () => {
+            applyCtrlSlash(ref);
+            update(ref.value);
+          },
+        },
+      ];
+      addShortcuts(".code-text-editor", textareaShortcuts);
+    }
+  }, []);
 
   // Ensure editor scroll positions are the same, set gutter scroll to the editor scroll
   const textAreaScroll = (_e: React.UIEvent<HTMLElement>): void => {
@@ -70,8 +128,10 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
   const update = (text: string): void => {
     if (editorRef.current && codeBlockRef.current) {
       editorRef.current.focus();
+      codeBlockRef.current.focus();
+
       editorRef.current.innerText = text;
-      codeBlockRef.current.innerText = text; //+ "\n\r\n\r";
+      codeBlockRef.current.innerText = text;
 
       window.Prism = window.Prism || {};
       Prism.highlight(
