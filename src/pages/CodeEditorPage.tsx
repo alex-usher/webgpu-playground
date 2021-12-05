@@ -39,6 +39,8 @@ const altH = new KeyboardShortcut("H", false, false, true);
 const altA = new KeyboardShortcut("A", false, false, true);
 const ctrlS = new KeyboardShortcut("S", false, true);
 const ctrlE = new KeyboardShortcut("E", false, true);
+const altLeft = new KeyboardShortcut("ArrowLeft", false, false, true);
+const altRight = new KeyboardShortcut("ArrowRight", false, false, true);
 
 const CodeEditorPage = () => {
   const state = useLocation().state as {
@@ -62,6 +64,7 @@ const CodeEditorPage = () => {
   const saveFormOpenRef = useRef(false);
   const actionsDrawerOpenRef = useRef(false);
   const editorWidthRef = useRef("100%");
+  const currTabRef = useRef("0");
 
   const [editorWidth, setEditorWidth] = useState(editorWidthRef.current);
   const [editorOpacity, setEditorOpacity] = useState(0.5);
@@ -80,7 +83,7 @@ const CodeEditorPage = () => {
   const [shaderName, setShaderName] = useState("Untitled " + meshType);
   const [showCode, setShowCode] = useState(false);
   const [viewCodeText, setViewCodeText] = useState("View Code");
-  const [currTab, setCurrTab] = useState("0");
+  const [currTab, setCurrTab] = useState(currTabRef.current);
   // states for custom buffers
   const [vertexBuffer, setVertexBuffer] = useState(shader.vertexBuffer);
   const [colourBuffer, setColourBuffer] = useState(shader.colourBuffer);
@@ -124,6 +127,27 @@ const CodeEditorPage = () => {
       },
     ];
     addShortcuts("*", shortcuts);
+  }, []);
+
+  // Add shortcuts for navigating the tabs for custom mesh shaders
+  useEffect(() => {
+    if (shader.meshType == MeshType.CUSTOM) {
+      const shortcuts = [
+        {
+          shortcut: altLeft,
+          action: () => {
+            addToTabContext(-1);
+          },
+        },
+        {
+          shortcut: altRight,
+          action: () => {
+            addToTabContext(1);
+          },
+        },
+      ];
+      addShortcuts("*", shortcuts);
+    }
   }, []);
 
   useEffect(() => {
@@ -213,6 +237,13 @@ const CodeEditorPage = () => {
     setEditorWidth(editorWidthRef.current);
   };
 
+  const addToTabContext = (delta: number) => {
+    const currentContext = parseInt(currTabRef.current);
+    const newContext = (delta + currentContext + 4) % 4;
+    currTabRef.current = newContext.toString();
+    setCurrTab(currTabRef.current);
+  };
+
   return (
     <div id="body">
       <div className="paddedDiv">
@@ -225,7 +256,7 @@ const CodeEditorPage = () => {
             container
             direction="row"
             spacing={2}
-            style={{ minWidth: "55%", maxWidth: "55%" }}
+            style={{ minWidth: "30%", maxWidth: "65%", width: "auto" }}
             alignItems="center"
           >
             <Grid item>
@@ -310,26 +341,25 @@ const CodeEditorPage = () => {
             imageUrl={renderedImageUrl}
           />
 
-          <Grid container direction="row" justifyContent="flex-end">
-            <Grid item>
-              <Typography
-                variant="h5"
-                style={{
-                  color: "lightGrey",
-                  fontSize: "3vh",
-                  fontStyle: "italic",
-                }}
-              >
-                {shaderName}
-              </Typography>
-            </Grid>
-          </Grid>
+          <div style={{ display: "flex" }}>
+            <Typography
+              variant="h5"
+              style={{
+                color: "lightGrey",
+                fontSize: "3vh",
+                fontStyle: "italic",
+              }}
+            >
+              {shaderName}
+            </Typography>
+          </div>
 
           <Grid
             container
             direction="row"
             alignItems="center"
             justifyContent="flex-end"
+            style={{ maxWidth: "25%", width: "auto" }}
           >
             <Grid item>
               <IconButton
@@ -380,7 +410,7 @@ const CodeEditorPage = () => {
       {showCode ? (
         meshType === MeshType.CUSTOM ? (
           <TabContext value={currTab}>
-            <TabPanel value="0">
+            <TabPanel value="0" className="tab-panel">
               <CodeEditor
                 helpBoxVisible={helpBoxVisible}
                 toggleHelpVisible={toggleHelpVisible}
@@ -391,7 +421,7 @@ const CodeEditorPage = () => {
                 renderLogger={renderLogger}
               />
             </TabPanel>
-            <TabPanel value="1">
+            <TabPanel value="1" className="tab-panel">
               <CodeEditor
                 helpBoxVisible={helpBoxVisible}
                 toggleHelpVisible={toggleHelpVisible}
@@ -402,7 +432,7 @@ const CodeEditorPage = () => {
                 renderLogger={renderLogger}
               />
             </TabPanel>
-            <TabPanel value="2">
+            <TabPanel value="2" className="tab-panel">
               <CodeEditor
                 helpBoxVisible={helpBoxVisible}
                 toggleHelpVisible={toggleHelpVisible}
@@ -413,7 +443,7 @@ const CodeEditorPage = () => {
                 renderLogger={renderLogger}
               />
             </TabPanel>
-            <TabPanel value="3">
+            <TabPanel value="3" className="tab-panel">
               <CodeEditor
                 helpBoxVisible={helpBoxVisible}
                 toggleHelpVisible={toggleHelpVisible}
