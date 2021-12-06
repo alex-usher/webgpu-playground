@@ -1,18 +1,12 @@
-// import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Box from "@mui/material/Box";
-// import Paper from "@mui/material/Paper";
-// import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormGroup from "@mui/material/FormGroup";
-// import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
-// import CardMedia from "@mui/material/CardMedia";
-// import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -32,10 +26,8 @@ const UserShaderCard = ({ shader }: ShaderProps) => {
   }, [shader.isPublic]);
 
   return (
-    // <Paper elevation={3} style={{ height: "20vh", width: "100%" }}>
     <Card style={{ height: "20vh", width: "100%", borderRadius: "1.5vh" }}>
       <Stack
-        // alignItems="center"
         justifyContent="space-between"
         spacing={2}
         direction="row"
@@ -46,8 +38,6 @@ const UserShaderCard = ({ shader }: ShaderProps) => {
           borderRadius: "1.5vh",
           color: "white",
           textAlign: "center",
-          // display: "flex",
-          // flexDirection: "row",
         }}
       >
         <CardActionArea
@@ -57,8 +47,6 @@ const UserShaderCard = ({ shader }: ShaderProps) => {
           <Stack
             direction="row"
             spacing={5}
-            // alignContent="center"
-            // alignItems="stretch"
             justifyContent="flex-start"
             style={{ height: "100%" }}
           >

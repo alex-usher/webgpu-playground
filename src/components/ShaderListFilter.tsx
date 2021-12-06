@@ -16,7 +16,6 @@ const ShaderListFilter = ({
   updateDisplayedShaders,
   includeVisibilityFilter = false,
 }: ShaderListFilterProps) => {
-  //const [displayedShaders, setDisplayedShaders] = useState(allShaders);
   const [searchString, setSearchString] = useState<null | string>(null);
   const [meshFilter, setMeshFilter] = useState("All");
   const [visibilityFilter, setVisibilityFilter] = useState("All");
