@@ -352,9 +352,9 @@ const toggleShaderPublicity = async (
   shader: Shader,
   makePublic: boolean
 ): Promise<boolean> => {
-  const success = false;
+  let success = false;
   const publicity = makePublic ? "public" : "private";
-  const publicitied = makePublic ? "published" : "privated";
+  const publicitied = makePublic ? "published " : "privated ";
   try {
     const user = auth.currentUser;
     if (user) {
@@ -373,7 +373,10 @@ const toggleShaderPublicity = async (
             doc(firedb, "users", user.uid, "shaders", shader.id),
             { isPublic: true }
           );
-          transaction.set(doc(firedb, "public-shaders", shader.id), shaderDoc);
+          transaction.set(
+            doc(firedb, "public-shaders", shader.id),
+            shaderDoc.data()
+          );
         } else {
           transaction.update(
             doc(firedb, "users", user.uid, "shaders", shader.id),
@@ -382,6 +385,7 @@ const toggleShaderPublicity = async (
           transaction.delete(doc(firedb, "public-shaders", shader.id));
         }
       });
+      success = true;
     } else {
       // user is not logged in. this could be the case if
       // a guest tries to use toggle on a public/example shader.
@@ -389,23 +393,14 @@ const toggleShaderPublicity = async (
       throw new loggedOutErr();
     }
   } catch (err) {
-    if (success) {
-      SnackbarUtils.success("Successfully " + publicitied + shader.title + "!");
-    } else {
-      if (err instanceof unsavedErr) {
-        SnackbarUtils.error(
-          "Failed to publish shader - save your shader to make it " +
-            publicity +
-            "!"
-        );
-      } else if (err instanceof loggedOutErr) {
-        SnackbarUtils.error(
-          "Failed to publish shader - log in to make your shaders " +
-            publicity +
-            "!"
-        );
-      }
-    }
+    console.log(err);
+    SnackbarUtils.error(
+      "Failed to make shader " + publicity + "! Please Try again."
+    );
+  }
+  if (success) {
+    console.log("success");
+    SnackbarUtils.success("Successfully " + publicitied + shader.title + "!");
   }
   // a false result means that the toggle should not move! the operation has not been successful
   return success;
@@ -443,5 +438,5 @@ export const makeShaderPublic = async (shader: Shader): Promise<boolean> => {
 };
 
 export const makeShaderPrivate = async (shader: Shader): Promise<boolean> => {
-  return await toggleShaderPublicity(shader, true);
+  return await toggleShaderPublicity(shader, false);
 };

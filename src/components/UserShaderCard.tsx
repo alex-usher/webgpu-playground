@@ -88,15 +88,22 @@ const UserShaderCard = ({ shader }: ShaderProps) => {
           <FormGroup>
             <FormControlLabel
               onChange={async (e) => {
+                let success = false;
                 const checked = (e.target as HTMLInputElement).checked;
-                setPublicChecked(checked);
-                shader.isPublic = checked;
                 if (checked) {
                   console.log("here");
-                  await makeShaderPublic(shader);
+                  success = await makeShaderPublic(shader);
                   console.log("set");
                 } else {
-                  await makeShaderPrivate(shader);
+                  success = await makeShaderPrivate(shader);
+                }
+
+                if (success) {
+                  setPublicChecked(checked);
+                  shader.isPublic = checked;
+                } else {
+                  // Reset the toggle if the operation failed to avoid confusion
+                  (e.target as HTMLInputElement).checked = !checked;
                 }
               }}
               control={<Switch checked={publicChecked} />}
