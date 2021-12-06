@@ -2,7 +2,12 @@ export default function FooterComponent() {
   return (
     <footer className="sticky bottom-0">
       <h6
-        style={{ color: "white", fontFamily: "Roboto", fontWeight: "lighter" }}
+        style={{
+          color: "white",
+          fontFamily: "Roboto",
+          fontWeight: "lighter",
+          paddingTop: "3vh",
+        }}
       >
         {" "}
         &copy; Copyright 2021-2022, website icon made by{" "}
