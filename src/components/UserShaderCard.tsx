@@ -1,29 +1,27 @@
+// import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import Box from "@mui/material/Box";
 // import Paper from "@mui/material/Paper";
 // import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-import Stack from "@mui/material/Stack";
-import Box from "@mui/material/Box";
 import CardActionArea from "@mui/material/CardActionArea";
-import { Link } from "react-router-dom";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormGroup from "@mui/material/FormGroup";
+// import Grid from "@mui/material/Grid";
+import IconButton from "@mui/material/IconButton";
+import Stack from "@mui/material/Stack";
+import Switch from "@mui/material/Switch";
 // import CardMedia from "@mui/material/CardMedia";
 // import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
-// import Grid from "@mui/material/Grid";
-import IconButton from "@mui/material/IconButton";
-// import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-
-import FormGroup from "@mui/material/FormGroup";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Switch from "@mui/material/Switch";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 import { ShaderProps } from "../objects/Shader";
-import { useEffect, useState } from "react";
-
 import {
   deleteShader,
-  makeShaderPublic,
   makeShaderPrivate,
+  makeShaderPublic,
 } from "../utils/firebaseHelper";
 
 const UserShaderCard = ({ shader }: ShaderProps) => {
