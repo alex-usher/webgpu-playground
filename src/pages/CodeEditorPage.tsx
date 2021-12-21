@@ -196,9 +196,11 @@ const CodeEditorPage = () => {
     const link = document.createElement("a");
     link.download = "shader.png";
 
-    canvas.toBlob(function (blob) {
-      link.href = URL.createObjectURL(blob);
-      link.click();
+    canvas.toBlob((blob) => {
+      if (blob != null) {
+        link.href = URL.createObjectURL(blob);
+        link.click();
+      }
     }, "image/png");
   };
 
