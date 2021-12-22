@@ -50,13 +50,6 @@ const initialiseGPU = async (
   const adapter = await navigator.gpu.requestAdapter();
   assert(adapter);
   const device = await adapter.requestDevice();
-  const context = canvas.getContext("webgpu") as unknown as GPUCanvasContext;
-
-  context.configure({
-    device: device,
-    format: SWAPCHAIN_FORMAT,
-    usage: usage,
-  });
 
   // add in uniform constant code in fragment shader
   code = addUniformCode(code);
@@ -77,6 +70,14 @@ const initialiseGPU = async (
   if (renderFrame != -1) {
     cancelAnimationFrame(renderFrame);
   }
+
+  const context = canvas.getContext("webgpu") as unknown as GPUCanvasContext;
+
+  context.configure({
+    device: device,
+    format: SWAPCHAIN_FORMAT,
+    usage: usage,
+  });
 
   return { canvas, context, device, shaderModule };
 };
@@ -109,12 +110,14 @@ export const generateFrameFunction = (
         res_y
       );
 
+      const currentTexture = context.getCurrentTexture();
+
       const renderPass = commandEncoder.beginRenderPass({
         colorAttachments: [
           {
             loadValue: { r: 0, g: 0, b: 0, a: 1 },
             storeOp: "store",
-            view: context.getCurrentTexture().createView(),
+            view: currentTexture.createView(),
           },
         ],
       });
@@ -131,7 +134,7 @@ export const generateFrameFunction = (
       if (samplingTexture) {
         commandEncoder.copyTextureToTexture(
           {
-            texture: context.getCurrentTexture(),
+            texture: currentTexture,
           },
           {
             texture: samplingTexture,
