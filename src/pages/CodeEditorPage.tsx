@@ -32,6 +32,7 @@ import {
 } from "../utils/firebaseHelper";
 import KeyboardShortcut from "../utils/keyboardShortcuts";
 import { addShortcuts } from "../utils/shortcutListener";
+import { cancelRender } from "../webgpu/pipelines/render";
 
 // Shortcut patterns
 const altT = new KeyboardShortcut("T", false, false, true);
@@ -267,6 +268,7 @@ const CodeEditorPage = () => {
                 variant="outlined"
                 disableElevation
                 onClick={() => {
+                  cancelRender();
                   history.goBack();
                 }}
                 color="primary"

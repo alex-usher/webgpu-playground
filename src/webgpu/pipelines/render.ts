@@ -36,6 +36,12 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
   y = position.y;
 };
 
+export const cancelRender = (): void => {
+  if (renderFrame != -1) {
+    cancelAnimationFrame(renderFrame);
+  }
+};
+
 const initialiseGPU = async (
   code: string,
   usage: number,
@@ -67,9 +73,7 @@ const initialiseGPU = async (
   renderLogger.logMessage("Shader Compilation successful", "success");
 
   // cancel the previous render once we know the next render will compile
-  if (renderFrame != -1) {
-    cancelAnimationFrame(renderFrame);
-  }
+  cancelRender();
 
   const context = canvas.getContext("webgpu") as unknown as GPUCanvasContext;
 
