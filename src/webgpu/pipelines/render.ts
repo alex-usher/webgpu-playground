@@ -36,6 +36,12 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
   y = position.y;
 };
 
+export const cancelRender = (): void => {
+  if (renderFrame != -1) {
+    cancelAnimationFrame(renderFrame);
+  }
+};
+
 const initialiseGPU = async (
   code: string,
   usage: number,
@@ -50,13 +56,6 @@ const initialiseGPU = async (
   const adapter = await navigator.gpu.requestAdapter();
   assert(adapter);
   const device = await adapter.requestDevice();
-  const context = canvas.getContext("webgpu") as unknown as GPUCanvasContext;
-
-  context.configure({
-    device: device,
-    format: SWAPCHAIN_FORMAT,
-    usage: usage,
-  });
 
   // add in uniform constant code in fragment shader
   code = addUniformCode(code);
@@ -74,9 +73,15 @@ const initialiseGPU = async (
   renderLogger.logMessage("Shader Compilation successful", "success");
 
   // cancel the previous render once we know the next render will compile
-  if (renderFrame != -1) {
-    cancelAnimationFrame(renderFrame);
-  }
+  cancelRender();
+
+  const context = canvas.getContext("webgpu") as unknown as GPUCanvasContext;
+
+  context.configure({
+    device: device,
+    format: SWAPCHAIN_FORMAT,
+    usage: usage,
+  });
 
   return { canvas, context, device, shaderModule };
 };
@@ -109,12 +114,14 @@ export const generateFrameFunction = (
         res_y
       );
 
+      const currentTexture = context.getCurrentTexture();
+
       const renderPass = commandEncoder.beginRenderPass({
         colorAttachments: [
           {
             loadValue: { r: 0, g: 0, b: 0, a: 1 },
             storeOp: "store",
-            view: context.getCurrentTexture().createView(),
+            view: currentTexture.createView(),
           },
         ],
       });
@@ -131,7 +138,7 @@ export const generateFrameFunction = (
       if (samplingTexture) {
         commandEncoder.copyTextureToTexture(
           {
-            texture: context.getCurrentTexture(),
+            texture: currentTexture,
           },
           {
             texture: samplingTexture,

@@ -267,7 +267,9 @@ const deleteImageFile = async (shaderData: DocumentData) => {
 
 export const overwriteShader = async (shader: Shader) => {
   try {
-    await deleteCodeFile(await getShaderDataById(shader.id));
+    const shaderData = await getShaderDataById(shader.id);
+    await deleteCodeFile(shaderData);
+    await deleteImageFile(shaderData);
     const shaderDoc = await shaderConverter.toFirestore(shader);
 
     const user = auth.currentUser;
@@ -276,6 +278,9 @@ export const overwriteShader = async (shader: Shader) => {
         doc(firedb, "users", user.uid, "shaders", shader.id),
         shaderDoc
       );
+      if (shader.isPublic) {
+        await setDoc(doc(firedb, "public-shaders", shader.id), shaderDoc);
+      }
     }
     SnackbarUtils.success("Successfully saved!");
     return shader;

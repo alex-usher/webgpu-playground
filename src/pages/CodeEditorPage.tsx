@@ -32,6 +32,7 @@ import {
 } from "../utils/firebaseHelper";
 import KeyboardShortcut from "../utils/keyboardShortcuts";
 import { addShortcuts } from "../utils/shortcutListener";
+import { cancelRender } from "../webgpu/pipelines/render";
 
 // Shortcut patterns
 const altT = new KeyboardShortcut("T", false, false, true);
@@ -196,9 +197,11 @@ const CodeEditorPage = () => {
     const link = document.createElement("a");
     link.download = "shader.png";
 
-    canvas.toBlob(function (blob) {
-      link.href = URL.createObjectURL(blob);
-      link.click();
+    canvas.toBlob((blob) => {
+      if (blob != null) {
+        link.href = URL.createObjectURL(blob);
+        link.click();
+      }
     }, "image/png");
   };
 
@@ -265,6 +268,7 @@ const CodeEditorPage = () => {
                 variant="outlined"
                 disableElevation
                 onClick={() => {
+                  cancelRender();
                   history.goBack();
                 }}
                 color="primary"
