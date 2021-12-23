@@ -14,6 +14,7 @@ struct ViewParams {
     y: f32;
     res_x: f32;
     res_y: f32;
+
 };
 
 [[group(0), binding(0)]]
@@ -142,3 +143,18 @@ fn compute_main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>
   velocityOut.all[index] = vec4<f32>(velocity, 0.0);
 };
 `;
+
+export const computeTempCode = `[[stage(vertex)]]
+fn vertex_main(in: VertexInput, [[location(2)]] sndPosition: vec3<f32>) -> VertexOutput {
+    var particleSize = 4.0;
+    var out: VertexOutput;
+    out.position = vec4<f32>(in.position * particleSize / vec2<f32>(view_params.res_x,view_params.res_y) + vec2<f32>(sndPosition[0], sndPosition[1]), sndPosition[2], 1.0);
+    out.color = in.color;
+    return out;
+};
+
+[[stage(fragment)]]
+fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+    var a = in.color[3];
+    return vec4<f32>(in.color[0] * a, in.color[1] * a, in.color[2] * a, in.color[3]);
+};`;

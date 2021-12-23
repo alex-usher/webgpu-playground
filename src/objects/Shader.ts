@@ -23,6 +23,7 @@ import {
   rectangleVertexBuffer,
 } from "../webgpu/meshes/rectangle";
 import {
+  computeTempCode,
   cubeFragment,
   cubeVertex,
   defaultComputeCode,
@@ -270,6 +271,7 @@ export const defaultShader = (meshType: MeshType): Shader => {
     shader.title = "Custom Mesh";
     shader.meshType = MeshType.CUSTOM;
   } else if (meshType === MeshType.PARTICLES) {
+    shader.shaderCode = computeTempCode;
     shader.id = uuidv4() + "particles";
     shader.title = "Particles";
     shader.meshType = MeshType.PARTICLES;

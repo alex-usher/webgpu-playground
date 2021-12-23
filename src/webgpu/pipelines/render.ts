@@ -657,7 +657,6 @@ export const renderParticleShader = async (
   shaderCode: string,
   renderLogger: RenderLogger,
   numParticles: number,
-  particleSize: number,
   computeCode: string
 ): Promise<void> => {
   if (!checkWebGPU()) {
@@ -1016,7 +1015,7 @@ export const renderParticleShader = async (
 
   const viewParamsBuffer = device.createBuffer({
     // COMPUTE CODE KIND OF
-    size: 4 * 6,
+    size: 4 * 5,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
@@ -1024,7 +1023,7 @@ export const renderParticleShader = async (
   device.queue.writeBuffer(
     viewParamsBuffer,
     0,
-    new Float32Array([canvas.width, canvas.height, particleSize])
+    new Float32Array([canvas.width, canvas.height])
   );
 
   //viewParamsBuffer.unmap();
@@ -1046,55 +1045,22 @@ export const renderParticleShader = async (
 
   let currentPositionBuffer = positionBufferB;
 
-  //let time = 0;
-  //const res_x = canvas.width;
-  //const res_y = canvas.height;
+  let time = 0;
+  const res_x = canvas.width;
+  const res_y = canvas.height;
   const frame = () => {
     if (canvasVisible) {
-      /*const timeBuffer = device.createBuffer({
-        size: 4,
-        usage: GPUBufferUsage.COPY_SRC,
-        mappedAtCreation: true,
-      });
-
-      const xBuffer = device.createBuffer({
-        size: 4,
-        usage: GPUBufferUsage.COPY_SRC,
-        mappedAtCreation: true,
-      });
-
-      const yBuffer = device.createBuffer({
-        size: 4,
-        usage: GPUBufferUsage.COPY_SRC,
-        mappedAtCreation: true,
-      });
-
-      const resXBuffer = device.createBuffer({
-        size: 4,
-        usage: GPUBufferUsage.COPY_SRC,
-        mappedAtCreation: true,
-      });
-
-      const resYBuffer = device.createBuffer({
-        size: 4,
-        usage: GPUBufferUsage.COPY_SRC,
-        mappedAtCreation: true,
-      });
-
-      new Float32Array(timeBuffer.getMappedRange()).set([time]);
-      timeBuffer.unmap();
-
-      new Float32Array(xBuffer.getMappedRange()).set([x]);
-      xBuffer.unmap();
-
-      new Float32Array(yBuffer.getMappedRange()).set([y]);
-      yBuffer.unmap();
-
-      new Float32Array(resXBuffer.getMappedRange()).set([res_x]);
-      resXBuffer.unmap();
-
-      new Float32Array(resYBuffer.getMappedRange()).set([res_y]);
-      resYBuffer.unmap();*/
+      const commandEncoder = device.createCommandEncoder();
+      addViewParamsToBuffer(
+        device,
+        commandEncoder,
+        viewParamsBuffer,
+        time,
+        x,
+        y,
+        res_x,
+        res_y
+      );
 
       const renderPassDescription = {
         colorAttachments: [
@@ -1118,12 +1084,6 @@ export const renderParticleShader = async (
         currentPositionBuffer === positionBufferA
           ? computeBindGroupB2A
           : computeBindGroupA2B;
-      const commandEncoder = device.createCommandEncoder();
-      // commandEncoder.copyBufferToBuffer(timeBuffer, 0, viewParamsBuffer, 0, 4);
-      // commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
-      // commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
-      // commandEncoder.copyBufferToBuffer(resXBuffer, 0, viewParamsBuffer, 12, 4);
-      // commandEncoder.copyBufferToBuffer(resYBuffer, 0, viewParamsBuffer, 16, 4);
 
       const computePass = commandEncoder.beginComputePass();
       computePass.setPipeline(computePipeline);
@@ -1145,7 +1105,7 @@ export const renderParticleShader = async (
 
       renderPass.endPass();
       device.queue.submit([commandEncoder.finish()]);
-      //time++;
+      time++;
 
       currentPositionBuffer =
         currentPositionBuffer === positionBufferA
@@ -1201,7 +1161,6 @@ export const renderShader = async (
           shaderCode,
           renderLogger,
           2000,
-          4,
           computeCode
         );
       }
