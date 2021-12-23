@@ -659,42 +659,18 @@ export const renderParticleShader = async (
   numParticles: number,
   computeCode: string
 ): Promise<void> => {
-  if (!checkWebGPU()) {
-    return;
-  }
+  const init = await initialiseGPU(
+    shaderCode,
+    GPUTextureUsage.RENDER_ATTACHMENT,
+    renderLogger
+  );
 
-  const canvas = document.getElementById("canvas-webgpu") as HTMLCanvasElement;
+  if (init === undefined) return;
 
-  assert(navigator.gpu);
-  const adapter = await navigator.gpu.requestAdapter();
+  // delay pattern match so we can test for error
+  const { canvas, context, device, shaderModule } = init;
 
-  assert(adapter);
-  const device = await adapter.requestDevice();
-  const context = canvas.getContext("webgpu") as unknown as GPUCanvasContext;
-
-  const stateFormat = "bgra8unorm";
-  const depthFormat = "depth24plus-stencil8";
-
-  // add in uniform constant code in fragment shader
-  shaderCode = addUniformCode(shaderCode);
-
-  const shaderModule = device.createShaderModule({
-    code: `${structs}\n${shaderCode}`,
-  });
-  // check for compilation failures and output any compile messages
-  if (!(await outputMessages(shaderModule, renderLogger))) {
-    renderLogger.logMessage("Shader Compilation failed", "error");
-    return;
-  }
-
-  renderLogger.logMessage("Shader Compilation successful", "success");
-
-  // cancel the previous render once we know the next render will compile
-  if (renderFrame != -1) {
-    cancelAnimationFrame(renderFrame);
-  }
-
-  // COMPUTE CODE STARTS HERE FOR A BIT
+  // defines the two buffers for the compute shader to oscillate between
   const positionBufferA = device.createBuffer({
     size: 16 * numParticles * 4,
     usage:
@@ -702,6 +678,7 @@ export const renderParticleShader = async (
     mappedAtCreation: true,
   });
 
+  // randomly picks the positions of the particles
   const positionBufferData = new Float32Array(positionBufferA.getMappedRange());
   for (let i = 0; i < positionBufferData.length; i += 4) {
     positionBufferData[i] = Math.random() * 2 - 1;
@@ -718,6 +695,7 @@ export const renderParticleShader = async (
     mappedAtCreation: true,
   });
 
+  // randomly picks the velocities of the particles
   const velocityBufferData = new Float32Array(velocityBufferA.getMappedRange());
   for (let i = 0; i < velocityBufferData.length; i += 4) {
     velocityBufferData[i] = Math.random() * 0.002 - 0.001;
@@ -745,27 +723,10 @@ export const renderParticleShader = async (
 
   velocityBufferB.unmap();
 
-  // COMPUTE CODE ENDS HERE NOW IF THE VERTICES ARE FUCKED COME CHANGE THESE NUMBERS
-
-  // allocate a buffer for up to 6 vertices
-  /*const dataBuffer = device.createBuffer({
-    size: 6 * 6 * 4,
-    usage: GPUBufferUsage.VERTEX,
-    mappedAtCreation: true,
-  });
-
-  // this float 32 array is not necessary,
-  // but with it you can do some cool things using the
-  // VertexInput in the shader
-  new Float32Array(dataBuffer.getMappedRange()).set([
-    1, 1, 1, 0, 0, 1, 1, -1, 0, 1, 0, 1, -1, -1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1,
-    -1, 1, 0, 1, 0, 1, -1, -1, 0, 0, 1, 1,
-  ]);
-
-  dataBuffer.unmap();*/
+  // COMPUTE CODE ENDS HERE
 
   const vertexBuffer = device.createBuffer({
-    size: 32,
+    size: 8 * 4,
     usage: GPUBufferUsage.VERTEX,
     mappedAtCreation: true,
   });
@@ -949,13 +910,13 @@ export const renderParticleShader = async (
 
   context.configure({
     device: device,
-    format: stateFormat,
+    format: SWAPCHAIN_FORMAT,
     usage: GPUTextureUsage.RENDER_ATTACHMENT,
   });
 
   const depthTexture = device.createTexture({
     size: { width: canvas.width, height: canvas.height },
-    format: depthFormat,
+    format: DEPTH_FORMAT,
     usage: GPUTextureUsage.RENDER_ATTACHMENT,
   });
 
@@ -998,8 +959,7 @@ export const renderParticleShader = async (
     fragment: {
       module: shaderModule,
       entryPoint: "fragment_main",
-      targets: [{ format: stateFormat }],
-      // COMPUTE CODE CBA TO IMPLEMENT COLOR BLEND AND ALPHA BLEND
+      targets: [{ format: SWAPCHAIN_FORMAT }],
     },
     // COMPUTE CODE ALSO MISSING PRIMITIVE
     primitive: {
@@ -1007,7 +967,7 @@ export const renderParticleShader = async (
       stripIndexFormat: "uint32",
     },
     depthStencil: {
-      format: depthFormat,
+      format: DEPTH_FORMAT,
       depthWriteEnabled: true,
       depthCompare: "less",
     },
@@ -1157,12 +1117,7 @@ export const renderShader = async (
       break;
     case MeshType.PARTICLES:
       if (computeCode) {
-        return renderParticleShader(
-          shaderCode,
-          renderLogger,
-          2000,
-          computeCode
-        );
+        return renderParticleShader(shaderCode, renderLogger, 999, computeCode);
       }
       break;
     default:
