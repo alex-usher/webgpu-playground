@@ -8,7 +8,6 @@ struct VertexOutput {
     [[location(0)]] color: vec4<f32>;
 };
 
-[[block]]
 struct ViewParams {
     time: f32;
     x: f32;
@@ -97,3 +96,49 @@ export const cubeFragment = `
 fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     return in.color;
 }`;
+
+export const defaultComputeCode = `
+// can access in array by positionsIn.in[]
+struct ParticleProperty {
+  all: [[stride(16)]] array<vec4<f32>>;
+};
+struct Mass {
+  mass1Position: vec4<f32>;
+  mass2Position: vec4<f32>;
+  mass3Position: vec4<f32>;
+  mass1Factor: f32;
+  mass2Factor: f32;
+  mass3Factor: f32;
+};
+
+[[group(0), binding(0)]] var<storage, read> positionsIn: ParticleProperty;
+[[group(0), binding(1)]] var<storage, read> velocityIn: ParticleProperty;
+[[group(0), binding(2)]] var<storage, write> positionsOut: ParticleProperty;
+[[group(0), binding(3)]] var<storage, write> velocityOut: ParticleProperty;
+[[group(0), binding(4)]] var<uniform> m: Mass;
+
+
+[[stage(compute), workgroup_size(1)]]
+fn compute_main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {
+  var index: u32 = GlobalInvocationID.x;
+  
+  var position = vec3<f32>(positionsIn.all[index][0], positionsIn.all[index][1], positionsIn.all[index][2]);
+  var velocity = vec3<f32>(velocityIn.all[index][0], velocityIn.all[index][1], velocityIn.all[index][2]);
+
+  var massVec = vec3<f32>(m.mass1Position[0], m.mass1Position[1], m.mass1Position[2]) - position;
+  var massDist2 = max(0.01, dot(massVec, massVec));
+  var acceleration = m.mass1Factor * normalize(massVec) / massDist2;
+  massVec = vec3<f32>(m.mass2Position[0], m.mass2Position[1], m.mass2Position[2]) - position;
+  massDist2 = max(0.01, dot(massVec, massVec));
+  acceleration = acceleration + (m.mass2Factor * normalize(massVec) / massDist2);
+  massVec = vec3<f32>(m.mass3Position[0], m.mass3Position[1], m.mass3Position[2]) - position;
+  massDist2 = max(0.01, dot(massVec, massVec));
+  acceleration = acceleration + (m.mass3Factor * normalize(massVec) / massDist2);
+
+  velocity = velocity + acceleration;
+  velocity = velocity * 0.9999;
+
+  positionsOut.all[index] = vec4<f32>(position + velocity, 1.0);
+  velocityOut.all[index] = vec4<f32>(velocity, 0.0);
+};
+`;

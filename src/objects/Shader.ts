@@ -25,6 +25,7 @@ import {
 import {
   cubeFragment,
   cubeVertex,
+  defaultComputeCode,
   rectangleFragment,
   rectangleVertex,
   texture2dShader,
@@ -35,6 +36,7 @@ export enum MeshType {
   TEXTURED_RECTANGLE = "Textured Rectangle",
   CUBE = "Cube",
   CUSTOM = "Custom",
+  PARTICLES = "Particles",
 }
 
 // TODO - find a neater way of handling parsing strings to enums
@@ -50,6 +52,8 @@ export const MeshTypeFromValue = (typeString: string): MeshType => {
       return MeshType.CUBE;
     case "Custom":
       return MeshType.CUSTOM;
+    case "Particles":
+      return MeshType.PARTICLES;
   }
   return MeshType.RECTANGLE;
 };
@@ -64,6 +68,8 @@ export const StringFromMeshType = (meshType: MeshType | FieldValue) => {
       return "Cube";
     case MeshType.CUSTOM:
       return "Custom";
+    case MeshType.PARTICLES:
+      return "Particles";
   }
 };
 
@@ -107,6 +113,7 @@ export class Shader {
   colourBuffer: string;
   numberOfVertices: string;
   imageUrl: string;
+  computeCode: string;
 
   constructor(
     id: string,
@@ -118,7 +125,8 @@ export class Shader {
     vertexBuffer: string = rectangleVertexBuffer,
     colourBuffer: string = rectangleColourBuffer,
     numberOfVertices: string = rectangleNumberOfVertices.toString(),
-    imageUrl = ""
+    imageUrl = "",
+    computeCode: string = defaultComputeCode
   ) {
     this.id = id;
     this.title = title;
@@ -130,6 +138,7 @@ export class Shader {
     this.colourBuffer = colourBuffer;
     this.numberOfVertices = numberOfVertices;
     this.imageUrl = imageUrl;
+    this.computeCode = computeCode;
   }
 }
 
@@ -166,6 +175,7 @@ export const shaderConverter = {
       colourBuffer: shader.colourBuffer,
       numberOfVertices: shader.numberOfVertices,
       imageUrl: shader.imageUrl,
+      compute_code: shader.computeCode,
     };
   },
   fromFirestore(snapshot: QueryDocumentSnapshot): Shader {
@@ -186,7 +196,8 @@ export const shaderConverter = {
       data.numberOfVertices
         ? data.numberOfVertices
         : rectangleNumberOfVertices.toString(),
-      data.imageUrl ? data.imageUrl : ""
+      data.imageUrl ? data.imageUrl : "",
+      data.computeCode ? data.computeCode : defaultComputeCode
     );
   },
 };
@@ -258,6 +269,11 @@ export const defaultShader = (meshType: MeshType): Shader => {
     shader.id = uuidv4() + "custom_mesh";
     shader.title = "Custom Mesh";
     shader.meshType = MeshType.CUSTOM;
+  } else if (meshType === MeshType.PARTICLES) {
+    shader.id = uuidv4() + "particles";
+    shader.title = "Particles";
+    shader.meshType = MeshType.PARTICLES;
+    // might need to add defaults for compute code???
   }
   return shader;
 };

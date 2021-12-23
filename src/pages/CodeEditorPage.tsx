@@ -90,6 +90,7 @@ const CodeEditorPage = () => {
   const [numberOfVertices, setNumberOfVertices] = useState(
     shader.numberOfVertices.toString()
   );
+  const [computeCode, setComputeCode] = useState(shader.computeCode);
 
   const history = useHistory();
 
@@ -165,6 +166,7 @@ const CodeEditorPage = () => {
         setRenderedImageUrl(shader.imageUrl);
         // Only set the name if getting an existing shader - new shaders will display "untitled"
         setShaderName(shader.title);
+        setComputeCode(shader.computeCode);
       });
     }
   }, []);
@@ -175,12 +177,14 @@ const CodeEditorPage = () => {
     shader.colourBuffer = colourBuffer;
     shader.numberOfVertices = numberOfVertices;
     shader.imageUrl = renderedImageUrl;
+    shader.computeCode = computeCode;
   }, [
     shaderCode,
     vertexBuffer,
     colourBuffer,
     numberOfVertices,
     renderedImageUrl,
+    computeCode,
   ]);
 
   const toggleActionDrawer = () => {
@@ -313,6 +317,18 @@ const CodeEditorPage = () => {
                       </Tabs>
                     </div>
                   </Grid>
+                ) : meshType === MeshType.PARTICLES ? (
+                  <Grid item>
+                    <div className="tabs">
+                      <Tabs
+                        value={currTab}
+                        onChange={(e, newTab: string) => setCurrTab(newTab)}
+                      >
+                        <Tab label="main" value="0" />
+                        <Tab label="compute" value="1" />
+                      </Tabs>
+                    </div>
+                  </Grid>
                 ) : (
                   <></>
                 )}
@@ -339,6 +355,7 @@ const CodeEditorPage = () => {
             colourBuffer={colourBuffer}
             numberOfVertices={numberOfVertices}
             imageUrl={renderedImageUrl}
+            computeCode={computeCode}
           />
 
           <div style={{ display: "flex" }}>
@@ -405,6 +422,7 @@ const CodeEditorPage = () => {
         colourBuffer={colourBuffer}
         numberOfVertices={numberOfVertices}
         imageUrl={renderedImageUrl}
+        computeCode={computeCode}
       />
 
       {showCode ? (
@@ -451,6 +469,31 @@ const CodeEditorPage = () => {
                 editorWidth={editorWidth}
                 code={numberOfVertices}
                 setCode={setNumberOfVertices}
+                renderLogger={renderLogger}
+              />
+            </TabPanel>
+          </TabContext>
+        ) : meshType === MeshType.PARTICLES ? (
+          <TabContext value={currTab}>
+            <TabPanel value="0" className="tab-panel">
+              <CodeEditor
+                helpBoxVisible={helpBoxVisible}
+                toggleHelpVisible={toggleHelpVisible}
+                editorOpacity={editorOpacity}
+                editorWidth={editorWidth}
+                code={shaderCode}
+                setCode={setShaderCode}
+                renderLogger={renderLogger}
+              />
+            </TabPanel>
+            <TabPanel value="1" className="tab-panel">
+              <CodeEditor
+                helpBoxVisible={helpBoxVisible}
+                toggleHelpVisible={toggleHelpVisible}
+                editorOpacity={editorOpacity}
+                editorWidth={editorWidth}
+                code={computeCode}
+                setCode={setComputeCode}
                 renderLogger={renderLogger}
               />
             </TabPanel>

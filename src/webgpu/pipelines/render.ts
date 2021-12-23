@@ -653,6 +653,512 @@ export const renderCustomShader = async (
   renderFrame = requestAnimationFrame(frame);
 };
 
+export const renderParticleShader = async (
+  shaderCode: string,
+  renderLogger: RenderLogger,
+  numParticles: number,
+  particleSize: number,
+  computeCode: string
+): Promise<void> => {
+  if (!checkWebGPU()) {
+    return;
+  }
+
+  const canvas = document.getElementById("canvas-webgpu") as HTMLCanvasElement;
+
+  assert(navigator.gpu);
+  const adapter = await navigator.gpu.requestAdapter();
+
+  assert(adapter);
+  const device = await adapter.requestDevice();
+  const context = canvas.getContext("webgpu") as unknown as GPUCanvasContext;
+
+  const stateFormat = "bgra8unorm";
+  const depthFormat = "depth24plus-stencil8";
+
+  // add in uniform constant code in fragment shader
+  shaderCode = addUniformCode(shaderCode);
+
+  const shaderModule = device.createShaderModule({
+    code: `${structs}\n${shaderCode}`,
+  });
+  // check for compilation failures and output any compile messages
+  if (!(await outputMessages(shaderModule, renderLogger))) {
+    renderLogger.logMessage("Shader Compilation failed", "error");
+    return;
+  }
+
+  renderLogger.logMessage("Shader Compilation successful", "success");
+
+  // cancel the previous render once we know the next render will compile
+  if (renderFrame != -1) {
+    cancelAnimationFrame(renderFrame);
+  }
+
+  // COMPUTE CODE STARTS HERE FOR A BIT
+  const positionBufferA = device.createBuffer({
+    size: 16 * numParticles * 4,
+    usage:
+      GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
+    mappedAtCreation: true,
+  });
+
+  const positionBufferData = new Float32Array(positionBufferA.getMappedRange());
+  for (let i = 0; i < positionBufferData.length; i += 4) {
+    positionBufferData[i] = Math.random() * 2 - 1;
+    positionBufferData[i + 1] = Math.random() * 2 - 1;
+    positionBufferData[i + 2] = Math.random() * 2 - 1;
+    positionBufferData[i + 3] = 1;
+  }
+  positionBufferA.unmap();
+
+  const velocityBufferA = device.createBuffer({
+    size: 16 * numParticles * 4,
+    usage:
+      GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
+    mappedAtCreation: true,
+  });
+
+  const velocityBufferData = new Float32Array(velocityBufferA.getMappedRange());
+  for (let i = 0; i < velocityBufferData.length; i += 4) {
+    velocityBufferData[i] = Math.random() * 0.002 - 0.001;
+    velocityBufferData[i + 1] = Math.random() * 0.002 - 0.001;
+    velocityBufferData[i + 2] = 0;
+    velocityBufferData[i + 3] = 1;
+  }
+  velocityBufferA.unmap();
+
+  const positionBufferB = device.createBuffer({
+    size: 16 * numParticles * 4,
+    usage:
+      GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
+    mappedAtCreation: true,
+  });
+
+  positionBufferB.unmap();
+
+  const velocityBufferB = device.createBuffer({
+    size: 16 * numParticles * 4,
+    usage:
+      GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
+    mappedAtCreation: true,
+  });
+
+  velocityBufferB.unmap();
+
+  // COMPUTE CODE ENDS HERE NOW IF THE VERTICES ARE FUCKED COME CHANGE THESE NUMBERS
+
+  // allocate a buffer for up to 6 vertices
+  /*const dataBuffer = device.createBuffer({
+    size: 6 * 6 * 4,
+    usage: GPUBufferUsage.VERTEX,
+    mappedAtCreation: true,
+  });
+
+  // this float 32 array is not necessary,
+  // but with it you can do some cool things using the
+  // VertexInput in the shader
+  new Float32Array(dataBuffer.getMappedRange()).set([
+    1, 1, 1, 0, 0, 1, 1, -1, 0, 1, 0, 1, -1, -1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1,
+    -1, 1, 0, 1, 0, 1, -1, -1, 0, 0, 1, 1,
+  ]);
+
+  dataBuffer.unmap();*/
+
+  const vertexBuffer = device.createBuffer({
+    size: 32,
+    usage: GPUBufferUsage.VERTEX,
+    mappedAtCreation: true,
+  });
+
+  new Float32Array(vertexBuffer.getMappedRange()).set([
+    -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0,
+  ]);
+
+  vertexBuffer.unmap();
+
+  // COMPUTE CODE STARTS AGAIN
+
+  const particleBuffer = device.createBuffer({
+    size: 4 * numParticles * 4,
+    usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    mappedAtCreation: true,
+  });
+
+  const particleBufferData = new Uint8Array(particleBuffer.getMappedRange());
+  for (let i = 0; i < particleBufferData.length; i += 4) {
+    particleBufferData[i] = Math.floor(Math.random() * 256);
+    particleBufferData[i + 1] = Math.floor(Math.random() * 256);
+    particleBufferData[i + 2] = Math.floor(Math.random() * 256);
+    particleBufferData[i + 3] = 128;
+  }
+  particleBuffer.unmap();
+
+  const computeUniformData = new Float32Array([
+    Math.random() * 2.0 - 1.0,
+    Math.random() * 2.0 - 1.0,
+    0,
+    1.0,
+    Math.random() * 2.0 - 1.0,
+    Math.random() * 2.0 - 1.0,
+    0,
+    1.0,
+    Math.random() * 2.0 - 1.0,
+    Math.random() * 2.0 - 1.0,
+    0,
+    1.0,
+    Math.random() / 30000,
+    Math.random() / 30000,
+    Math.random() / 30000,
+    0,
+  ]);
+
+  const computeUniformBuffer = device.createBuffer({
+    size: computeUniformData.byteLength,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+
+  device.queue.writeBuffer(computeUniformBuffer, 0, computeUniformData);
+
+  //computeUniformBuffer.unmap();
+
+  const computeBindGroupLayout = device.createBindGroupLayout({
+    entries: [
+      {
+        binding: 0,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: {
+          type: "storage",
+        },
+      },
+      {
+        binding: 1,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: {
+          type: "storage",
+        },
+      },
+      {
+        binding: 2,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: {
+          type: "storage",
+        },
+      },
+      {
+        binding: 3,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: {
+          type: "storage",
+        },
+      },
+      {
+        binding: 4,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: {
+          type: "uniform",
+        },
+      },
+    ],
+  });
+
+  const computeBindGroupA2B = device.createBindGroup({
+    layout: computeBindGroupLayout,
+    entries: [
+      {
+        binding: 0,
+        resource: {
+          buffer: positionBufferA,
+        },
+      },
+      {
+        binding: 1,
+        resource: {
+          buffer: velocityBufferA,
+        },
+      },
+      {
+        binding: 2,
+        resource: {
+          buffer: positionBufferB,
+        },
+      },
+      {
+        binding: 3,
+        resource: {
+          buffer: velocityBufferB,
+        },
+      },
+      {
+        binding: 4,
+        resource: {
+          buffer: computeUniformBuffer,
+        },
+      },
+    ],
+  });
+
+  const computeBindGroupB2A = device.createBindGroup({
+    layout: computeBindGroupLayout,
+    entries: [
+      {
+        binding: 0,
+        resource: {
+          buffer: positionBufferB,
+        },
+      },
+      {
+        binding: 1,
+        resource: {
+          buffer: velocityBufferB,
+        },
+      },
+      {
+        binding: 2,
+        resource: {
+          buffer: positionBufferA,
+        },
+      },
+      {
+        binding: 3,
+        resource: {
+          buffer: velocityBufferA,
+        },
+      },
+      {
+        binding: 4,
+        resource: {
+          buffer: computeUniformBuffer,
+        },
+      },
+    ],
+  });
+
+  const computePipeline = device.createComputePipeline({
+    layout: device.createPipelineLayout({
+      bindGroupLayouts: [computeBindGroupLayout],
+    }),
+    compute: {
+      module: device.createShaderModule({
+        code: computeCode,
+      }),
+      entryPoint: "compute_main",
+    },
+  });
+
+  // COMPUTE CODE ENDS HERE. MIGHT PROB NEED TO CHECK VERTEX UNIFORM BUFFER/VIEW PARAMS BUFFER
+
+  context.configure({
+    device: device,
+    format: stateFormat,
+    usage: GPUTextureUsage.RENDER_ATTACHMENT,
+  });
+
+  const depthTexture = device.createTexture({
+    size: { width: canvas.width, height: canvas.height },
+    format: depthFormat,
+    usage: GPUTextureUsage.RENDER_ATTACHMENT,
+  });
+
+  const bindGroupLayout = device.createBindGroupLayout({
+    entries: [
+      {
+        binding: 0,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        buffer: [{ type: "uniform" }],
+      } as GPUBindGroupLayoutEntry,
+    ],
+  });
+
+  const layout = device.createPipelineLayout({
+    bindGroupLayouts: [bindGroupLayout],
+  });
+
+  const renderPipeline = device.createRenderPipeline({
+    layout: layout,
+    vertex: {
+      module: shaderModule,
+      entryPoint: "vertex_main",
+      buffers: [
+        {
+          arrayStride: 8,
+          attributes: [{ format: "float32x2", offset: 0, shaderLocation: 0 }],
+        },
+        {
+          arrayStride: 4,
+          stepMode: "instance",
+          attributes: [{ format: "unorm8x4", offset: 0, shaderLocation: 1 }],
+        },
+        {
+          arrayStride: 16,
+          stepMode: "instance",
+          attributes: [{ format: "float32x4", offset: 0, shaderLocation: 2 }],
+        },
+      ],
+    },
+    fragment: {
+      module: shaderModule,
+      entryPoint: "fragment_main",
+      targets: [{ format: stateFormat }],
+      // COMPUTE CODE CBA TO IMPLEMENT COLOR BLEND AND ALPHA BLEND
+    },
+    // COMPUTE CODE ALSO MISSING PRIMITIVE
+    primitive: {
+      topology: "triangle-strip",
+      stripIndexFormat: "uint32",
+    },
+    depthStencil: {
+      format: depthFormat,
+      depthWriteEnabled: true,
+      depthCompare: "less",
+    },
+  });
+
+  const viewParamsBuffer = device.createBuffer({
+    // COMPUTE CODE KIND OF
+    size: 4 * 6,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+
+  // COMPUTE CODE
+  device.queue.writeBuffer(
+    viewParamsBuffer,
+    0,
+    new Float32Array([canvas.width, canvas.height, particleSize])
+  );
+
+  //viewParamsBuffer.unmap();
+
+  const viewParamsBindGroup = device.createBindGroup({
+    layout: bindGroupLayout,
+    entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
+  });
+
+  // track when canvas is visible and only render when true
+  let canvasVisible = false;
+  const observer = new IntersectionObserver(
+    (e) => {
+      canvasVisible = e[0].isIntersecting;
+    },
+    { threshold: [0] }
+  );
+  observer.observe(canvas);
+
+  let currentPositionBuffer = positionBufferB;
+
+  //let time = 0;
+  //const res_x = canvas.width;
+  //const res_y = canvas.height;
+  const frame = () => {
+    if (canvasVisible) {
+      /*const timeBuffer = device.createBuffer({
+        size: 4,
+        usage: GPUBufferUsage.COPY_SRC,
+        mappedAtCreation: true,
+      });
+
+      const xBuffer = device.createBuffer({
+        size: 4,
+        usage: GPUBufferUsage.COPY_SRC,
+        mappedAtCreation: true,
+      });
+
+      const yBuffer = device.createBuffer({
+        size: 4,
+        usage: GPUBufferUsage.COPY_SRC,
+        mappedAtCreation: true,
+      });
+
+      const resXBuffer = device.createBuffer({
+        size: 4,
+        usage: GPUBufferUsage.COPY_SRC,
+        mappedAtCreation: true,
+      });
+
+      const resYBuffer = device.createBuffer({
+        size: 4,
+        usage: GPUBufferUsage.COPY_SRC,
+        mappedAtCreation: true,
+      });
+
+      new Float32Array(timeBuffer.getMappedRange()).set([time]);
+      timeBuffer.unmap();
+
+      new Float32Array(xBuffer.getMappedRange()).set([x]);
+      xBuffer.unmap();
+
+      new Float32Array(yBuffer.getMappedRange()).set([y]);
+      yBuffer.unmap();
+
+      new Float32Array(resXBuffer.getMappedRange()).set([res_x]);
+      resXBuffer.unmap();
+
+      new Float32Array(resYBuffer.getMappedRange()).set([res_y]);
+      resYBuffer.unmap();*/
+
+      const renderPassDescription = {
+        colorAttachments: [
+          {
+            view: context.getCurrentTexture().createView(),
+            loadValue: [0.0, 0.0, 0.0, 1.0],
+          },
+        ],
+        depthStencilAttachment: {
+          view: depthTexture.createView(),
+          depthLoadValue: 1.0,
+          depthStoreOp: "store",
+          stencilLoadValue: 0,
+          stencilStoreOp: "store",
+        },
+      };
+
+      // COMPUTE CODE STARTS HERE AGAIN
+
+      const currentComputeBindGroup =
+        currentPositionBuffer === positionBufferA
+          ? computeBindGroupB2A
+          : computeBindGroupA2B;
+      const commandEncoder = device.createCommandEncoder();
+      // commandEncoder.copyBufferToBuffer(timeBuffer, 0, viewParamsBuffer, 0, 4);
+      // commandEncoder.copyBufferToBuffer(xBuffer, 0, viewParamsBuffer, 4, 4);
+      // commandEncoder.copyBufferToBuffer(yBuffer, 0, viewParamsBuffer, 8, 4);
+      // commandEncoder.copyBufferToBuffer(resXBuffer, 0, viewParamsBuffer, 12, 4);
+      // commandEncoder.copyBufferToBuffer(resYBuffer, 0, viewParamsBuffer, 16, 4);
+
+      const computePass = commandEncoder.beginComputePass();
+      computePass.setPipeline(computePipeline);
+      computePass.setBindGroup(0, currentComputeBindGroup);
+      computePass.dispatch(numParticles);
+      computePass.endPass();
+      renderPassDescription.colorAttachments[0].view = context
+        .getCurrentTexture()
+        .createView();
+      const renderPass = commandEncoder.beginRenderPass(
+        renderPassDescription as GPURenderPassDescriptor
+      );
+      renderPass.setPipeline(renderPipeline);
+      renderPass.setBindGroup(0, viewParamsBindGroup);
+      renderPass.setVertexBuffer(0, vertexBuffer);
+      renderPass.setVertexBuffer(1, particleBuffer);
+      renderPass.setVertexBuffer(2, currentPositionBuffer);
+      renderPass.draw(4, numParticles, 0, 0);
+
+      renderPass.endPass();
+      device.queue.submit([commandEncoder.finish()]);
+      //time++;
+
+      currentPositionBuffer =
+        currentPositionBuffer === positionBufferA
+          ? positionBufferB
+          : positionBufferA;
+    }
+
+    renderFrame = requestAnimationFrame(frame);
+  };
+
+  renderFrame = requestAnimationFrame(frame);
+};
+
 export const renderShader = async (
   shaderCode: string,
   meshType: MeshType,
@@ -660,7 +1166,8 @@ export const renderShader = async (
   vertices: string,
   colours: string,
   vertexCount: string,
-  imageUrl?: string
+  imageUrl?: string,
+  computeCode?: string
 ): Promise<void> => {
   switch (meshType) {
     case MeshType.RECTANGLE:
@@ -686,6 +1193,17 @@ export const renderShader = async (
         } catch (e) {
           return;
         }
+      }
+      break;
+    case MeshType.PARTICLES:
+      if (computeCode) {
+        return renderParticleShader(
+          shaderCode,
+          renderLogger,
+          2000,
+          4,
+          computeCode
+        );
       }
       break;
     default:

@@ -40,6 +40,7 @@ const renderFormDialog = async (
         colourBuffer={defaultShader.colourBuffer}
         numberOfVertices={defaultShader.numberOfVertices}
         imageUrl={defaultShader.imageUrl}
+        computeCode={defaultShader.computeCode}
       />
     );
   });
