@@ -9,7 +9,7 @@ import * as firebaseHelper from "../../utils/firebaseHelper";
 import { rectangleNumberOfVertices } from "../../webgpu/meshes/rectangle";
 import { shaderTriangleVertex } from "../sample_shaders/triangle";
 
-const defaultShader = new Shader(
+export const defaultShader = new Shader(
   "testid",
   "testfile",
   "testimage",
