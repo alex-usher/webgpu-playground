@@ -136,51 +136,51 @@ describe("Button Click Tests", () => {
     expect(textAreas[1]).toBeInTheDocument();
   });
 
-  // we can save this for the live recompiling test
-  //   test("Clicking the compile code button results in calling the WebGPU render function", () => {
-  //     expect(simpleShaderMock).toHaveBeenCalled();
-  //     showCodeButton?.click();
-  //     const compileCodeButton = document.getElementById(COMPILE_ID);
+  describe("Code editor tests", () => {
+    let codeEditor: HTMLElement | null;
 
-  //     compileCodeButton?.click();
-  //   });
-});
+    beforeEach(async () => {
+      doMocks();
+      await renderCodeEditorPage();
 
-describe("Code editor tests", () => {
-  let codeEditor: HTMLElement | null;
+      document.getElementById(SHOW_CODE_ID)?.click();
+      const textAreas: HTMLElement[] = screen.getAllByRole("textbox");
+      codeEditor = textAreas[0];
+    });
 
-  beforeEach(async () => {
-    doMocks();
-    await renderCodeEditorPage();
+    afterEach(() => {
+      jest.resetAllMocks();
 
-    document.getElementById(SHOW_CODE_ID)?.click();
-    const textAreas: HTMLElement[] = screen.getAllByRole("textbox");
-    codeEditor = textAreas[0];
-  });
+      codeEditor = null;
+    });
 
-  afterEach(() => {
-    jest.resetAllMocks();
+    test("Typing into the code editor updates its text content", async () => {
+      if (codeEditor) {
+        expect(codeEditor.textContent).toEqual(
+          `${shaders.rectangleVertex}\n${shaders.rectangleFragment}`
+        );
 
-    codeEditor = null;
-  });
+        await act(async () => {
+          // the non-null assertion doesn't work in the inner scope
+          assert(codeEditor);
+          await userEvent.type(codeEditor, "a");
+        });
 
-  test("Typing into the code editor updates its text content", async () => {
-    if (codeEditor) {
-      expect(codeEditor.textContent).toEqual(
-        `${shaders.rectangleVertex}\n${shaders.rectangleFragment}`
-      );
+        expect(codeEditor.textContent).toEqual(
+          `${shaders.rectangleVertex}\n${shaders.rectangleFragment}a`
+        );
+      } else {
+        fail("Vertex editor null");
+      }
+    });
 
-      await act(async () => {
-        // the non-null assertion doesn't work in the inner scope
-        assert(codeEditor);
+    it("Typing into the code editor results in calling the WebGPU render function", async () => {
+      expect(simpleShaderMock).toHaveBeenCalled();
+      if (codeEditor) {
         await userEvent.type(codeEditor, "a");
-      });
-
-      expect(codeEditor.textContent).toEqual(
-        `${shaders.rectangleVertex}\n${shaders.rectangleFragment}a`
-      );
-    } else {
-      fail("Vertex editor null");
-    }
+        expect(checkWebGPUMock).toHaveBeenCalled();
+        expect(simpleShaderMock).toHaveBeenCalled();
+      }
+    });
   });
 });
