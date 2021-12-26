@@ -34,7 +34,6 @@ export const fetchPaginatedShaders = async (
   latestDoc: DocumentSnapshot | undefined,
   setLatestDoc: (newDoc: DocumentSnapshot) => void
 ): Promise<Shader[]> => {
-  console.log(latestDoc);
   const shaders = [];
   const collect =
     shaderTypeEnum == ShaderTypeEnum.PUBLIC
