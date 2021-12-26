@@ -26,9 +26,6 @@ const renderCodeEditorPage = async () => {
   render(
     <SnackbarProvider>
       <BrowserRouter>
-        {/* TODO - atm if we change the default shader the tests will fail - fix by setting any references to the shader to the new deafeult */}
-        {/* as we are using locations, to properly test this we should fix properly by setting the location to default shader in the test */}
-        {/* https://dev.to/wolverineks/react-router-testing-location-state-33fo */}
         <CodeEditorPage />
       </BrowserRouter>
     </SnackbarProvider>
