@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/extend-expect";
 
-import { act, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import FormDialog from "../../components/FormDialog";
@@ -27,22 +27,21 @@ const renderFormDialog = async (
   handleClose: () => void,
   shaderCode: string,
   updateShader: (shader: Shader) => void
-) =>
-  await act(async () => {
-    render(
-      <FormDialog
-        open={open}
-        handleClose={handleClose}
-        shaderCode={shaderCode}
-        updateShader={updateShader}
-        meshType={defaultShader.meshType}
-        vertexBuffer={defaultShader.vertexBuffer}
-        colourBuffer={defaultShader.colourBuffer}
-        numberOfVertices={defaultShader.numberOfVertices}
-        imageUrl={defaultShader.imageUrl}
-      />
-    );
-  });
+) => {
+  render(
+    <FormDialog
+      open={open}
+      handleClose={handleClose}
+      shaderCode={shaderCode}
+      updateShader={updateShader}
+      meshType={defaultShader.meshType}
+      vertexBuffer={defaultShader.vertexBuffer}
+      colourBuffer={defaultShader.colourBuffer}
+      numberOfVertices={defaultShader.numberOfVertices}
+      imageUrl={defaultShader.imageUrl}
+    />
+  );
+};
 
 let saveNewShaderMock: jest.SpyInstance;
 let handleCloseMock: jest.MockedFunction<() => void>;
@@ -114,10 +113,8 @@ describe("Form Dialog component tests", () => {
   test("Typing into the text editor should change the filename", async () => {
     const nameField: HTMLElement = screen.getAllByRole("textbox")[0];
 
-    await act(async () => {
-      await userEvent.type(nameField, "a");
-      await buttons[buttons.length - 1].click();
-    });
+    await userEvent.type(nameField, "a");
+    await buttons[buttons.length - 1].click();
 
     expect(saveNewShaderMock).toHaveBeenCalledWith(
       new Shader(

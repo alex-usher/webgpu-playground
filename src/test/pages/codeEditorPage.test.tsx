@@ -1,8 +1,6 @@
 import "@testing-library/jest-dom/extend-expect";
 
-import assert from "assert";
-
-import { act, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SnackbarProvider } from "notistack";
 import routeData from "react-router";
@@ -24,19 +22,18 @@ const shader = new Shader(
   MeshType.RECTANGLE
 );
 
-const renderCodeEditorPage = async () =>
-  await act(async () => {
-    render(
-      <SnackbarProvider>
-        <BrowserRouter>
-          {/* TODO - atm if we change the default shader the tests will fail - fix by setting any references to the shader to the new deafeult */}
-          {/* as we are using locations, to properly test this we should fix properly by setting the location to default shader in the test */}
-          {/* https://dev.to/wolverineks/react-router-testing-location-state-33fo */}
-          <CodeEditorPage />
-        </BrowserRouter>
-      </SnackbarProvider>
-    );
-  });
+const renderCodeEditorPage = async () => {
+  render(
+    <SnackbarProvider>
+      <BrowserRouter>
+        {/* TODO - atm if we change the default shader the tests will fail - fix by setting any references to the shader to the new deafeult */}
+        {/* as we are using locations, to properly test this we should fix properly by setting the location to default shader in the test */}
+        {/* https://dev.to/wolverineks/react-router-testing-location-state-33fo */}
+        <CodeEditorPage />
+      </BrowserRouter>
+    </SnackbarProvider>
+  );
+};
 
 let checkWebGPUMock: jest.SpyInstance;
 let simpleShaderMock: jest.SpyInstance;
@@ -160,11 +157,7 @@ describe("Button Click Tests", () => {
           `${shaders.rectangleVertex}\n${shaders.rectangleFragment}`
         );
 
-        await act(async () => {
-          // the non-null assertion doesn't work in the inner scope
-          assert(codeEditor);
-          await userEvent.type(codeEditor, "a");
-        });
+        await userEvent.type(codeEditor, "a");
 
         expect(codeEditor.textContent).toEqual(
           `${shaders.rectangleVertex}\n${shaders.rectangleFragment}a`
