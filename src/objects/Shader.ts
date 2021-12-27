@@ -150,6 +150,7 @@ export const shaderConverter = {
     const shaderRef = ref(firestorage, shaderFile);
     const imageFile = `${id}_${shader.title}.png`;
     const imageRef = ref(firestorage, imageFile);
+    let computeFile = "";
 
     const canvas = document.getElementById(
       "canvas-webgpu"
@@ -164,6 +165,13 @@ export const shaderConverter = {
       }, "image/png")
     );
 
+    if (shader.meshType === MeshType.PARTICLES) {
+      computeFile = `${id}_${shader.title}_compute.txt`;
+      const computeRef = ref(firestorage, computeFile);
+
+      uploadString(computeRef, shader.computeCode.toString());
+    }
+
     uploadString(shaderRef, shader.shaderCode.toString());
 
     return {
@@ -176,7 +184,7 @@ export const shaderConverter = {
       colourBuffer: shader.colourBuffer,
       numberOfVertices: shader.numberOfVertices,
       imageUrl: shader.imageUrl,
-      compute_code: shader.computeCode,
+      compute_code: computeFile,
     };
   },
   fromFirestore(snapshot: QueryDocumentSnapshot): Shader {
@@ -198,12 +206,17 @@ export const shaderConverter = {
         ? data.numberOfVertices
         : rectangleNumberOfVertices.toString(),
       data.imageUrl ? data.imageUrl : "",
-      data.computeCode ? data.computeCode : defaultComputeCode
+      ""
     );
   },
 };
 
-export const downloadShaderCode = async (id: string): Promise<string> => {
+interface ShaderCode {
+  shaderCode: string;
+  computeCode: string;
+}
+
+export const downloadShaderCode = async (id: string): Promise<ShaderCode> => {
   const user = auth.currentUser;
   let querySnapshot;
 
@@ -230,7 +243,19 @@ export const downloadShaderCode = async (id: string): Promise<string> => {
     ref(firestorage, data.shader_code)
   );
 
-  return (await axios.get(shaderCodeURL)).data;
+  let computeCode = "";
+  if (data.compute_code && data.compute_code.length > 0) {
+    const computeCodeURL = await getDownloadURL(
+      ref(firestorage, data.compute_code)
+    );
+
+    computeCode = await axios.get(computeCodeURL);
+  }
+
+  return {
+    shaderCode: (await axios.get(shaderCodeURL)).data,
+    computeCode,
+  };
 };
 
 export interface ShaderProps {

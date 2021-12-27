@@ -154,7 +154,8 @@ const CodeEditorPage = () => {
 
   useEffect(() => {
     shader.shaderCode = shaderCode;
-  }, [shaderCode]);
+    shader.computeCode = computeCode;
+  }, [shaderCode, computeCode]);
 
   useEffect(() => {
     if (shader.shaderCode === "") {

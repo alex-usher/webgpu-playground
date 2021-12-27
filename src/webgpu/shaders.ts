@@ -79,8 +79,7 @@ fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
   return out;
 };`;
 
-export const cubeVertex = `
-struct Uniforms {
+export const cubeVertex = `struct Uniforms {
     mvpMatrix : mat4x4<f32>;
 };
 [[binding(0), group(0)]] var<uniform> uniforms : Uniforms;
@@ -92,14 +91,12 @@ fn vertex_main([[location(0)]] pos: vec4<f32>, [[location(1)]] color: vec4<f32>)
     return output;
 }`;
 
-export const cubeFragment = `
-[[stage(fragment)]]
+export const cubeFragment = `[[stage(fragment)]]
 fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     return in.color;
 }`;
 
-export const defaultComputeCode = `
-// can access in array by positionsIn.in[]
+export const defaultComputeCode = `// can access in array by positionsIn.in[]
 struct ParticleProperty {
   all: [[stride(16)]] array<vec4<f32>>;
 };
