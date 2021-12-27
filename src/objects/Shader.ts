@@ -249,12 +249,12 @@ export const downloadShaderCode = async (id: string): Promise<ShaderCode> => {
       ref(firestorage, data.compute_code)
     );
 
-    computeCode = await axios.get(computeCodeURL);
+    computeCode = (await axios.get(computeCodeURL)).data;
   }
 
   return {
     shaderCode: (await axios.get(shaderCodeURL)).data,
-    computeCode,
+    computeCode: computeCode,
   };
 };
 

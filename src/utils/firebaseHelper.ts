@@ -135,6 +135,7 @@ export const getShaderCode = async (shader: Shader): Promise<Shader> => {
   const code = await downloadShaderCode(shader.id);
   shader.shaderCode = code.shaderCode;
   shader.computeCode = code.computeCode;
+
   return shader;
 };
 

@@ -154,11 +154,17 @@ const CodeEditorPage = () => {
 
   useEffect(() => {
     shader.shaderCode = shaderCode;
-    shader.computeCode = computeCode;
-  }, [shaderCode, computeCode]);
+  }, [shaderCode]);
 
   useEffect(() => {
-    if (shader.shaderCode === "") {
+    shader.computeCode = computeCode;
+  }, [computeCode]);
+
+  useEffect(() => {
+    if (
+      shader.shaderCode === "" ||
+      (shader.meshType === MeshType.PARTICLES && shader.computeCode === "")
+    ) {
       getShaderCode(shader).then((shaderWithCode: Shader) => {
         setShader(shaderWithCode);
         setShaderCode(shader.shaderCode);
@@ -179,14 +185,12 @@ const CodeEditorPage = () => {
     shader.colourBuffer = colourBuffer;
     shader.numberOfVertices = numberOfVertices;
     shader.imageUrl = renderedImageUrl;
-    shader.computeCode = computeCode;
   }, [
     shaderCode,
     vertexBuffer,
     colourBuffer,
     numberOfVertices,
     renderedImageUrl,
-    computeCode,
   ]);
 
   const toggleActionDrawer = () => {
