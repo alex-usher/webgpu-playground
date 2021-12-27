@@ -80,7 +80,7 @@ fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
 };`;
 
 export const cubeVertex = `
-[[block]] struct Uniforms {
+struct Uniforms {
     mvpMatrix : mat4x4<f32>;
 };
 [[binding(0), group(0)]] var<uniform> uniforms : Uniforms;

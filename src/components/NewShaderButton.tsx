@@ -46,8 +46,6 @@ const NewShaderButton = () => {
           <FormControl component="fieldset" variant="standard">
             <FormLabel component="legend">Pick a mesh</FormLabel>
             <RadioGroup
-              aria-label="quiz"
-              name="quiz"
               value={meshString}
               onChange={(event) => {
                 setMeshString(event.target.value);
