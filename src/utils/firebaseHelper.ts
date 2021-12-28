@@ -1,3 +1,4 @@
+import { getAuth } from "@firebase/auth";
 import {
   CollectionReference,
   DocumentData,
@@ -96,6 +97,7 @@ export const getPublicShaders = async (
 export const getUserShaders = async (
   pageLength?: number
 ): Promise<Shader[]> => {
+  const auth = getAuth();
   const user = auth.currentUser;
   if (user) {
     return await getShaders(
@@ -243,6 +245,7 @@ export const deleteShader = async (shader: Shader): Promise<boolean> => {
     if (err instanceof loggedOutErr) {
       SnackbarUtils.error("You must be logged in to delete a shader.");
     } else {
+      console.log(err);
       SnackbarUtils.error("Error deleting shader.");
     }
     return false;

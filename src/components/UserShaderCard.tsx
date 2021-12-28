@@ -1,7 +1,11 @@
 import DeleteIcon from "@mui/icons-material/Delete";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogTitle from "@mui/material/DialogTitle";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormGroup from "@mui/material/FormGroup";
 import IconButton from "@mui/material/IconButton";
@@ -11,22 +15,69 @@ import Typography from "@mui/material/Typography";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { ShaderProps } from "../objects/Shader";
+import { Shader } from "../objects/Shader";
 import {
   deleteShader,
+  getShaderCode,
   makeShaderPrivate,
   makeShaderPublic,
 } from "../utils/firebaseHelper";
 
-const UserShaderCard = ({ shader }: ShaderProps) => {
+interface UserShaderCardProps {
+  shader: Shader;
+  removeCard: () => void;
+}
+
+interface ConfirmDeleteDialogProps {
+  title: string;
+  dialogOpen: boolean;
+  setDialogOpen: (arg0: boolean) => void;
+  doDelete: () => void;
+}
+
+const ConfirmDeleteDialog = ({
+  title,
+  dialogOpen,
+  setDialogOpen,
+  doDelete,
+}: ConfirmDeleteDialogProps) => {
+  console.log("in dialog: " + dialogOpen);
+  return (
+    <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+      <DialogTitle>Are you sure you want to delete "{title}"?</DialogTitle>
+      <DialogActions>
+        <Button onClick={() => setDialogOpen(false)}>No</Button>
+        <Button
+          onClick={() => {
+            setDialogOpen(false);
+            doDelete();
+          }}
+        >
+          Yes
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+const UserShaderCard = ({ shader, removeCard }: UserShaderCardProps) => {
   const [publicChecked, setPublicChecked] = useState(shader.isPublic);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     console.log(shader.isPublic);
   }, [shader.isPublic]);
 
   return (
-    <Card style={{ height: "20vh", width: "100%", borderRadius: "1.5vh" }}>
+    <Card
+      style={{
+        height: "20vh",
+        width: "100%",
+        borderRadius: "1.5vh",
+        paddingBottom: "2vh",
+        background: "transparent",
+      }}
+    >
       <Stack
         justifyContent="space-between"
         spacing={2}
@@ -78,12 +129,14 @@ const UserShaderCard = ({ shader }: ShaderProps) => {
               onChange={async (e) => {
                 let success = false;
                 const checked = (e.target as HTMLInputElement).checked;
+                const shaderWithCode = await getShaderCode(shader);
+                console.log(shaderWithCode);
                 if (checked) {
                   console.log("here");
-                  success = await makeShaderPublic(shader);
+                  success = await makeShaderPublic(shaderWithCode);
                   console.log("set");
                 } else {
-                  success = await makeShaderPrivate(shader);
+                  success = await makeShaderPrivate(shaderWithCode);
                 }
 
                 if (success) {
@@ -102,10 +155,26 @@ const UserShaderCard = ({ shader }: ShaderProps) => {
 
           <IconButton
             style={{ borderRadius: "10%" }}
-            onClick={() => deleteShader(shader)}
+            onClick={() => {
+              setDeleteDialogOpen(true);
+              console.log(deleteDialogOpen);
+            }}
           >
             <DeleteIcon />
           </IconButton>
+          <ConfirmDeleteDialog
+            title={shader.title}
+            dialogOpen={deleteDialogOpen}
+            setDialogOpen={(open) => {
+              setDeleteDialogOpen(open);
+            }}
+            doDelete={async () => {
+              const success = await deleteShader(shader);
+              if (success) {
+                removeCard();
+              }
+            }}
+          />
         </Stack>
       </Stack>
     </Card>

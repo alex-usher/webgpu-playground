@@ -284,39 +284,35 @@ const CodeEditorPage = () => {
                 {viewCodeText}
               </Button>
             </Grid>
-            {showCode && (
-              <>
-                <Grid item>
-                  <Button
-                    key="save-button"
-                    id="save-button"
-                    variant="outlined"
-                    disableElevation
-                    fullWidth
-                    color="success"
-                    onClick={handleFormOpen}
+            <Grid item>
+              <Button
+                key="save-button"
+                id="save-button"
+                variant="outlined"
+                disableElevation
+                fullWidth
+                color="success"
+                onClick={handleFormOpen}
+              >
+                Save
+              </Button>
+            </Grid>
+            {showCode && meshType === MeshType.CUSTOM ? (
+              <Grid item>
+                <div className="tabs">
+                  <Tabs
+                    value={currTab}
+                    onChange={(e, newTab: string) => setCurrTab(newTab)}
                   >
-                    Save
-                  </Button>
-                </Grid>
-                {meshType === MeshType.CUSTOM ? (
-                  <Grid item>
-                    <div className="tabs">
-                      <Tabs
-                        value={currTab}
-                        onChange={(e, newTab: string) => setCurrTab(newTab)}
-                      >
-                        <Tab label="main" value="0" />
-                        <Tab label="vertices" value="1" />
-                        <Tab label="colours" value="2" />
-                        <Tab label="vertex no" value="3" />
-                      </Tabs>
-                    </div>
-                  </Grid>
-                ) : (
-                  <></>
-                )}
-              </>
+                    <Tab label="main" value="0" />
+                    <Tab label="vertices" value="1" />
+                    <Tab label="colours" value="2" />
+                    <Tab label="num vertices" value="3" />
+                  </Tabs>
+                </div>
+              </Grid>
+            ) : (
+              <></>
             )}
           </Grid>
 

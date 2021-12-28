@@ -17,30 +17,47 @@ import { getUserShaders } from "../utils/firebaseHelper";
 const UserPage = () => {
   const auth = getAuth();
 
-  const [isLoggedIn, setIsLoggedIn] = useState(auth.currentUser != null);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [shaders, setShaders] = useState<Shader[]>([]);
   const [displayedShaders, setDisplayedShaders] = useState<Shader[]>([]);
 
   onAuthStateChanged(auth, (user) => {
     setIsLoggedIn(user != null);
-    return <Redirect to="/" />;
   });
 
   useEffect(() => {
-    getUserShaders().then((shaders: Shader[]) => {
-      setShaders(shaders);
-      setDisplayedShaders(shaders);
+    // On reload, the auth is also reloaded - wait for state to change before getting shaders
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        getUserShaders().then((shaders: Shader[]) => {
+          setShaders(shaders);
+          // Initially display all shaders without filtering
+          setDisplayedShaders(shaders);
+        });
+      }
     });
   }, []);
 
-  const shaderCards = displayedShaders.map((shader, i) => (
-    <UserShaderCard key={i} shader={shader} />
-  ));
-
-  // Redirect to the homepage if the user logs out
   if (!isLoggedIn) {
     return <Redirect to="/" />;
   }
+
+  const shaderCards = displayedShaders.map((shader, i) => (
+    <UserShaderCard
+      key={i}
+      shader={shader}
+      removeCard={() => {
+        const shaderID = shader.id;
+        // remove the selected shader card from the displayed and full list
+        const newShaders = shaders.filter((shader) => shader.id != shaderID);
+        const newDisplayed = displayedShaders.filter(
+          (shader) => shader.id != shaderID
+        );
+        setShaders(newShaders);
+        setDisplayedShaders(newDisplayed);
+      }}
+    />
+  ));
 
   return (
     <Container>
