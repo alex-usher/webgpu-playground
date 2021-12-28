@@ -58,7 +58,6 @@ const NewShaderButton = () => {
         <DialogActions>
           <Button
             onClick={() => {
-              console.log();
               setFormOpen(false);
             }}
           >

@@ -132,7 +132,10 @@ export const getUserPrivateShaders = async (): Promise<Shader[]> => {
 };
 
 export const getShaderCode = async (shader: Shader): Promise<Shader> => {
-  shader.shaderCode = await downloadShaderCode(shader.id);
+  const code = await downloadShaderCode(shader.id);
+  shader.shaderCode = code.shaderCode;
+  shader.computeCode = code.computeCode;
+
   return shader;
 };
 
@@ -257,6 +260,11 @@ const deleteFiles = async (shader: Shader) => {
 const deleteCodeFile = async (shaderData: DocumentData) => {
   const shaderRef = ref(firestorage, shaderData.shader_code);
   await deleteObject(shaderRef);
+
+  if (shaderData.compute_code && shaderData.compute_code.length > 0) {
+    const computeRef = ref(firestorage, shaderData.compute_code);
+    await deleteObject(computeRef);
+  }
 };
 
 const deleteImageFile = async (shaderData: DocumentData) => {
@@ -266,9 +274,7 @@ const deleteImageFile = async (shaderData: DocumentData) => {
 
 export const overwriteShader = async (shader: Shader) => {
   try {
-    const shaderData = await getShaderDataById(shader.id);
-    await deleteCodeFile(shaderData);
-    await deleteImageFile(shaderData);
+    await deleteFiles(shader);
     const shaderDoc = await shaderConverter.toFirestore(shader);
 
     const user = auth.currentUser;

@@ -11,5 +11,6 @@ export const defaultShader = new Shader(
   "",
   "",
   "6",
+  "2000",
   "testimageurl.com/image"
 );

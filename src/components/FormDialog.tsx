@@ -22,7 +22,9 @@ interface FormDialogProps {
   vertexBuffer: string;
   colourBuffer: string;
   numberOfVertices: string;
+  numberOfParticles: string;
   imageUrl: string;
+  computeCode: string;
 }
 
 const FormDialog = ({
@@ -34,7 +36,9 @@ const FormDialog = ({
   vertexBuffer,
   colourBuffer,
   numberOfVertices,
+  numberOfParticles,
   imageUrl,
+  computeCode,
 }: FormDialogProps) => {
   const [fileName, setFileName] = useState("Untitled");
   const [isPublic, setIsPublic] = useState(false);
@@ -88,7 +92,9 @@ const FormDialog = ({
                 vertexBuffer,
                 colourBuffer,
                 numberOfVertices,
-                imageUrl
+                numberOfParticles,
+                imageUrl,
+                computeCode
               )
             );
             if (shader) {

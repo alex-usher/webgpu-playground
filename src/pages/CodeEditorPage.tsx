@@ -91,6 +91,10 @@ const CodeEditorPage = () => {
   const [numberOfVertices, setNumberOfVertices] = useState(
     shader.numberOfVertices.toString()
   );
+  const [numberOfParticles, setNumberOfParticles] = useState(
+    shader.numberOfParticles.toString()
+  );
+  const [computeCode, setComputeCode] = useState(shader.computeCode);
 
   const history = useHistory();
 
@@ -156,16 +160,25 @@ const CodeEditorPage = () => {
   }, [shaderCode]);
 
   useEffect(() => {
-    if (shader.shaderCode === "") {
+    shader.computeCode = computeCode;
+  }, [computeCode]);
+
+  useEffect(() => {
+    if (
+      shader.shaderCode === "" ||
+      (shader.meshType === MeshType.PARTICLES && shader.computeCode === "")
+    ) {
       getShaderCode(shader).then((shaderWithCode: Shader) => {
         setShader(shaderWithCode);
         setShaderCode(shader.shaderCode);
         setVertexBuffer(shader.vertexBuffer);
         setColourBuffer(shader.colourBuffer);
         setNumberOfVertices(shader.numberOfVertices.toString());
+        setNumberOfParticles(shader.numberOfParticles.toString());
         setRenderedImageUrl(shader.imageUrl);
         // Only set the name if getting an existing shader - new shaders will display "untitled"
         setShaderName(shader.title);
+        setComputeCode(shader.computeCode);
       });
     }
   }, []);
@@ -175,12 +188,14 @@ const CodeEditorPage = () => {
     shader.vertexBuffer = vertexBuffer;
     shader.colourBuffer = colourBuffer;
     shader.numberOfVertices = numberOfVertices;
+    shader.numberOfParticles = numberOfParticles;
     shader.imageUrl = renderedImageUrl;
   }, [
     shaderCode,
     vertexBuffer,
     colourBuffer,
     numberOfVertices,
+    numberOfParticles,
     renderedImageUrl,
   ]);
 
@@ -317,6 +332,19 @@ const CodeEditorPage = () => {
                       </Tabs>
                     </div>
                   </Grid>
+                ) : meshType === MeshType.PARTICLES ? (
+                  <Grid item>
+                    <div className="tabs">
+                      <Tabs
+                        value={currTab}
+                        onChange={(e, newTab: string) => setCurrTab(newTab)}
+                      >
+                        <Tab label="main" value="0" />
+                        <Tab label="compute" value="1" />
+                        <Tab label="No. of Particles" value="2" />
+                      </Tabs>
+                    </div>
+                  </Grid>
                 ) : (
                   <></>
                 )}
@@ -342,7 +370,9 @@ const CodeEditorPage = () => {
             vertexBuffer={vertexBuffer}
             colourBuffer={colourBuffer}
             numberOfVertices={numberOfVertices}
+            numberOfParticles={numberOfParticles}
             imageUrl={renderedImageUrl}
+            computeCode={computeCode}
           />
 
           <div style={{ display: "flex" }}>
@@ -408,7 +438,9 @@ const CodeEditorPage = () => {
         vertexBuffer={vertexBuffer}
         colourBuffer={colourBuffer}
         numberOfVertices={numberOfVertices}
+        numberOfParticles={numberOfParticles}
         imageUrl={renderedImageUrl}
+        computeCode={computeCode}
       />
 
       {showCode ? (
@@ -455,6 +487,42 @@ const CodeEditorPage = () => {
                 editorWidth={editorWidth}
                 code={numberOfVertices}
                 setCode={setNumberOfVertices}
+                renderLogger={renderLogger}
+              />
+            </TabPanel>
+          </TabContext>
+        ) : meshType === MeshType.PARTICLES ? (
+          <TabContext value={currTab}>
+            <TabPanel value="0" className="tab-panel">
+              <CodeEditor
+                helpBoxVisible={helpBoxVisible}
+                toggleHelpVisible={toggleHelpVisible}
+                editorOpacity={editorOpacity}
+                editorWidth={editorWidth}
+                code={shaderCode}
+                setCode={setShaderCode}
+                renderLogger={renderLogger}
+              />
+            </TabPanel>
+            <TabPanel value="1" className="tab-panel">
+              <CodeEditor
+                helpBoxVisible={helpBoxVisible}
+                toggleHelpVisible={toggleHelpVisible}
+                editorOpacity={editorOpacity}
+                editorWidth={editorWidth}
+                code={computeCode}
+                setCode={setComputeCode}
+                renderLogger={renderLogger}
+              />
+            </TabPanel>
+            <TabPanel value="2" className="tab-panel">
+              <CodeEditor
+                helpBoxVisible={helpBoxVisible}
+                toggleHelpVisible={toggleHelpVisible}
+                editorOpacity={editorOpacity}
+                editorWidth={editorWidth}
+                code={numberOfParticles}
+                setCode={setNumberOfParticles}
                 renderLogger={renderLogger}
               />
             </TabPanel>

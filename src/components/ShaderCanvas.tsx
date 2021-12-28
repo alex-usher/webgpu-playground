@@ -19,7 +19,9 @@ interface ShaderCanvasInput {
   vertexBuffer: string;
   colourBuffer: string;
   numberOfVertices: string;
+  numberOfParticles: string;
   imageUrl?: string;
+  computeCode?: string;
 }
 
 const ShaderCanvas = ({
@@ -29,7 +31,9 @@ const ShaderCanvas = ({
   vertexBuffer,
   colourBuffer,
   numberOfVertices,
+  numberOfParticles,
   imageUrl,
+  computeCode,
 }: ShaderCanvasInput) => {
   const renderLogger = new RenderLogger();
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -50,12 +54,22 @@ const ShaderCanvas = ({
         vertexBuffer,
         colourBuffer,
         numberOfVertices,
-        imageUrl
+        numberOfParticles,
+        imageUrl,
+        computeCode
       ).then(() => {
         setRenderLogger(renderLogger);
       });
     }
-  }, [shaderCode, vertexBuffer, colourBuffer, numberOfVertices, imageUrl]);
+  }, [
+    shaderCode,
+    vertexBuffer,
+    colourBuffer,
+    numberOfVertices,
+    numberOfParticles,
+    imageUrl,
+    computeCode,
+  ]);
 
   useEffect(() => {
     const setFromEvent = (e: MouseEvent) => {
