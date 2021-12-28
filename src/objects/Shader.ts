@@ -79,6 +79,7 @@ export enum ShaderTypeEnum {
   EXAMPLE = "example",
   PUBLIC = "public",
 }
+
 export interface ShaderType {
   pageLink: string;
   sectionName: string;

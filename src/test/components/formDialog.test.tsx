@@ -7,23 +7,10 @@ import FormDialog from "../../components/FormDialog";
 import { MeshType, Shader } from "../../objects/Shader";
 import * as firebaseHelper from "../../utils/firebaseHelper";
 import { rectangleNumberOfVertices } from "../../webgpu/meshes/rectangle";
+import { defaultShader } from "../sample_shaders/defaultShader";
 import { shaderTriangleVertex } from "../sample_shaders/triangle";
 
-export const defaultShader = new Shader(
-  "testid",
-  "testfile",
-  "testimage",
-  false,
-  shaderTriangleVertex,
-  MeshType.RECTANGLE,
-  "",
-  "",
-  "6",
-  "1000",
-  "testimageurl.com/image"
-);
-
-const renderFormDialog = async (
+const renderFormDialog = (
   open: boolean,
   handleClose: () => void,
   shaderCode: string,
@@ -52,7 +39,7 @@ let updateShaderMock: jest.MockedFunction<(shader: Shader) => void>;
 
 let buttons: HTMLElement[];
 describe("Form Dialog component tests", () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     updateShaderMock = jest.fn((_shader) => {
       undefined;
     });
@@ -66,7 +53,7 @@ describe("Form Dialog component tests", () => {
       return new Promise((resolve) => resolve(defaultShader));
     });
 
-    await renderFormDialog(
+    renderFormDialog(
       true,
       handleCloseMock,
       shaderTriangleVertex,
