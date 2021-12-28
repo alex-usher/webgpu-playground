@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import FormDialog from "../../components/FormDialog";
 import { MeshType, Shader } from "../../objects/Shader";
 import * as firebaseHelper from "../../utils/firebaseHelper";
+import { defaultNumberOfParticles } from "../../webgpu/meshes/particles";
 import { rectangleNumberOfVertices } from "../../webgpu/meshes/rectangle";
 import { defaultShader } from "../sample_shaders/defaultShader";
 import { shaderTriangleVertex } from "../sample_shaders/triangle";
@@ -82,7 +83,7 @@ describe("Form Dialog component tests", () => {
         "",
         "",
         rectangleNumberOfVertices.toString(),
-        "1000",
+        defaultNumberOfParticles.toString(),
         "testimageurl.com/image"
       )
     );
@@ -118,7 +119,7 @@ describe("Form Dialog component tests", () => {
         "",
         "",
         rectangleNumberOfVertices.toString(),
-        "1000",
+        defaultNumberOfParticles.toString(),
         "testimageurl.com/image"
       )
     );
