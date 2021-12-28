@@ -730,8 +730,6 @@ export const renderParticleShader = async (
 
   velocityBufferB.unmap();
 
-  // COMPUTE CODE ENDS HERE
-
   const vertexBuffer = device.createBuffer({
     size: 8 * 4,
     usage: GPUBufferUsage.VERTEX,
@@ -744,8 +742,6 @@ export const renderParticleShader = async (
 
   vertexBuffer.unmap();
 
-  // COMPUTE CODE STARTS AGAIN
-
   const particleBuffer = device.createBuffer({
     size: 4 * numParticles * 4,
     usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
@@ -753,6 +749,7 @@ export const renderParticleShader = async (
   });
 
   const particleBufferData = new Uint8Array(particleBuffer.getMappedRange());
+  // randomly assigns all of the colours of the particles
   for (let i = 0; i < particleBufferData.length; i += 4) {
     particleBufferData[i] = Math.floor(Math.random() * 256);
     particleBufferData[i + 1] = Math.floor(Math.random() * 256);
@@ -761,6 +758,7 @@ export const renderParticleShader = async (
   }
   particleBuffer.unmap();
 
+  // randomly assigns the mass struct
   const computeUniformData = new Float32Array([
     Math.random() * 2.0 - 1.0,
     Math.random() * 2.0 - 1.0,
@@ -786,8 +784,6 @@ export const renderParticleShader = async (
   });
 
   device.queue.writeBuffer(computeUniformBuffer, 0, computeUniformData);
-
-  //computeUniformBuffer.unmap();
 
   const computeBindGroupLayout = device.createBindGroupLayout({
     entries: [
@@ -913,8 +909,6 @@ export const renderParticleShader = async (
     },
   });
 
-  // COMPUTE CODE ENDS HERE. MIGHT PROB NEED TO CHECK VERTEX UNIFORM BUFFER/VIEW PARAMS BUFFER
-
   context.configure({
     device: device,
     format: SWAPCHAIN_FORMAT,
@@ -968,7 +962,6 @@ export const renderParticleShader = async (
       entryPoint: "fragment_main",
       targets: [{ format: SWAPCHAIN_FORMAT }],
     },
-    // COMPUTE CODE ALSO MISSING PRIMITIVE
     primitive: {
       topology: "triangle-strip",
       stripIndexFormat: "uint32",
@@ -981,19 +974,15 @@ export const renderParticleShader = async (
   });
 
   const viewParamsBuffer = device.createBuffer({
-    // COMPUTE CODE KIND OF
     size: 4 * 5,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
-  // COMPUTE CODE
   device.queue.writeBuffer(
     viewParamsBuffer,
     0,
     new Float32Array([canvas.width, canvas.height])
   );
-
-  //viewParamsBuffer.unmap();
 
   const viewParamsBindGroup = device.createBindGroup({
     layout: bindGroupLayout,
@@ -1045,8 +1034,6 @@ export const renderParticleShader = async (
         },
       };
 
-      // COMPUTE CODE STARTS HERE AGAIN
-
       const currentComputeBindGroup =
         currentPositionBuffer === positionBufferA
           ? computeBindGroupB2A
@@ -1093,6 +1080,7 @@ export const renderShader = async (
   vertices: string,
   colours: string,
   vertexCount: string,
+  particleCount: string,
   imageUrl?: string,
   computeCode?: string
 ): Promise<void> => {
@@ -1123,8 +1111,18 @@ export const renderShader = async (
       }
       break;
     case MeshType.PARTICLES:
-      if (computeCode) {
-        return renderParticleShader(shaderCode, renderLogger, 999, computeCode);
+      if (computeCode && particleCount) {
+        try {
+          const numberOfParticles = parseInt(particleCount);
+          return renderParticleShader(
+            shaderCode,
+            renderLogger,
+            numberOfParticles,
+            computeCode
+          );
+        } catch (e) {
+          return;
+        }
       }
       break;
     default:

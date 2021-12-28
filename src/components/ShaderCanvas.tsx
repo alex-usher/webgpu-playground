@@ -19,6 +19,7 @@ interface ShaderCanvasInput {
   vertexBuffer: string;
   colourBuffer: string;
   numberOfVertices: string;
+  numberOfParticles: string;
   imageUrl?: string;
   computeCode?: string;
 }
@@ -30,6 +31,7 @@ const ShaderCanvas = ({
   vertexBuffer,
   colourBuffer,
   numberOfVertices,
+  numberOfParticles,
   imageUrl,
   computeCode,
 }: ShaderCanvasInput) => {
@@ -52,6 +54,7 @@ const ShaderCanvas = ({
         vertexBuffer,
         colourBuffer,
         numberOfVertices,
+        numberOfParticles,
         imageUrl,
         computeCode
       ).then(() => {
@@ -63,6 +66,7 @@ const ShaderCanvas = ({
     vertexBuffer,
     colourBuffer,
     numberOfVertices,
+    numberOfParticles,
     imageUrl,
     computeCode,
   ]);

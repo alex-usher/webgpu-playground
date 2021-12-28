@@ -91,6 +91,9 @@ const CodeEditorPage = () => {
   const [numberOfVertices, setNumberOfVertices] = useState(
     shader.numberOfVertices.toString()
   );
+  const [numberOfParticles, setNumberOfParticles] = useState(
+    shader.numberOfParticles.toString()
+  );
   const [computeCode, setComputeCode] = useState(shader.computeCode);
 
   const history = useHistory();
@@ -171,6 +174,7 @@ const CodeEditorPage = () => {
         setVertexBuffer(shader.vertexBuffer);
         setColourBuffer(shader.colourBuffer);
         setNumberOfVertices(shader.numberOfVertices.toString());
+        setNumberOfParticles(shader.numberOfParticles.toString());
         setRenderedImageUrl(shader.imageUrl);
         // Only set the name if getting an existing shader - new shaders will display "untitled"
         setShaderName(shader.title);
@@ -184,12 +188,14 @@ const CodeEditorPage = () => {
     shader.vertexBuffer = vertexBuffer;
     shader.colourBuffer = colourBuffer;
     shader.numberOfVertices = numberOfVertices;
+    shader.numberOfParticles = numberOfParticles;
     shader.imageUrl = renderedImageUrl;
   }, [
     shaderCode,
     vertexBuffer,
     colourBuffer,
     numberOfVertices,
+    numberOfParticles,
     renderedImageUrl,
   ]);
 
@@ -335,6 +341,7 @@ const CodeEditorPage = () => {
                       >
                         <Tab label="main" value="0" />
                         <Tab label="compute" value="1" />
+                        <Tab label="No. of Particles" value="2" />
                       </Tabs>
                     </div>
                   </Grid>
@@ -363,6 +370,7 @@ const CodeEditorPage = () => {
             vertexBuffer={vertexBuffer}
             colourBuffer={colourBuffer}
             numberOfVertices={numberOfVertices}
+            numberOfParticles={numberOfParticles}
             imageUrl={renderedImageUrl}
             computeCode={computeCode}
           />
@@ -430,6 +438,7 @@ const CodeEditorPage = () => {
         vertexBuffer={vertexBuffer}
         colourBuffer={colourBuffer}
         numberOfVertices={numberOfVertices}
+        numberOfParticles={numberOfParticles}
         imageUrl={renderedImageUrl}
         computeCode={computeCode}
       />
@@ -503,6 +512,17 @@ const CodeEditorPage = () => {
                 editorWidth={editorWidth}
                 code={computeCode}
                 setCode={setComputeCode}
+                renderLogger={renderLogger}
+              />
+            </TabPanel>
+            <TabPanel value="2" className="tab-panel">
+              <CodeEditor
+                helpBoxVisible={helpBoxVisible}
+                toggleHelpVisible={toggleHelpVisible}
+                editorOpacity={editorOpacity}
+                editorWidth={editorWidth}
+                code={numberOfParticles}
+                setCode={setNumberOfParticles}
                 renderLogger={renderLogger}
               />
             </TabPanel>

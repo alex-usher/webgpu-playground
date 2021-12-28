@@ -22,6 +22,7 @@ interface FormDialogProps {
   vertexBuffer: string;
   colourBuffer: string;
   numberOfVertices: string;
+  numberOfParticles: string;
   imageUrl: string;
   computeCode: string;
 }
@@ -35,6 +36,7 @@ const FormDialog = ({
   vertexBuffer,
   colourBuffer,
   numberOfVertices,
+  numberOfParticles,
   imageUrl,
   computeCode,
 }: FormDialogProps) => {
@@ -90,6 +92,7 @@ const FormDialog = ({
                 vertexBuffer,
                 colourBuffer,
                 numberOfVertices,
+                numberOfParticles,
                 imageUrl,
                 computeCode
               )

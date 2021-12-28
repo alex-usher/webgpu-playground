@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import FormDialog from "../../components/FormDialog";
 import { MeshType, Shader } from "../../objects/Shader";
 import * as firebaseHelper from "../../utils/firebaseHelper";
+import { particlesNumberOfParticles } from "../../webgpu/meshes/particles";
 import { rectangleNumberOfVertices } from "../../webgpu/meshes/rectangle";
 import { shaderTriangleVertex } from "../sample_shaders/triangle";
 
@@ -19,6 +20,7 @@ export const defaultShader = new Shader(
   "",
   "",
   "6",
+  "2000",
   "testimageurl.com/image"
 );
 
@@ -38,6 +40,7 @@ const renderFormDialog = async (
       vertexBuffer={defaultShader.vertexBuffer}
       colourBuffer={defaultShader.colourBuffer}
       numberOfVertices={defaultShader.numberOfVertices}
+      numberOfParticles={defaultShader.numberOfParticles}
       imageUrl={defaultShader.imageUrl}
       computeCode={defaultShader.computeCode}
     />
@@ -93,6 +96,7 @@ describe("Form Dialog component tests", () => {
         "",
         "",
         rectangleNumberOfVertices.toString(),
+        particlesNumberOfParticles.toString(),
         "testimageurl.com/image"
       )
     );
@@ -128,6 +132,7 @@ describe("Form Dialog component tests", () => {
         "",
         "",
         rectangleNumberOfVertices.toString(),
+        particlesNumberOfParticles.toString(),
         "testimageurl.com/image"
       )
     );

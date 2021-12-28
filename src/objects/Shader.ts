@@ -17,6 +17,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { auth, firedb, firestorage } from "../firebase";
 import { cubeColourBuffer, cubeVertexBuffer } from "../webgpu/meshes/cube";
+import { particlesNumberOfParticles } from "../webgpu/meshes/particles";
 import {
   rectangleColourBuffer,
   rectangleNumberOfVertices,
@@ -113,6 +114,7 @@ export class Shader {
   vertexBuffer: string;
   colourBuffer: string;
   numberOfVertices: string;
+  numberOfParticles: string;
   imageUrl: string;
   computeCode: string;
 
@@ -126,6 +128,7 @@ export class Shader {
     vertexBuffer: string = rectangleVertexBuffer,
     colourBuffer: string = rectangleColourBuffer,
     numberOfVertices: string = rectangleNumberOfVertices.toString(),
+    numberOfParticles: string = particlesNumberOfParticles.toString(),
     imageUrl = "",
     computeCode: string = defaultComputeCode
   ) {
@@ -138,6 +141,7 @@ export class Shader {
     this.vertexBuffer = vertexBuffer;
     this.colourBuffer = colourBuffer;
     this.numberOfVertices = numberOfVertices;
+    this.numberOfParticles = numberOfParticles;
     this.imageUrl = imageUrl;
     this.computeCode = computeCode;
   }
@@ -183,6 +187,7 @@ export const shaderConverter = {
       vertexBuffer: shader.vertexBuffer,
       colourBuffer: shader.colourBuffer,
       numberOfVertices: shader.numberOfVertices,
+      numberOfParticles: shader.numberOfParticles,
       imageUrl: shader.imageUrl,
       compute_code: computeFile,
     };
@@ -205,6 +210,9 @@ export const shaderConverter = {
       data.numberOfVertices
         ? data.numberOfVertices
         : rectangleNumberOfVertices.toString(),
+      data.numberOfParticles
+        ? data.numberOfParticles
+        : particlesNumberOfParticles,
       data.imageUrl ? data.imageUrl : "",
       ""
     );
