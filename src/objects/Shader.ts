@@ -17,7 +17,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { auth, firedb, firestorage } from "../firebase";
 import { cubeColourBuffer, cubeVertexBuffer } from "../webgpu/meshes/cube";
-import { particlesNumberOfParticles } from "../webgpu/meshes/particles";
+import { defaultNumberOfParticles } from "../webgpu/meshes/particles";
 import {
   rectangleColourBuffer,
   rectangleNumberOfVertices,
@@ -128,7 +128,7 @@ export class Shader {
     vertexBuffer: string = rectangleVertexBuffer,
     colourBuffer: string = rectangleColourBuffer,
     numberOfVertices: string = rectangleNumberOfVertices.toString(),
-    numberOfParticles: string = particlesNumberOfParticles.toString(),
+    numberOfParticles: string = defaultNumberOfParticles.toString(),
     imageUrl = "",
     computeCode: string = defaultComputeCode
   ) {
@@ -212,7 +212,7 @@ export const shaderConverter = {
         : rectangleNumberOfVertices.toString(),
       data.numberOfParticles
         ? data.numberOfParticles
-        : particlesNumberOfParticles,
+        : defaultNumberOfParticles,
       data.imageUrl ? data.imageUrl : "",
       ""
     );
@@ -308,7 +308,6 @@ export const defaultShader = (meshType: MeshType): Shader => {
     shader.id = uuidv4() + "particles";
     shader.title = "Particles";
     shader.meshType = MeshType.PARTICLES;
-    // might need to add defaults for compute code???
   }
   return shader;
 };

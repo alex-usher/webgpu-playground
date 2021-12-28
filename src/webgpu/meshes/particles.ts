@@ -1,1 +1,1 @@
-export const particlesNumberOfParticles = 2000;
+export const defaultNumberOfParticles = 2000;

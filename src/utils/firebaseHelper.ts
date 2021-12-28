@@ -273,7 +273,6 @@ const deleteImageFile = async (shaderData: DocumentData) => {
 };
 
 export const overwriteShader = async (shader: Shader) => {
-  console.log(shader.computeCode);
   try {
     await deleteFiles(shader);
     const shaderDoc = await shaderConverter.toFirestore(shader);
@@ -298,7 +297,6 @@ export const overwriteShader = async (shader: Shader) => {
 export const saveNewShader = async (
   shader: Shader
 ): Promise<Shader | undefined> => {
-  console.log(shader.computeCode);
   try {
     const user = auth.currentUser;
     if (user) {

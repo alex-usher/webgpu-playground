@@ -142,10 +142,10 @@ fn compute_main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>
 `;
 
 export const computeTempCode = `[[stage(vertex)]]
-fn vertex_main(in: VertexInput, [[location(2)]] sndPosition: vec3<f32>) -> VertexOutput {
+fn vertex_main(in: VertexInput, [[location(2)]] particlePosition: vec3<f32>) -> VertexOutput {
     var particleSize = 4.0;
     var out: VertexOutput;
-    out.position = vec4<f32>(in.position * particleSize / vec2<f32>(view_params.res_x,view_params.res_y) + vec2<f32>(sndPosition[0], sndPosition[1]), sndPosition[2], 1.0);
+    out.position = vec4<f32>(in.position * particleSize / vec2<f32>(view_params.res_x,view_params.res_y) + vec2<f32>(particlePosition[0], particlePosition[1]), particlePosition[2], 1.0);
     out.color = in.color;
     return out;
 };
