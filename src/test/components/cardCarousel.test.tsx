@@ -31,11 +31,9 @@ describe("Card Carousel Tests", () => {
     };
 
     const { container } = renderCardCarousel(shaderType, shaderList, 3);
-
     expect(container.getElementsByClassName("row__blocks").length).toBe(1);
 
     const rowBlocks = container.getElementsByClassName("row__blocks")[0];
-
     expect(rowBlocks.childNodes.length).toBe(shaderList.length);
   });
 });
