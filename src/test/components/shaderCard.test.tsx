@@ -1,8 +1,10 @@
+import "@testing-library/jest-dom/extend-expect";
+
 import { render, screen } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 
 import { ShaderCard } from "../../components/ShaderCard";
-import { defaultShader } from "./formDialog.test";
+import { defaultShader } from "../sample_shaders/defaultShader";
 
 const renderShaderCard = () =>
   render(
