@@ -96,7 +96,9 @@ fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     return in.color;
 }`;
 
-export const defaultComputeCode = `// can access in array by positionsIn.in[]
+export const defaultComputeCode = `// Particle physics compute code adapted from Tarek Sherif on GitHub under the MIT License:
+// https://github.com/tsherif/webgpu-examples/blob/gh-pages/particles.html#L283
+
 struct ParticleProperty {
   all: [[stride(16)]] array<vec4<f32>>;
 };
@@ -109,6 +111,7 @@ struct Mass {
   mass3Factor: f32;
 };
 
+// Due to definition in the pipeline, these buffers should not be changed beyond renaming them.
 [[group(0), binding(0)]] var<storage, read> positionsIn: ParticleProperty;
 [[group(0), binding(1)]] var<storage, read> velocityIn: ParticleProperty;
 [[group(0), binding(2)]] var<storage, write> positionsOut: ParticleProperty;
