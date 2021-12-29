@@ -41,9 +41,6 @@ export enum MeshType {
   PARTICLES = "Particles",
 }
 
-// TODO - find a neater way of handling parsing strings to enums
-// might be possible with the below
-// type MeshTypeStrings = keyof typeof MeshType;
 export const MeshTypeFromValue = (typeString: string): MeshType => {
   switch (typeString) {
     case "Rectangle":
@@ -97,8 +94,6 @@ export const PublicShaderType = {
   sectionName: "Recent Public Shaders",
   type: ShaderTypeEnum.PUBLIC,
 };
-
-//export type ShaderType = ExampleShaderType || PublicShaderType
 
 export const shaderTypeMap = new Map([
   [ShaderTypeEnum.EXAMPLE, ExampleShaderType],
@@ -189,7 +184,6 @@ export const shaderConverter = {
       colourBuffer: shader.colourBuffer,
       numberOfVertices: shader.numberOfVertices,
       numberOfParticles: shader.numberOfParticles,
-      imageUrl: shader.imageUrl,
       compute_code: computeFile,
     };
   },
@@ -289,7 +283,6 @@ export const defaultShader = (meshType: MeshType): Shader => {
     shader.meshType = MeshType.TEXTURED_RECTANGLE;
     shader.imageUrl = shader.image;
   } else if (meshType === MeshType.CUBE) {
-    // TODO change to return a default cube shader
     shader = new Shader(
       uuidv4() + "example_cube_shader",
       "Cube",

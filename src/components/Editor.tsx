@@ -66,7 +66,6 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
         {
           shortcut: enter,
           action: () => {
-            console.log("Enter");
             insertEnter(ref);
             update(ref.value);
           },

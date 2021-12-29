@@ -100,7 +100,6 @@ const applyShiftTab = (textareaRef: HTMLTextAreaElement, tabSize = 2) => {
 };
 
 // Toggles comments at the start of every line of the selection
-// TODO change to support tabbing/untabbingn at the current indentation level
 const applyCtrlSlash = (textareaRef: HTMLTextAreaElement) => {
   const currentState = getTextareaState(textareaRef);
   const { text, start, end } = currentState;
