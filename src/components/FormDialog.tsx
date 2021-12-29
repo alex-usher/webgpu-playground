@@ -92,11 +92,13 @@ const FormDialog = ({
         <DialogTitle>Warning</DialogTitle>
         <DialogContent style={{ display: "flex", justifyContent: "center" }}>
           <DialogContentText>
-            Saving your shader as public will allow anyone else who uses the
-            site to save it to their personal collection, edit it, and reupload
-            it as a public shader under their name. Clicking OK indicates that
-            you understand this and consent to this. Otherwise, click cancel to
-            go back and save it as a private shader instead.
+            Saving your shader as public will allow other users to save, edit,
+            and publically reupload it under their name. You may specify an
+            alternate license for your shader, but WebGPUniverse is not
+            responsible for upholding the terms of said license.
+            <br />
+            Click OK to agree with these terms, or cancel to return to the save
+            dialog.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
