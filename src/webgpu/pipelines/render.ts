@@ -923,18 +923,6 @@ export const renderParticleShader = async (
     ],
   });
 
-  const computePipeline = device.createComputePipeline({
-    layout: device.createPipelineLayout({
-      bindGroupLayouts: [computeBindGroupLayout],
-    }),
-    compute: {
-      module: device.createShaderModule({
-        code: computeCode,
-      }),
-      entryPoint: "compute_main",
-    },
-  });
-
   context.configure({
     device: device,
     format: SWAPCHAIN_FORMAT,
@@ -951,7 +939,10 @@ export const renderParticleShader = async (
     entries: [
       {
         binding: 0,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        visibility:
+          GPUShaderStage.VERTEX |
+          GPUShaderStage.FRAGMENT |
+          GPUShaderStage.COMPUTE,
         buffer: [{ type: "uniform" }],
       } as GPUBindGroupLayoutEntry,
     ],
@@ -959,6 +950,20 @@ export const renderParticleShader = async (
 
   const layout = device.createPipelineLayout({
     bindGroupLayouts: [bindGroupLayout],
+  });
+
+  const computeLayout = device.createPipelineLayout({
+    bindGroupLayouts: [computeBindGroupLayout, bindGroupLayout],
+  });
+
+  const computePipeline = device.createComputePipeline({
+    layout: computeLayout,
+    compute: {
+      module: device.createShaderModule({
+        code: computeCode,
+      }),
+      entryPoint: "compute_main",
+    },
   });
 
   const renderPipeline = device.createRenderPipeline({
@@ -1068,6 +1073,7 @@ export const renderParticleShader = async (
       const computePass = commandEncoder.beginComputePass();
       computePass.setPipeline(computePipeline);
       computePass.setBindGroup(0, currentComputeBindGroup);
+      computePass.setBindGroup(1, viewParamsBindGroup);
       computePass.dispatch(numParticles);
       computePass.endPass();
       renderPassDescription.colorAttachments[0].view = context
