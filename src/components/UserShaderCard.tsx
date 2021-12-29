@@ -12,7 +12,7 @@ import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { Shader } from "../objects/Shader";
@@ -41,7 +41,6 @@ const ConfirmDeleteDialog = ({
   setDialogOpen,
   doDelete,
 }: ConfirmDeleteDialogProps) => {
-  console.log("in dialog: " + dialogOpen);
   return (
     <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
       <DialogTitle>Are you sure you want to delete "{title}"?</DialogTitle>
@@ -63,10 +62,6 @@ const ConfirmDeleteDialog = ({
 const UserShaderCard = ({ shader, removeCard }: UserShaderCardProps) => {
   const [publicChecked, setPublicChecked] = useState(shader.isPublic);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-  useEffect(() => {
-    console.log(shader.isPublic);
-  }, [shader.isPublic]);
 
   return (
     <Card
@@ -111,7 +106,7 @@ const UserShaderCard = ({ shader, removeCard }: UserShaderCardProps) => {
             <Typography
               variant="h4"
               align="center"
-              style={{ paddingTop: "10vh", fontWeight: "lighter" }}
+              style={{ paddingTop: "8.5vh", fontWeight: "lighter" }}
             >
               {shader.title}
             </Typography>
@@ -157,7 +152,6 @@ const UserShaderCard = ({ shader, removeCard }: UserShaderCardProps) => {
             style={{ borderRadius: "10%" }}
             onClick={() => {
               setDeleteDialogOpen(true);
-              console.log(deleteDialogOpen);
             }}
           >
             <DeleteIcon />

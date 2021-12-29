@@ -76,6 +76,7 @@ const ShaderListFilter = ({
         value={meshFilter}
         onChange={(name) => setMeshFilter(name.target.value)}
         style={{ minWidth: "15vh" }}
+        SelectProps={{ MenuProps: { disableScrollLock: true } }}
       >
         {meshOptions}
       </TextField>
@@ -87,6 +88,7 @@ const ShaderListFilter = ({
           value={visibilityFilter}
           onChange={(name) => setVisibilityFilter(name.target.value)}
           style={{ minWidth: "15vh" }}
+          SelectProps={{ MenuProps: { disableScrollLock: true } }}
         >
           {visibilityOptions}
         </TextField>
