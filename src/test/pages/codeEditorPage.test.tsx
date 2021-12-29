@@ -1,5 +1,7 @@
 import "@testing-library/jest-dom/extend-expect";
 
+import assert from "assert";
+
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SnackbarProvider } from "notistack";
@@ -37,6 +39,7 @@ let simpleShaderMock: jest.SpyInstance;
 
 // helper constants defining the button texts and ids
 const SHOW_CODE_ID = "show-code-button";
+const HELP_ID = "help-button";
 const SAVE_ID = "save-button";
 const EDITOR_CLASS = "editors";
 const SHOW_CODE_TEXT = "View Code";
@@ -172,5 +175,43 @@ describe("Button Click Tests", () => {
         expect(simpleShaderMock).toHaveBeenCalled();
       }
     });
+  });
+});
+
+describe("Help banner tests", () => {
+  let helpButton: HTMLElement | null;
+  let showCodeButton: HTMLElement | null;
+  let codeActionsDrawer: HTMLElement | null;
+  beforeEach(async () => {
+    doMocks();
+    await renderCodeEditorPage();
+    codeActionsDrawer = document.getElementById("editor-action-dropdown");
+    codeActionsDrawer?.click();
+    helpButton = document.getElementById(HELP_ID);
+    showCodeButton = document.getElementById(SHOW_CODE_ID);
+    showCodeButton?.click();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+    helpButton = null;
+  });
+
+  test("Clicking the help button displays the help banner", () => {
+    assert(codeActionsDrawer);
+    assert(helpButton);
+    helpButton?.click();
+    const codeEditorDiv = document.getElementsByClassName("help-card")[0];
+    assert(codeEditorDiv);
+    expect(codeEditorDiv?.hasChildNodes).toBeTruthy();
+  });
+
+  test("Clicking the help button twice hides the help banner", () => {
+    assert(codeActionsDrawer);
+    assert(helpButton);
+    helpButton?.click();
+    helpButton?.click();
+    const codeEditorDiv = document.getElementById("help-card");
+    expect(codeEditorDiv?.hasChildNodes).toBeFalsy();
   });
 });
