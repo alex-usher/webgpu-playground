@@ -267,7 +267,7 @@ export interface ShaderProps {
 
 export const defaultShader = (meshType: MeshType): Shader => {
   // set shader to a default rectangle
-  let shader = new Shader(
+  const shader = new Shader(
     uuidv4() + "example_rectangle",
     "Rectangle",
     "https://i.ibb.co/M5Z06wy/triangle.png",
@@ -283,16 +283,13 @@ export const defaultShader = (meshType: MeshType): Shader => {
     shader.meshType = MeshType.TEXTURED_RECTANGLE;
     shader.imageUrl = shader.image;
   } else if (meshType === MeshType.CUBE) {
-    shader = new Shader(
-      uuidv4() + "example_cube_shader",
-      "Cube",
-      "https://i.ibb.co/M5Z06wy/triangle.png",
-      false,
-      `${cubeVertex}\n${cubeFragment}`,
-      MeshType.CUBE,
-      cubeVertexBuffer,
-      cubeColourBuffer
-    );
+    shader.shaderCode = `${cubeVertex}\n${cubeFragment}`;
+    shader.id = uuidv4() + "example_cube_shader";
+    shader.title = "Cube";
+    shader.meshType = MeshType.CUBE;
+    shader.imageUrl = shader.image;
+    shader.vertexBuffer = cubeVertexBuffer;
+    shader.colourBuffer = cubeColourBuffer;
   } else if (meshType === MeshType.CUSTOM) {
     shader.id = uuidv4() + "custom_mesh";
     shader.title = "Custom Mesh";
