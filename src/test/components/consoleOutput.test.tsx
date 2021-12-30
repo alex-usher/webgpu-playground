@@ -10,13 +10,10 @@ const testMessageSuccess = "Compilation completed successfully";
 const VIEW_CONSOLE_TEXT = "View Console";
 const HIDE_CONSOLE_TEXT = "Hide Console";
 
-const renderConsoleOutput = () =>
-  render(<ConsoleOutput messages={testMessageSuccess} />);
-
 let viewConsoleButton: HTMLButtonElement;
 describe("Console Output component tests", () => {
   beforeEach(() => {
-    renderConsoleOutput();
+    render(<ConsoleOutput messages={testMessageSuccess} />);
     viewConsoleButton = screen.getAllByRole("button")[0] as HTMLButtonElement;
   });
 
