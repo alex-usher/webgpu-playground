@@ -68,8 +68,6 @@ const UserShaderCard = ({
   const [publicChecked, setPublicChecked] = useState(isPublic);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  console.log(publicChecked);
-
   useEffect(() => {
     setPublicChecked(isPublic);
   }, [isPublic]);
@@ -136,11 +134,8 @@ const UserShaderCard = ({
                 let success = false;
                 const checked = (e.target as HTMLInputElement).checked;
                 const shaderWithCode = await getShaderCode(shader);
-                console.log(shaderWithCode);
                 if (checked) {
-                  console.log("here");
                   success = await makeShaderPublic(shaderWithCode);
-                  console.log("set");
                 } else {
                   success = await makeShaderPrivate(shaderWithCode);
                 }

@@ -35,7 +35,6 @@ export const fetchPaginatedShaders = async (
   latestDoc: DocumentSnapshot | undefined,
   setLatestDoc: (newDoc: DocumentSnapshot) => void
 ): Promise<Shader[]> => {
-  console.log(latestDoc);
   const shaders = [];
   const collect =
     shaderTypeEnum == ShaderTypeEnum.PUBLIC
@@ -245,7 +244,6 @@ export const deleteShader = async (shader: Shader): Promise<boolean> => {
     if (err instanceof loggedOutErr) {
       SnackbarUtils.error("You must be logged in to delete a shader.");
     } else {
-      console.log(err);
       SnackbarUtils.error("Error deleting shader.");
     }
     return false;
@@ -396,13 +394,11 @@ const toggleShaderPublicity = async (
       throw new loggedOutErr();
     }
   } catch (err) {
-    console.log(err);
     SnackbarUtils.error(
       "Failed to make shader " + publicity + "! Please Try again."
     );
   }
   if (success) {
-    console.log("success");
     SnackbarUtils.success("Successfully " + publicitied + shader.title + "!");
   }
   // a false result means that the toggle should not move! the operation has not been successful
