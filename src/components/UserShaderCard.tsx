@@ -12,7 +12,7 @@ import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { Shader } from "../objects/Shader";
@@ -25,6 +25,7 @@ import {
 
 interface UserShaderCardProps {
   shader: Shader;
+  isPublic: boolean;
   removeCard: () => void;
 }
 
@@ -59,9 +60,19 @@ const ConfirmDeleteDialog = ({
   );
 };
 
-const UserShaderCard = ({ shader, removeCard }: UserShaderCardProps) => {
-  const [publicChecked, setPublicChecked] = useState(shader.isPublic);
+const UserShaderCard = ({
+  shader,
+  isPublic,
+  removeCard,
+}: UserShaderCardProps) => {
+  const [publicChecked, setPublicChecked] = useState(isPublic);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  console.log(publicChecked);
+
+  useEffect(() => {
+    setPublicChecked(isPublic);
+  }, [isPublic]);
 
   return (
     <Card

@@ -8,7 +8,6 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { useEffect, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
-//import { Loading } from "react-loading-dot/lib";
 import { useLocation } from "react-router-dom";
 
 import HeaderComponent from "../components/HeaderComponent";

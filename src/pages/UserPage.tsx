@@ -46,6 +46,7 @@ const UserPage = () => {
     <UserShaderCard
       key={i}
       shader={shader}
+      isPublic={shader.isPublic}
       removeCard={() => {
         const shaderID = shader.id;
         // remove the selected shader card from the displayed and full list
