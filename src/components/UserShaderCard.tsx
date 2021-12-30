@@ -5,6 +5,8 @@ import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormGroup from "@mui/material/FormGroup";
@@ -36,6 +38,12 @@ interface ConfirmDeleteDialogProps {
   doDelete: () => void;
 }
 
+interface PublicWarningDialogProps {
+  isWarningOpen: boolean;
+  setIsWarningOpen: (arg0: boolean) => void;
+  doMakePublic: () => void;
+}
+
 const ConfirmDeleteDialog = ({
   title,
   dialogOpen,
@@ -60,6 +68,55 @@ const ConfirmDeleteDialog = ({
   );
 };
 
+const PublicWarningDialog = ({
+  isWarningOpen,
+  setIsWarningOpen,
+  doMakePublic,
+}: PublicWarningDialogProps) => {
+  return (
+    <Dialog open={isWarningOpen} onClose={() => setIsWarningOpen(false)}>
+      <DialogTitle>Warning</DialogTitle>
+      <DialogContent style={{ display: "flex", justifyContent: "center" }}>
+        <DialogContentText>
+          Publishing your shader will allow other users to save, edit, and
+          publically reupload it under their name. You may specify an alternate
+          license for your shader, but WebGPUniverse is not responsible for
+          upholding the terms of said license.
+          <br />
+          Click OK to agree with these terms, or cancel to keep your shader
+          private.
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button
+          onClick={() => {
+            setIsWarningOpen(false);
+            doMakePublic();
+          }}
+        >
+          OK
+        </Button>
+        <Button onClick={() => setIsWarningOpen(false)}>cancel</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+function PublicOperationCheck(
+  success: boolean,
+  checked: boolean,
+  setPublicChecked: (arg0: boolean) => void,
+  shader: Shader
+) {
+  if (success) {
+    setPublicChecked(checked);
+    shader.isPublic = checked;
+  } else {
+    // Reset the toggle if the operation failed to avoid confusion
+    setPublicChecked(!checked);
+  }
+}
+
 const UserShaderCard = ({
   shader,
   isPublic,
@@ -67,6 +124,7 @@ const UserShaderCard = ({
 }: UserShaderCardProps) => {
   const [publicChecked, setPublicChecked] = useState(isPublic);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isWarningOpen, setIsWarningOpen] = useState(false);
 
   useEffect(() => {
     setPublicChecked(isPublic);
@@ -135,17 +193,15 @@ const UserShaderCard = ({
                 const checked = (e.target as HTMLInputElement).checked;
                 const shaderWithCode = await getShaderCode(shader);
                 if (checked) {
-                  success = await makeShaderPublic(shaderWithCode);
+                  setIsWarningOpen(true);
                 } else {
                   success = await makeShaderPrivate(shaderWithCode);
-                }
-
-                if (success) {
-                  setPublicChecked(checked);
-                  shader.isPublic = checked;
-                } else {
-                  // Reset the toggle if the operation failed to avoid confusion
-                  (e.target as HTMLInputElement).checked = !checked;
+                  PublicOperationCheck(
+                    success,
+                    false,
+                    setPublicChecked,
+                    shaderWithCode
+                  );
                 }
               }}
               control={<Switch checked={publicChecked} />}
@@ -153,6 +209,20 @@ const UserShaderCard = ({
               label={publicChecked ? "Public" : "Private"}
             />
           </FormGroup>
+          <PublicWarningDialog
+            isWarningOpen={isWarningOpen}
+            setIsWarningOpen={setIsWarningOpen}
+            doMakePublic={async () => {
+              const shaderWithCode = await getShaderCode(shader);
+              const success = await makeShaderPublic(shaderWithCode);
+              PublicOperationCheck(
+                success,
+                true,
+                setPublicChecked,
+                shaderWithCode
+              );
+            }}
+          />
 
           <IconButton
             style={{ borderRadius: "10%" }}
