@@ -140,7 +140,10 @@ const CodeEditorPage = () => {
 
   // Add shortcuts for navigating the tabs for custom mesh shaders
   useEffect(() => {
-    if (shader.meshType == MeshType.CUSTOM) {
+    if (
+      shader.meshType == MeshType.CUSTOM ||
+      shader.meshType == MeshType.PARTICLES
+    ) {
       const shortcuts = [
         {
           shortcut: altLeft,
@@ -278,7 +281,7 @@ const CodeEditorPage = () => {
             container
             direction="row"
             spacing={2}
-            style={{ minWidth: "30%", maxWidth: "65%", width: "auto" }}
+            style={{ minWidth: "20%", maxWidth: "65%", width: "auto" }}
             alignItems="center"
           >
             <Grid item>
@@ -307,21 +310,21 @@ const CodeEditorPage = () => {
                 {viewCodeText}
               </Button>
             </Grid>
+            <Grid item>
+              <Button
+                key="save-button"
+                id="save-button"
+                variant="outlined"
+                disableElevation
+                fullWidth
+                color="success"
+                onClick={handleFormOpen}
+              >
+                Save
+              </Button>
+            </Grid>
             {showCode && (
               <>
-                <Grid item>
-                  <Button
-                    key="save-button"
-                    id="save-button"
-                    variant="outlined"
-                    disableElevation
-                    fullWidth
-                    color="success"
-                    onClick={handleFormOpen}
-                  >
-                    Save
-                  </Button>
-                </Grid>
                 {meshType === MeshType.CUSTOM ? (
                   <Grid item>
                     <div className="tabs">

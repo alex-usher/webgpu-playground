@@ -27,7 +27,8 @@ const HeaderComponent = ({ usersPage }: HeaderComponentProps) => {
     <Grid container alignItems="center" spacing={3} className="title-header">
       <Grid item xs={12} md={6}>
         <LinkMui href="/" variant="h3" color="white" underline="none">
-          WebGPU Playground
+          WebGPUniverse
+          <span role="img">🚀</span>
         </LinkMui>
       </Grid>
 
