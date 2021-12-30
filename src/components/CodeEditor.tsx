@@ -38,6 +38,9 @@ const CodeEditor = ({
           setCode(e.target.value);
         }}
         opacity={editorOpacity}
+        setCode={(text: string) => {
+          setCode(text);
+        }}
       />
       <ConsoleOutput messages={renderLogger.getMessages()} />
     </div>

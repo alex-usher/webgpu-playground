@@ -23,9 +23,10 @@ interface EditorProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   opacity?: number;
+  setCode: (text: string) => void;
 }
 
-const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
+const Editor = ({ value, onChange, setCode, opacity = 0.5 }: EditorProps) => {
   let lines = 0;
   if (value) {
     lines = value.split(/\r\n|\r|\n/).length;
@@ -61,14 +62,15 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
           action: () => {
             insertTab(ref);
             update(ref.value);
+            setCode(ref.value);
           },
         },
         {
           shortcut: enter,
           action: () => {
-            console.log("Enter");
             insertEnter(ref);
             update(ref.value);
+            setCode(ref.value);
           },
         },
         {
@@ -76,6 +78,7 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
           action: () => {
             applyShiftTab(ref);
             update(ref.value);
+            setCode(ref.value);
           },
         },
         {
@@ -83,6 +86,7 @@ const Editor = ({ value, onChange, opacity = 0.5 }: EditorProps) => {
           action: () => {
             applyCtrlSlash(ref);
             update(ref.value);
+            setCode(ref.value);
           },
         },
       ];
