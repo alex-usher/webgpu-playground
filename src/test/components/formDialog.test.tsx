@@ -1,48 +1,38 @@
 import "@testing-library/jest-dom/extend-expect";
 
-import { act, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import FormDialog from "../../components/FormDialog";
 import { MeshType, Shader } from "../../objects/Shader";
 import * as firebaseHelper from "../../utils/firebaseHelper";
+import { defaultNumberOfParticles } from "../../webgpu/meshes/particles";
 import { rectangleNumberOfVertices } from "../../webgpu/meshes/rectangle";
+import { defaultShader } from "../sample_shaders/defaultShader";
 import { shaderTriangleVertex } from "../sample_shaders/triangle";
 
-const defaultShader = new Shader(
-  "testid",
-  "testfile",
-  "testimage",
-  false,
-  shaderTriangleVertex,
-  MeshType.RECTANGLE,
-  "",
-  "",
-  "6",
-  "testimageurl.com/image"
-);
-
-const renderFormDialog = async (
+const renderFormDialog = (
   open: boolean,
   handleClose: () => void,
   shaderCode: string,
   updateShader: (shader: Shader) => void
-) =>
-  await act(async () => {
-    render(
-      <FormDialog
-        open={open}
-        handleClose={handleClose}
-        shaderCode={shaderCode}
-        updateShader={updateShader}
-        meshType={defaultShader.meshType}
-        vertexBuffer={defaultShader.vertexBuffer}
-        colourBuffer={defaultShader.colourBuffer}
-        numberOfVertices={defaultShader.numberOfVertices}
-        imageUrl={defaultShader.imageUrl}
-      />
-    );
-  });
+) => {
+  render(
+    <FormDialog
+      open={open}
+      handleClose={handleClose}
+      shaderCode={shaderCode}
+      updateShader={updateShader}
+      meshType={defaultShader.meshType}
+      vertexBuffer={defaultShader.vertexBuffer}
+      colourBuffer={defaultShader.colourBuffer}
+      numberOfVertices={defaultShader.numberOfVertices}
+      numberOfParticles={defaultShader.numberOfParticles}
+      imageUrl={defaultShader.imageUrl}
+      computeCode={defaultShader.computeCode}
+    />
+  );
+};
 
 let saveNewShaderMock: jest.SpyInstance;
 let handleCloseMock: jest.MockedFunction<() => void>;
@@ -50,7 +40,7 @@ let updateShaderMock: jest.MockedFunction<(shader: Shader) => void>;
 
 let buttons: HTMLElement[];
 describe("Form Dialog component tests", () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     updateShaderMock = jest.fn((_shader) => {
       undefined;
     });
@@ -64,7 +54,7 @@ describe("Form Dialog component tests", () => {
       return new Promise((resolve) => resolve(defaultShader));
     });
 
-    await renderFormDialog(
+    renderFormDialog(
       true,
       handleCloseMock,
       shaderTriangleVertex,
@@ -93,6 +83,7 @@ describe("Form Dialog component tests", () => {
         "",
         "",
         rectangleNumberOfVertices.toString(),
+        defaultNumberOfParticles.toString(),
         "testimageurl.com/image"
       )
     );
@@ -114,10 +105,8 @@ describe("Form Dialog component tests", () => {
   test("Typing into the text editor should change the filename", async () => {
     const nameField: HTMLElement = screen.getAllByRole("textbox")[0];
 
-    await act(async () => {
-      await userEvent.type(nameField, "a");
-      await buttons[buttons.length - 1].click();
-    });
+    await userEvent.type(nameField, "a");
+    await buttons[buttons.length - 1].click();
 
     expect(saveNewShaderMock).toHaveBeenCalledWith(
       new Shader(
@@ -130,6 +119,7 @@ describe("Form Dialog component tests", () => {
         "",
         "",
         rectangleNumberOfVertices.toString(),
+        defaultNumberOfParticles.toString(),
         "testimageurl.com/image"
       )
     );

@@ -36,6 +36,12 @@ export const updateCoordinates = (position: { x: number; y: number }): void => {
   y = position.y;
 };
 
+export const cancelRender = (): void => {
+  if (renderFrame != -1) {
+    cancelAnimationFrame(renderFrame);
+  }
+};
+
 const initialiseGPU = async (
   code: string,
   usage: number,
@@ -50,13 +56,6 @@ const initialiseGPU = async (
   const adapter = await navigator.gpu.requestAdapter();
   assert(adapter);
   const device = await adapter.requestDevice();
-  const context = canvas.getContext("webgpu") as unknown as GPUCanvasContext;
-
-  context.configure({
-    device: device,
-    format: SWAPCHAIN_FORMAT,
-    usage: usage,
-  });
 
   // add in uniform constant code in fragment shader
   code = addUniformCode(code);
@@ -74,9 +73,15 @@ const initialiseGPU = async (
   renderLogger.logMessage("Shader Compilation successful", "success");
 
   // cancel the previous render once we know the next render will compile
-  if (renderFrame != -1) {
-    cancelAnimationFrame(renderFrame);
-  }
+  cancelRender();
+
+  const context = canvas.getContext("webgpu") as unknown as GPUCanvasContext;
+
+  context.configure({
+    device: device,
+    format: SWAPCHAIN_FORMAT,
+    usage: usage,
+  });
 
   return { canvas, context, device, shaderModule };
 };
@@ -109,12 +114,14 @@ export const generateFrameFunction = (
         res_y
       );
 
+      const currentTexture = context.getCurrentTexture();
+
       const renderPass = commandEncoder.beginRenderPass({
         colorAttachments: [
           {
             loadValue: { r: 0, g: 0, b: 0, a: 1 },
             storeOp: "store",
-            view: context.getCurrentTexture().createView(),
+            view: currentTexture.createView(),
           },
         ],
       });
@@ -131,7 +138,7 @@ export const generateFrameFunction = (
       if (samplingTexture) {
         commandEncoder.copyTextureToTexture(
           {
-            texture: context.getCurrentTexture(),
+            texture: currentTexture,
           },
           {
             texture: samplingTexture,
@@ -653,6 +660,419 @@ export const renderCustomShader = async (
   renderFrame = requestAnimationFrame(frame);
 };
 
+export const renderParticleShader = async (
+  shaderCode: string,
+  renderLogger: RenderLogger,
+  numParticles: number,
+  computeCode: string
+): Promise<void> => {
+  const init = await initialiseGPU(
+    shaderCode,
+    GPUTextureUsage.RENDER_ATTACHMENT,
+    renderLogger
+  );
+
+  if (init === undefined) return;
+
+  // delay pattern match so we can test for error
+  const { canvas, context, device, shaderModule } = init;
+
+  // defines the two buffers for the compute shader to oscillate between
+  const positionBufferA = device.createBuffer({
+    size: 16 * numParticles * 4,
+    usage:
+      GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
+    mappedAtCreation: true,
+  });
+
+  // randomly picks the positions of the particles
+  const positionBufferData = new Float32Array(positionBufferA.getMappedRange());
+  for (let i = 0; i < positionBufferData.length; i += 4) {
+    positionBufferData[i] = Math.random() * 2 - 1;
+    positionBufferData[i + 1] = Math.random() * 2 - 1;
+    positionBufferData[i + 2] = Math.random() * 2 - 1;
+    positionBufferData[i + 3] = 1;
+  }
+  positionBufferA.unmap();
+
+  const velocityBufferA = device.createBuffer({
+    size: 16 * numParticles * 4,
+    usage:
+      GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
+    mappedAtCreation: true,
+  });
+
+  // randomly picks the velocities of the particles
+  const velocityBufferData = new Float32Array(velocityBufferA.getMappedRange());
+  for (let i = 0; i < velocityBufferData.length; i += 4) {
+    velocityBufferData[i] = Math.random() * 0.002 - 0.001;
+    velocityBufferData[i + 1] = Math.random() * 0.002 - 0.001;
+    velocityBufferData[i + 2] = 0;
+    velocityBufferData[i + 3] = 1;
+  }
+  velocityBufferA.unmap();
+
+  const positionBufferB = device.createBuffer({
+    size: 16 * numParticles * 4,
+    usage:
+      GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
+    mappedAtCreation: true,
+  });
+
+  positionBufferB.unmap();
+
+  const velocityBufferB = device.createBuffer({
+    size: 16 * numParticles * 4,
+    usage:
+      GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
+    mappedAtCreation: true,
+  });
+
+  velocityBufferB.unmap();
+
+  const vertexBuffer = device.createBuffer({
+    size: 8 * 4,
+    usage: GPUBufferUsage.VERTEX,
+    mappedAtCreation: true,
+  });
+
+  new Float32Array(vertexBuffer.getMappedRange()).set([
+    -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0,
+  ]);
+
+  vertexBuffer.unmap();
+
+  const particleBuffer = device.createBuffer({
+    size: 4 * numParticles * 4,
+    usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    mappedAtCreation: true,
+  });
+
+  const particleBufferData = new Uint8Array(particleBuffer.getMappedRange());
+  // randomly assigns all of the colours of the particles
+  for (let i = 0; i < particleBufferData.length; i += 4) {
+    particleBufferData[i] = Math.floor(Math.random() * 256);
+    particleBufferData[i + 1] = Math.floor(Math.random() * 256);
+    particleBufferData[i + 2] = Math.floor(Math.random() * 256);
+    particleBufferData[i + 3] = 128;
+  }
+  particleBuffer.unmap();
+
+  // randomly assigns the mass struct
+  const computeUniformData = new Float32Array([
+    Math.random() * 2.0 - 1.0,
+    Math.random() * 2.0 - 1.0,
+    0,
+    1.0,
+    Math.random() * 2.0 - 1.0,
+    Math.random() * 2.0 - 1.0,
+    0,
+    1.0,
+    Math.random() * 2.0 - 1.0,
+    Math.random() * 2.0 - 1.0,
+    0,
+    1.0,
+    Math.random() / 30000,
+    Math.random() / 30000,
+    Math.random() / 30000,
+    0,
+  ]);
+
+  const computeUniformBuffer = device.createBuffer({
+    size: computeUniformData.byteLength,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+
+  device.queue.writeBuffer(computeUniformBuffer, 0, computeUniformData);
+
+  const computeBindGroupLayout = device.createBindGroupLayout({
+    entries: [
+      {
+        binding: 0,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: {
+          type: "storage",
+        },
+      },
+      {
+        binding: 1,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: {
+          type: "storage",
+        },
+      },
+      {
+        binding: 2,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: {
+          type: "storage",
+        },
+      },
+      {
+        binding: 3,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: {
+          type: "storage",
+        },
+      },
+      {
+        binding: 4,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: {
+          type: "uniform",
+        },
+      },
+    ],
+  });
+
+  const computeBindGroupA2B = device.createBindGroup({
+    layout: computeBindGroupLayout,
+    entries: [
+      {
+        binding: 0,
+        resource: {
+          buffer: positionBufferA,
+        },
+      },
+      {
+        binding: 1,
+        resource: {
+          buffer: velocityBufferA,
+        },
+      },
+      {
+        binding: 2,
+        resource: {
+          buffer: positionBufferB,
+        },
+      },
+      {
+        binding: 3,
+        resource: {
+          buffer: velocityBufferB,
+        },
+      },
+      {
+        binding: 4,
+        resource: {
+          buffer: computeUniformBuffer,
+        },
+      },
+    ],
+  });
+
+  const computeBindGroupB2A = device.createBindGroup({
+    layout: computeBindGroupLayout,
+    entries: [
+      {
+        binding: 0,
+        resource: {
+          buffer: positionBufferB,
+        },
+      },
+      {
+        binding: 1,
+        resource: {
+          buffer: velocityBufferB,
+        },
+      },
+      {
+        binding: 2,
+        resource: {
+          buffer: positionBufferA,
+        },
+      },
+      {
+        binding: 3,
+        resource: {
+          buffer: velocityBufferA,
+        },
+      },
+      {
+        binding: 4,
+        resource: {
+          buffer: computeUniformBuffer,
+        },
+      },
+    ],
+  });
+
+  const computePipeline = device.createComputePipeline({
+    layout: device.createPipelineLayout({
+      bindGroupLayouts: [computeBindGroupLayout],
+    }),
+    compute: {
+      module: device.createShaderModule({
+        code: computeCode,
+      }),
+      entryPoint: "compute_main",
+    },
+  });
+
+  context.configure({
+    device: device,
+    format: SWAPCHAIN_FORMAT,
+    usage: GPUTextureUsage.RENDER_ATTACHMENT,
+  });
+
+  const depthTexture = device.createTexture({
+    size: { width: canvas.width, height: canvas.height },
+    format: DEPTH_FORMAT,
+    usage: GPUTextureUsage.RENDER_ATTACHMENT,
+  });
+
+  const bindGroupLayout = device.createBindGroupLayout({
+    entries: [
+      {
+        binding: 0,
+        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        buffer: [{ type: "uniform" }],
+      } as GPUBindGroupLayoutEntry,
+    ],
+  });
+
+  const layout = device.createPipelineLayout({
+    bindGroupLayouts: [bindGroupLayout],
+  });
+
+  const renderPipeline = device.createRenderPipeline({
+    layout: layout,
+    vertex: {
+      module: shaderModule,
+      entryPoint: "vertex_main",
+      buffers: [
+        {
+          arrayStride: 8,
+          attributes: [{ format: "float32x2", offset: 0, shaderLocation: 0 }],
+        },
+        {
+          arrayStride: 4,
+          stepMode: "instance",
+          attributes: [{ format: "unorm8x4", offset: 0, shaderLocation: 1 }],
+        },
+        {
+          arrayStride: 16,
+          stepMode: "instance",
+          attributes: [{ format: "float32x4", offset: 0, shaderLocation: 2 }],
+        },
+      ],
+    },
+    fragment: {
+      module: shaderModule,
+      entryPoint: "fragment_main",
+      targets: [{ format: SWAPCHAIN_FORMAT }],
+    },
+    primitive: {
+      topology: "triangle-strip",
+      stripIndexFormat: "uint32",
+    },
+    depthStencil: {
+      format: DEPTH_FORMAT,
+      depthWriteEnabled: true,
+      depthCompare: "less",
+    },
+  });
+
+  const viewParamsBuffer = device.createBuffer({
+    size: 4 * 5,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+
+  device.queue.writeBuffer(
+    viewParamsBuffer,
+    0,
+    new Float32Array([canvas.width, canvas.height])
+  );
+
+  const viewParamsBindGroup = device.createBindGroup({
+    layout: bindGroupLayout,
+    entries: [{ binding: 0, resource: { buffer: viewParamsBuffer } }],
+  });
+
+  // track when canvas is visible and only render when true
+  let canvasVisible = false;
+  const observer = new IntersectionObserver(
+    (e) => {
+      canvasVisible = e[0].isIntersecting;
+    },
+    { threshold: [0] }
+  );
+  observer.observe(canvas);
+
+  let currentPositionBuffer = positionBufferB;
+
+  let time = 0;
+  const res_x = canvas.width;
+  const res_y = canvas.height;
+  const frame = () => {
+    if (canvasVisible) {
+      const commandEncoder = device.createCommandEncoder();
+      addViewParamsToBuffer(
+        device,
+        commandEncoder,
+        viewParamsBuffer,
+        time,
+        x,
+        y,
+        res_x,
+        res_y
+      );
+
+      const renderPassDescription = {
+        colorAttachments: [
+          {
+            view: context.getCurrentTexture().createView(),
+            loadValue: [0.0, 0.0, 0.0, 1.0],
+          },
+        ],
+        depthStencilAttachment: {
+          view: depthTexture.createView(),
+          depthLoadValue: 1.0,
+          depthStoreOp: "store",
+          stencilLoadValue: 0,
+          stencilStoreOp: "store",
+        },
+      };
+
+      const currentComputeBindGroup =
+        currentPositionBuffer === positionBufferA
+          ? computeBindGroupB2A
+          : computeBindGroupA2B;
+
+      const computePass = commandEncoder.beginComputePass();
+      computePass.setPipeline(computePipeline);
+      computePass.setBindGroup(0, currentComputeBindGroup);
+      computePass.dispatch(numParticles);
+      computePass.endPass();
+      renderPassDescription.colorAttachments[0].view = context
+        .getCurrentTexture()
+        .createView();
+      const renderPass = commandEncoder.beginRenderPass(
+        renderPassDescription as GPURenderPassDescriptor
+      );
+      renderPass.setPipeline(renderPipeline);
+      renderPass.setBindGroup(0, viewParamsBindGroup);
+      renderPass.setVertexBuffer(0, vertexBuffer);
+      renderPass.setVertexBuffer(1, particleBuffer);
+      renderPass.setVertexBuffer(2, currentPositionBuffer);
+      renderPass.draw(4, numParticles, 0, 0);
+
+      renderPass.endPass();
+      device.queue.submit([commandEncoder.finish()]);
+      time++;
+
+      currentPositionBuffer =
+        currentPositionBuffer === positionBufferA
+          ? positionBufferB
+          : positionBufferA;
+    }
+
+    renderFrame = requestAnimationFrame(frame);
+  };
+
+  renderFrame = requestAnimationFrame(frame);
+};
+
 export const renderShader = async (
   shaderCode: string,
   meshType: MeshType,
@@ -660,7 +1080,9 @@ export const renderShader = async (
   vertices: string,
   colours: string,
   vertexCount: string,
-  imageUrl?: string
+  particleCount: string,
+  imageUrl?: string,
+  computeCode?: string
 ): Promise<void> => {
   switch (meshType) {
     case MeshType.RECTANGLE:
@@ -682,6 +1104,21 @@ export const renderShader = async (
             vertexBuffer,
             colourBuffer,
             numberOfVertices
+          );
+        } catch (e) {
+          return;
+        }
+      }
+      break;
+    case MeshType.PARTICLES:
+      if (computeCode && particleCount) {
+        try {
+          const numberOfParticles = parseInt(particleCount);
+          return renderParticleShader(
+            shaderCode,
+            renderLogger,
+            numberOfParticles,
+            computeCode
           );
         } catch (e) {
           return;

@@ -6,8 +6,7 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import { TabContext } from "@mui/lab";
 import TabPanel from "@mui/lab/TabPanel";
-import { Tab, Tabs } from "@mui/material";
-import { Dialog, DialogContent, DialogTitle } from "@mui/material";
+import { Dialog, DialogContent, DialogTitle, Tab, Tabs } from "@mui/material";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
@@ -23,8 +22,7 @@ import ShaderCanvas from "../components/ShaderCanvas";
 import SignInButton from "../components/SignInButton";
 import { auth } from "../firebase";
 import { RenderLogger } from "../objects/RenderLogger";
-import { Shader, defaultShader } from "../objects/Shader";
-import { MeshType } from "../objects/Shader";
+import { MeshType, Shader, defaultShader } from "../objects/Shader";
 import {
   getShaderCode,
   isCurrentUsersShader,
@@ -32,6 +30,7 @@ import {
 } from "../utils/firebaseHelper";
 import KeyboardShortcut from "../utils/keyboardShortcuts";
 import { addShortcuts } from "../utils/shortcutListener";
+import { cancelRender } from "../webgpu/pipelines/render";
 
 // Shortcut patterns
 const altT = new KeyboardShortcut("T", false, false, true);
@@ -43,20 +42,26 @@ const altLeft = new KeyboardShortcut("ArrowLeft", false, false, true);
 const altRight = new KeyboardShortcut("ArrowRight", false, false, true);
 
 const CodeEditorPage = () => {
-  const state = useLocation().state as {
+  let state = useLocation().state as {
     shader: Shader;
     meshType: MeshType;
   };
+
+  // in the case that state is undefined (i.e. the user has gone straight to /editor),
+  // override the state to be the default shader for the rectangle mesh
+  if (state === undefined) {
+    state = {
+      shader: defaultShader(MeshType.RECTANGLE),
+      meshType: MeshType.RECTANGLE,
+    };
+  }
+
   const isLoadedShader = state.shader;
-  // TODO - this has a default for now but in the future this should never be empty
-  // Firebase should always save the type of mesh a shader uses
   const meshType = state.meshType ? state.meshType : isLoadedShader.meshType;
 
   // Get the loaded shader code if is a loaded shader, else get the default corresponding to the mesh
-  const [shader, setShader] = useState<Shader>(
-    isLoadedShader
-      ? (useLocation().state as { shader: Shader }).shader
-      : defaultShader(meshType)
+  const [shader, setShader] = useState(
+    isLoadedShader ? isLoadedShader : defaultShader(meshType)
   );
 
   const showCodeRef = useRef(false);
@@ -90,6 +95,10 @@ const CodeEditorPage = () => {
   const [numberOfVertices, setNumberOfVertices] = useState(
     shader.numberOfVertices.toString()
   );
+  const [numberOfParticles, setNumberOfParticles] = useState(
+    shader.numberOfParticles.toString()
+  );
+  const [computeCode, setComputeCode] = useState(shader.computeCode);
 
   const history = useHistory();
 
@@ -131,7 +140,10 @@ const CodeEditorPage = () => {
 
   // Add shortcuts for navigating the tabs for custom mesh shaders
   useEffect(() => {
-    if (shader.meshType == MeshType.CUSTOM) {
+    if (
+      shader.meshType == MeshType.CUSTOM ||
+      shader.meshType == MeshType.PARTICLES
+    ) {
       const shortcuts = [
         {
           shortcut: altLeft,
@@ -155,16 +167,25 @@ const CodeEditorPage = () => {
   }, [shaderCode]);
 
   useEffect(() => {
-    if (shader.shaderCode === "") {
+    shader.computeCode = computeCode;
+  }, [computeCode]);
+
+  useEffect(() => {
+    if (
+      shader.shaderCode === "" ||
+      (shader.meshType === MeshType.PARTICLES && shader.computeCode === "")
+    ) {
       getShaderCode(shader).then((shaderWithCode: Shader) => {
         setShader(shaderWithCode);
         setShaderCode(shader.shaderCode);
         setVertexBuffer(shader.vertexBuffer);
         setColourBuffer(shader.colourBuffer);
         setNumberOfVertices(shader.numberOfVertices.toString());
+        setNumberOfParticles(shader.numberOfParticles.toString());
         setRenderedImageUrl(shader.imageUrl);
         // Only set the name if getting an existing shader - new shaders will display "untitled"
         setShaderName(shader.title);
+        setComputeCode(shader.computeCode);
       });
     }
   }, []);
@@ -174,12 +195,14 @@ const CodeEditorPage = () => {
     shader.vertexBuffer = vertexBuffer;
     shader.colourBuffer = colourBuffer;
     shader.numberOfVertices = numberOfVertices;
+    shader.numberOfParticles = numberOfParticles;
     shader.imageUrl = renderedImageUrl;
   }, [
     shaderCode,
     vertexBuffer,
     colourBuffer,
     numberOfVertices,
+    numberOfParticles,
     renderedImageUrl,
   ]);
 
@@ -196,9 +219,11 @@ const CodeEditorPage = () => {
     const link = document.createElement("a");
     link.download = "shader.png";
 
-    canvas.toBlob(function (blob) {
-      link.href = URL.createObjectURL(blob);
-      link.click();
+    canvas.toBlob((blob) => {
+      if (blob != null) {
+        link.href = URL.createObjectURL(blob);
+        link.click();
+      }
     }, "image/png");
   };
 
@@ -256,7 +281,7 @@ const CodeEditorPage = () => {
             container
             direction="row"
             spacing={2}
-            style={{ minWidth: "30%", maxWidth: "65%", width: "auto" }}
+            style={{ minWidth: "20%", maxWidth: "65%", width: "auto" }}
             alignItems="center"
           >
             <Grid item>
@@ -265,6 +290,7 @@ const CodeEditorPage = () => {
                 variant="outlined"
                 disableElevation
                 onClick={() => {
+                  cancelRender();
                   history.goBack();
                 }}
                 color="primary"
@@ -297,22 +323,39 @@ const CodeEditorPage = () => {
                 Save
               </Button>
             </Grid>
-            {showCode && meshType === MeshType.CUSTOM ? (
-              <Grid item>
-                <div className="tabs">
-                  <Tabs
-                    value={currTab}
-                    onChange={(e, newTab: string) => setCurrTab(newTab)}
-                  >
-                    <Tab label="main" value="0" />
-                    <Tab label="vertices" value="1" />
-                    <Tab label="colours" value="2" />
-                    <Tab label="num vertices" value="3" />
-                  </Tabs>
-                </div>
-              </Grid>
-            ) : (
-              <></>
+            {showCode && (
+              <>
+                {meshType === MeshType.CUSTOM ? (
+                  <Grid item>
+                    <div className="tabs">
+                      <Tabs
+                        value={currTab}
+                        onChange={(e, newTab: string) => setCurrTab(newTab)}
+                      >
+                        <Tab label="main" value="0" />
+                        <Tab label="vertices" value="1" />
+                        <Tab label="colours" value="2" />
+                        <Tab label="vertex no" value="3" />
+                      </Tabs>
+                    </div>
+                  </Grid>
+                ) : meshType === MeshType.PARTICLES ? (
+                  <Grid item>
+                    <div className="tabs">
+                      <Tabs
+                        value={currTab}
+                        onChange={(e, newTab: string) => setCurrTab(newTab)}
+                      >
+                        <Tab label="main" value="0" />
+                        <Tab label="compute" value="1" />
+                        <Tab label="No. of Particles" value="2" />
+                      </Tabs>
+                    </div>
+                  </Grid>
+                ) : (
+                  <></>
+                )}
+              </>
             )}
           </Grid>
 
@@ -334,7 +377,9 @@ const CodeEditorPage = () => {
             vertexBuffer={vertexBuffer}
             colourBuffer={colourBuffer}
             numberOfVertices={numberOfVertices}
+            numberOfParticles={numberOfParticles}
             imageUrl={renderedImageUrl}
+            computeCode={computeCode}
           />
 
           <div style={{ display: "flex" }}>
@@ -400,7 +445,9 @@ const CodeEditorPage = () => {
         vertexBuffer={vertexBuffer}
         colourBuffer={colourBuffer}
         numberOfVertices={numberOfVertices}
+        numberOfParticles={numberOfParticles}
         imageUrl={renderedImageUrl}
+        computeCode={computeCode}
       />
 
       {showCode ? (
@@ -447,6 +494,42 @@ const CodeEditorPage = () => {
                 editorWidth={editorWidth}
                 code={numberOfVertices}
                 setCode={setNumberOfVertices}
+                renderLogger={renderLogger}
+              />
+            </TabPanel>
+          </TabContext>
+        ) : meshType === MeshType.PARTICLES ? (
+          <TabContext value={currTab}>
+            <TabPanel value="0" className="tab-panel">
+              <CodeEditor
+                helpBoxVisible={helpBoxVisible}
+                toggleHelpVisible={toggleHelpVisible}
+                editorOpacity={editorOpacity}
+                editorWidth={editorWidth}
+                code={shaderCode}
+                setCode={setShaderCode}
+                renderLogger={renderLogger}
+              />
+            </TabPanel>
+            <TabPanel value="1" className="tab-panel">
+              <CodeEditor
+                helpBoxVisible={helpBoxVisible}
+                toggleHelpVisible={toggleHelpVisible}
+                editorOpacity={editorOpacity}
+                editorWidth={editorWidth}
+                code={computeCode}
+                setCode={setComputeCode}
+                renderLogger={renderLogger}
+              />
+            </TabPanel>
+            <TabPanel value="2" className="tab-panel">
+              <CodeEditor
+                helpBoxVisible={helpBoxVisible}
+                toggleHelpVisible={toggleHelpVisible}
+                editorOpacity={editorOpacity}
+                editorWidth={editorWidth}
+                code={numberOfParticles}
+                setCode={setNumberOfParticles}
                 renderLogger={renderLogger}
               />
             </TabPanel>

@@ -21,6 +21,7 @@ const renderShaderCanvas = (
       vertexBuffer={""}
       colourBuffer={""}
       numberOfVertices={"6"}
+      numberOfParticles={""}
     />
   );
 

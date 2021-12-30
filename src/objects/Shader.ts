@@ -17,14 +17,17 @@ import { v4 as uuidv4 } from "uuid";
 
 import { auth, firedb, firestorage } from "../firebase";
 import { cubeColourBuffer, cubeVertexBuffer } from "../webgpu/meshes/cube";
+import { defaultNumberOfParticles } from "../webgpu/meshes/particles";
 import {
   rectangleColourBuffer,
   rectangleNumberOfVertices,
   rectangleVertexBuffer,
 } from "../webgpu/meshes/rectangle";
 import {
+  computeTempCode,
   cubeFragment,
   cubeVertex,
+  defaultComputeCode,
   rectangleFragment,
   rectangleVertex,
   texture2dShader,
@@ -35,6 +38,7 @@ export enum MeshType {
   TEXTURED_RECTANGLE = "Textured Rectangle",
   CUBE = "Cube",
   CUSTOM = "Custom",
+  PARTICLES = "Particles",
 }
 
 // TODO - find a neater way of handling parsing strings to enums
@@ -50,6 +54,8 @@ export const MeshTypeFromValue = (typeString: string): MeshType => {
       return MeshType.CUBE;
     case "Custom":
       return MeshType.CUSTOM;
+    case "Particles":
+      return MeshType.PARTICLES;
   }
   return MeshType.RECTANGLE;
 };
@@ -64,6 +70,8 @@ export const StringFromMeshType = (meshType: MeshType | FieldValue) => {
       return "Cube";
     case MeshType.CUSTOM:
       return "Custom";
+    case MeshType.PARTICLES:
+      return "Particles";
   }
 };
 
@@ -71,6 +79,7 @@ export enum ShaderTypeEnum {
   EXAMPLE = "example",
   PUBLIC = "public",
 }
+
 export interface ShaderType {
   pageLink: string;
   sectionName: string;
@@ -106,7 +115,9 @@ export class Shader {
   vertexBuffer: string;
   colourBuffer: string;
   numberOfVertices: string;
+  numberOfParticles: string;
   imageUrl: string;
+  computeCode: string;
 
   constructor(
     id: string,
@@ -118,7 +129,9 @@ export class Shader {
     vertexBuffer: string = rectangleVertexBuffer,
     colourBuffer: string = rectangleColourBuffer,
     numberOfVertices: string = rectangleNumberOfVertices.toString(),
-    imageUrl = ""
+    numberOfParticles: string = defaultNumberOfParticles.toString(),
+    imageUrl = "",
+    computeCode: string = defaultComputeCode
   ) {
     this.id = id;
     this.title = title;
@@ -129,7 +142,9 @@ export class Shader {
     this.vertexBuffer = vertexBuffer;
     this.colourBuffer = colourBuffer;
     this.numberOfVertices = numberOfVertices;
+    this.numberOfParticles = numberOfParticles;
     this.imageUrl = imageUrl;
+    this.computeCode = computeCode;
   }
 }
 
@@ -140,6 +155,7 @@ export const shaderConverter = {
     const shaderRef = ref(firestorage, shaderFile);
     const imageFile = `${id}_${shader.title}.png`;
     const imageRef = ref(firestorage, imageFile);
+    let computeFile = "";
 
     const canvas = document.getElementById(
       "canvas-webgpu"
@@ -154,6 +170,13 @@ export const shaderConverter = {
       }, "image/png")
     );
 
+    if (shader.meshType === MeshType.PARTICLES) {
+      computeFile = `${id}_${shader.title}_compute.txt`;
+      const computeRef = ref(firestorage, computeFile);
+
+      uploadString(computeRef, shader.computeCode.toString());
+    }
+
     uploadString(shaderRef, shader.shaderCode.toString());
 
     return {
@@ -165,7 +188,9 @@ export const shaderConverter = {
       vertexBuffer: shader.vertexBuffer,
       colourBuffer: shader.colourBuffer,
       numberOfVertices: shader.numberOfVertices,
+      numberOfParticles: shader.numberOfParticles,
       imageUrl: shader.imageUrl,
+      compute_code: computeFile,
     };
   },
   fromFirestore(snapshot: QueryDocumentSnapshot): Shader {
@@ -186,12 +211,21 @@ export const shaderConverter = {
       data.numberOfVertices
         ? data.numberOfVertices
         : rectangleNumberOfVertices.toString(),
-      data.imageUrl ? data.imageUrl : ""
+      data.numberOfParticles
+        ? data.numberOfParticles
+        : defaultNumberOfParticles,
+      data.imageUrl ? data.imageUrl : "",
+      ""
     );
   },
 };
 
-export const downloadShaderCode = async (id: string): Promise<string> => {
+interface ShaderCode {
+  shaderCode: string;
+  computeCode: string;
+}
+
+export const downloadShaderCode = async (id: string): Promise<ShaderCode> => {
   const user = auth.currentUser;
   let querySnapshot;
 
@@ -218,7 +252,19 @@ export const downloadShaderCode = async (id: string): Promise<string> => {
     ref(firestorage, data.shader_code)
   );
 
-  return (await axios.get(shaderCodeURL)).data;
+  let computeCode = "";
+  if (data.compute_code && data.compute_code.length > 0) {
+    const computeCodeURL = await getDownloadURL(
+      ref(firestorage, data.compute_code)
+    );
+
+    computeCode = (await axios.get(computeCodeURL)).data;
+  }
+
+  return {
+    shaderCode: (await axios.get(shaderCodeURL)).data,
+    computeCode: computeCode,
+  };
 };
 
 export interface ShaderProps {
@@ -258,6 +304,11 @@ export const defaultShader = (meshType: MeshType): Shader => {
     shader.id = uuidv4() + "custom_mesh";
     shader.title = "Custom Mesh";
     shader.meshType = MeshType.CUSTOM;
+  } else if (meshType === MeshType.PARTICLES) {
+    shader.shaderCode = computeTempCode;
+    shader.id = uuidv4() + "particles";
+    shader.title = "Particles";
+    shader.meshType = MeshType.PARTICLES;
   }
   return shader;
 };
