@@ -79,7 +79,7 @@ const PublicWarningDialog = ({
       <DialogContent style={{ display: "flex", justifyContent: "center" }}>
         <DialogContentText>
           Publishing your shader will allow other users to save, edit, and
-          publically reupload it under their name. You may specify an alternate
+          publicly reupload it under their name. You may specify an alternate
           license for your shader, but WebGPUniverse is not responsible for
           upholding the terms of said license.
           <br />
