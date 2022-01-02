@@ -14,7 +14,7 @@ export const ShaderCard = ({ shader }: ShaderProps) => {
 
   const visibility = shader.isPublic ? "Public" : "Private";
   const color = shader.isPublic ? "#cbceef" : "#9accff";
-  // if anyone can refactor this hex code to be the warning color instead that would be idea
+
   return (
     <Grid item xs={12} sx={{ width: "15em", height: "14em" }}>
       <Card

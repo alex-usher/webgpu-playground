@@ -98,7 +98,7 @@ describe("Form Dialog component tests", () => {
   });
 
   test("Cancelling should close the form", async () => {
-    await buttons[0].click(); // buttons[0] == cancel button
+    await buttons[0].click();
     expect(handleCloseMock).toHaveBeenCalledTimes(1);
   });
 
