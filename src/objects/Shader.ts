@@ -265,9 +265,8 @@ export interface ShaderProps {
   shader: Shader;
 }
 
-export const defaultShader = (meshType: MeshType): Shader => {
-  // set shader to a default rectangle
-  const shader = new Shader(
+export const defaultRectangleShader = (): Shader => {
+  return new Shader(
     uuidv4() + "example_rectangle",
     "Rectangle",
     "https://i.ibb.co/M5Z06wy/triangle.png",
@@ -275,30 +274,67 @@ export const defaultShader = (meshType: MeshType): Shader => {
     `${rectangleVertex}\n${rectangleFragment}`,
     MeshType.RECTANGLE
   );
+};
 
-  if (meshType === MeshType.TEXTURED_RECTANGLE) {
-    shader.shaderCode = texture2dShader;
-    shader.id = uuidv4() + "example_textured_rectangle";
-    shader.title = "Textured Rectangle";
-    shader.meshType = MeshType.TEXTURED_RECTANGLE;
-    shader.imageUrl = shader.image;
-  } else if (meshType === MeshType.CUBE) {
-    shader.shaderCode = `${cubeVertex}\n${cubeFragment}`;
-    shader.id = uuidv4() + "example_cube_shader";
-    shader.title = "Cube";
-    shader.meshType = MeshType.CUBE;
-    shader.imageUrl = shader.image;
-    shader.vertexBuffer = cubeVertexBuffer;
-    shader.colourBuffer = cubeColourBuffer;
-  } else if (meshType === MeshType.CUSTOM) {
-    shader.id = uuidv4() + "custom_mesh";
-    shader.title = "Custom Mesh";
-    shader.meshType = MeshType.CUSTOM;
-  } else if (meshType === MeshType.PARTICLES) {
-    shader.shaderCode = computeTempCode;
-    shader.id = uuidv4() + "particles";
-    shader.title = "Particles";
-    shader.meshType = MeshType.PARTICLES;
+export const defaultTexturedRectangleShader = (): Shader => {
+  return new Shader(
+    uuidv4() + "example_textured_rectangle",
+    "Textured Rectangle",
+    "https://i.ibb.co/M5Z06wy/triangle.png",
+    false,
+    texture2dShader,
+    MeshType.TEXTURED_RECTANGLE
+  );
+};
+
+export const defaultCubeShader = (): Shader => {
+  return new Shader(
+    uuidv4() + "example_cube",
+    "Cube",
+    "https://i.ibb.co/M5Z06wy/triangle.png",
+    false,
+    `${cubeVertex}\n${cubeFragment}`,
+    MeshType.CUBE,
+    cubeVertexBuffer,
+    cubeColourBuffer
+  );
+};
+
+export const defaultCustomShader = (): Shader => {
+  return new Shader(
+    uuidv4() + "example_custom_mesh",
+    "Custom Mesh",
+    "https://i.ibb.co/M5Z06wy/triangle.png",
+    false,
+    `${rectangleVertex}\n${rectangleFragment}`,
+    MeshType.CUSTOM
+  );
+};
+
+export const defaultParticleShader = (): Shader => {
+  return new Shader(
+    uuidv4() + "example_particles",
+    "Particles",
+    "https://i.ibb.co/M5Z06wy/triangle.png",
+    false,
+    computeTempCode,
+    MeshType.PARTICLES
+  );
+};
+
+export const defaultShader = (meshType: MeshType): Shader => {
+  switch (meshType) {
+    case MeshType.RECTANGLE:
+      return defaultRectangleShader();
+    case MeshType.TEXTURED_RECTANGLE:
+      return defaultTexturedRectangleShader();
+    case MeshType.CUBE:
+      return defaultCubeShader();
+    case MeshType.CUSTOM:
+      return defaultCustomShader();
+    case MeshType.PARTICLES:
+      return defaultCustomShader();
+    default:
+      return defaultRectangleShader();
   }
-  return shader;
 };
