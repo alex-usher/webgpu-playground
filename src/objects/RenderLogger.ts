@@ -2,6 +2,7 @@ export class RenderLogger {
   private log: string[] = [];
   private errors = false;
   private warnings = false;
+  private isCompute = false;
 
   public hasErrors(): boolean {
     return this.errors;
@@ -24,5 +25,13 @@ export class RenderLogger {
 
   public clearLog(): void {
     this.log = [];
+  }
+
+  public markAsCompute(): void {
+    this.isCompute = true;
+  }
+
+  public isMarkedCompute(): boolean {
+    return this.isCompute;
   }
 }
