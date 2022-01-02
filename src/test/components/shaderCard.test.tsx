@@ -6,16 +6,13 @@ import { BrowserRouter } from "react-router-dom";
 import { ShaderCard } from "../../components/ShaderCard";
 import { defaultShader } from "../sample_shaders/defaultShader";
 
-const renderShaderCard = () =>
-  render(
-    <BrowserRouter>
-      <ShaderCard shader={defaultShader} />
-    </BrowserRouter>
-  );
-
 describe("Shader Card component tests", () => {
   beforeEach(() => {
-    renderShaderCard();
+    render(
+      <BrowserRouter>
+        <ShaderCard shader={defaultShader} />
+      </BrowserRouter>
+    );
   });
   it("should display the shader's image", () => {
     const displayedImage = document.querySelector("img") as HTMLImageElement;

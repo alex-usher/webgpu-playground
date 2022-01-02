@@ -96,7 +96,9 @@ fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     return in.color;
 }`;
 
-export const defaultComputeCode = `// can access in array by positionsIn.in[]
+export const defaultComputeCode = `// Particle physics compute code adapted from Tarek Sherif on GitHub under the MIT License:
+// https://github.com/tsherif/webgpu-examples/blob/gh-pages/particles.html#L283
+
 struct ParticleProperty {
   all: [[stride(16)]] array<vec4<f32>>;
 };
@@ -108,17 +110,33 @@ struct Mass {
   mass2Factor: f32;
   mass3Factor: f32;
 };
+struct ViewParams {
+    time: f32;
+    x: f32;
+    y: f32;
+    res_x: f32;
+    res_y: f32;
 
+};
+
+// Due to definition in the pipeline, these buffers should not be changed beyond renaming them.
 [[group(0), binding(0)]] var<storage, read> positionsIn: ParticleProperty;
 [[group(0), binding(1)]] var<storage, read> velocityIn: ParticleProperty;
 [[group(0), binding(2)]] var<storage, write> positionsOut: ParticleProperty;
 [[group(0), binding(3)]] var<storage, write> velocityOut: ParticleProperty;
 [[group(0), binding(4)]] var<uniform> m: Mass;
 
+[[group(1), binding(0)]] var<uniform> view_params: ViewParams;
+
 
 [[stage(compute), workgroup_size(1)]]
 fn compute_main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {
   var index: u32 = GlobalInvocationID.x;
+
+  // These are the same uniforms as available in regular vertex/fragment shaders.
+  var res = vec2<f32>(view_params.res_x, view_params.res_y);
+  var time = view_params.time;
+  var mouse = vec2<f32>(view_params.x, view_params.y);
   
   var position = vec3<f32>(positionsIn.all[index][0], positionsIn.all[index][1], positionsIn.all[index][2]);
   var velocity = vec3<f32>(velocityIn.all[index][0], velocityIn.all[index][1], velocityIn.all[index][2]);

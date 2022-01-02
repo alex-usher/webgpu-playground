@@ -45,7 +45,8 @@ export const cancelRender = (): void => {
 const initialiseGPU = async (
   code: string,
   usage: number,
-  renderLogger: RenderLogger
+  renderLogger: RenderLogger,
+  computeCode?: string
 ) => {
   if (!checkWebGPU()) {
     return undefined;
@@ -64,9 +65,33 @@ const initialiseGPU = async (
     code: `${structs}\n${code}`,
   });
 
+  let loggedError = "";
+
   // check for compilation failures and output any compile messages
   if (!(await outputMessages(shaderModule, renderLogger))) {
-    renderLogger.logMessage("Shader Compilation failed", "error");
+    loggedError = "Shader Compilation failed";
+  }
+
+  // check for compute shader compilation failures and output any compile messages
+  // compute errors given priority as they are the focus of particle mesh
+  if (computeCode && computeCode.length > 0) {
+    const computeModule = device.createShaderModule({
+      code:
+        "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n" +
+        computeCode,
+    });
+    if (!(await outputMessages(computeModule, renderLogger))) {
+      if (loggedError != "") {
+        loggedError =
+          "Compute Shader and Shader Compilations failed (shader errors shown above compute errors)";
+      } else {
+        loggedError = "Compute Shader Compilation failed";
+      }
+    }
+  }
+
+  if (loggedError.length > 0) {
+    renderLogger.logMessage(loggedError, "error");
     return undefined;
   }
 
@@ -669,7 +694,8 @@ export const renderParticleShader = async (
   const init = await initialiseGPU(
     shaderCode,
     GPUTextureUsage.RENDER_ATTACHMENT,
-    renderLogger
+    renderLogger,
+    computeCode
   );
 
   if (init === undefined) return;
@@ -897,18 +923,6 @@ export const renderParticleShader = async (
     ],
   });
 
-  const computePipeline = device.createComputePipeline({
-    layout: device.createPipelineLayout({
-      bindGroupLayouts: [computeBindGroupLayout],
-    }),
-    compute: {
-      module: device.createShaderModule({
-        code: computeCode,
-      }),
-      entryPoint: "compute_main",
-    },
-  });
-
   context.configure({
     device: device,
     format: SWAPCHAIN_FORMAT,
@@ -925,7 +939,10 @@ export const renderParticleShader = async (
     entries: [
       {
         binding: 0,
-        visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+        visibility:
+          GPUShaderStage.VERTEX |
+          GPUShaderStage.FRAGMENT |
+          GPUShaderStage.COMPUTE,
         buffer: [{ type: "uniform" }],
       } as GPUBindGroupLayoutEntry,
     ],
@@ -933,6 +950,20 @@ export const renderParticleShader = async (
 
   const layout = device.createPipelineLayout({
     bindGroupLayouts: [bindGroupLayout],
+  });
+
+  const computeLayout = device.createPipelineLayout({
+    bindGroupLayouts: [computeBindGroupLayout, bindGroupLayout],
+  });
+
+  const computePipeline = device.createComputePipeline({
+    layout: computeLayout,
+    compute: {
+      module: device.createShaderModule({
+        code: computeCode,
+      }),
+      entryPoint: "compute_main",
+    },
   });
 
   const renderPipeline = device.createRenderPipeline({
@@ -1042,6 +1073,7 @@ export const renderParticleShader = async (
       const computePass = commandEncoder.beginComputePass();
       computePass.setPipeline(computePipeline);
       computePass.setBindGroup(0, currentComputeBindGroup);
+      computePass.setBindGroup(1, viewParamsBindGroup);
       computePass.dispatch(numParticles);
       computePass.endPass();
       renderPassDescription.colorAttachments[0].view = context

@@ -2,6 +2,7 @@ import "../assets/cardCarousel.css";
 
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
+import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { Link } from "react-router-dom";
 
@@ -22,28 +23,28 @@ export const CardCarousel = ({
   const shaderTypeEnum = shaderType.type;
   return (
     <div className="row">
-      <Grid
-        item
-        container
-        justifyContent="space-between"
-        alignItems="center"
-        spacing={2}
-        className="header"
-      >
-        <Typography variant="h4" className="title">
-          {shaderType.sectionName}
-        </Typography>
-        <Button
-          variant="outlined"
-          disableElevation
-          component={Link}
-          to={{
-            pathname: shaderType.pageLink,
-            state: { shaderTypeEnum, shaderList, pageLength },
-          }}
+      <Grid item className="header">
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          spacing={2}
         >
-          See All
-        </Button>
+          <Typography variant="h4" className="title">
+            {shaderType.sectionName}
+          </Typography>
+          <Button
+            variant="outlined"
+            disableElevation
+            component={Link}
+            to={{
+              pathname: shaderType.pageLink,
+              state: { shaderTypeEnum, shaderList, pageLength },
+            }}
+          >
+            See All
+          </Button>
+        </Stack>
       </Grid>
       <div className="row__blocks">
         {shaderList.map((shader) => (
