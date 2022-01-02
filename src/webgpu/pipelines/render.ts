@@ -491,8 +491,8 @@ export const renderCubeShader = async (
   const uniformBindGroup = device.createBindGroup({
     layout: bindGroupLayout,
     entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: viewParamsBuffer } },
+      { binding: 0, resource: { buffer: viewParamsBuffer } },
+      { binding: 1, resource: { buffer: uniformBuffer } },
     ],
   });
 
