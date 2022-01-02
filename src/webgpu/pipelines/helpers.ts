@@ -84,9 +84,9 @@ export const outputMessages = async (
         if (isCompute) {
           messageWithDetails = `Compute error (${message.lineNum}, ${message.linePos}): ${message.message}`;
         } else {
-          messageWithDetails = `(${message.lineNum - extraLines}, ${
-            message.linePos
-          }): ${message.message}`;
+          messageWithDetails = `Shader error (${
+            message.lineNum - extraLines
+          }, ${message.linePos}): ${message.message}`;
         }
         renderLogger.logMessage(messageWithDetails, "error");
         error = error || message.type === "error";
