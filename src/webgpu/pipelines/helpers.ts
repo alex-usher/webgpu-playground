@@ -5,32 +5,46 @@ import { structsLength } from "../shaders";
 
 export const checkWebGPU = (): boolean => navigator.gpu != null;
 
+const globalVars =
+  "\nvar<private> res: vec2<f32>;\n" +
+  "var<private> pos: vec2<f32>;\n" +
+  "var<private> time: f32;\n" +
+  "var<private> mouse: vec2<f32>;\n";
+const uniformVars =
+  "\nres = vec2<f32>(view_params.res_x, view_params.res_y);\n" +
+  "pos = vec2<f32>(in.position[0], in.position[1]);\n" +
+  "time = view_params.time;\n" +
+  "mouse = vec2<f32>(view_params.x, view_params.y);\n";
+
+let codeBeforeFragment = "";
+let titleOfFragment = "";
+let codeAfterFragment = "";
+
 export const addUniformCode = (shaderCode: string): string => {
   const splitOnFragmentDecl = shaderCode.split("[[stage(fragment)]]");
-  const splitInFragmentDecl = splitOnFragmentDecl[1].split(
-    RegExp(/{([\s\S]*)/),
-    2
-  );
-  const globalVars =
-    "\nvar<private> res: vec2<f32>;\n" +
-    "var<private> pos: vec2<f32>;\n" +
-    "var<private> time: f32;\n" +
-    "var<private> mouse: vec2<f32>;\n";
-  const uniformBoilerplate =
-    "\nres = vec2<f32>(view_params.res_x, view_params.res_y);\n" +
-    "pos = vec2<f32>(in.position[0], in.position[1]);\n" +
-    "time = view_params.time;\n" +
-    "mouse = vec2<f32>(view_params.x, view_params.y);\n";
+  codeBeforeFragment = splitOnFragmentDecl[0];
+  let splitInFragmentDecl = [""];
+  if (splitOnFragmentDecl.length > 1) {
+    splitInFragmentDecl = splitOnFragmentDecl[1].split(RegExp(/{([\s\S]*)/), 2);
+  }
+  titleOfFragment = splitInFragmentDecl[0];
+  if (splitInFragmentDecl.length > 1) {
+    codeAfterFragment = splitInFragmentDecl[1];
+  }
 
   return (
     globalVars +
-    splitOnFragmentDecl[0] +
+    codeBeforeFragment +
     "[[stage(fragment)]]" +
-    splitInFragmentDecl[0] +
+    titleOfFragment +
     "{" +
-    uniformBoilerplate +
-    splitInFragmentDecl[1]
+    uniformVars +
+    codeAfterFragment
   );
+};
+
+const getTextLines = (text: string) => {
+  return text.split(/\r\n|\r|\n/).length - 1;
 };
 
 export const outputMessages = async (
@@ -39,16 +53,42 @@ export const outputMessages = async (
 ) => {
   if (shaderModule.compilationInfo) {
     const messages = (await shaderModule.compilationInfo()).messages;
+    const uniformLines = getTextLines(uniformVars);
+    const isCompute = renderLogger.isMarkedCompute();
+
+    let limitBeforeUniforms = -1;
+    if (!isCompute) {
+      limitBeforeUniforms =
+        getTextLines(globalVars) +
+        getTextLines(codeBeforeFragment) +
+        getTextLines(titleOfFragment) +
+        structsLength;
+    }
+
     if (messages.length > 0) {
       let error = false;
       for (let i = 0; i < messages.length; i++) {
         const message = messages[i];
-        renderLogger.logMessage(
-          `(${message.lineNum - structsLength}, ${message.linePos}): ${
-            message.message
-          }`,
-          "error"
-        );
+        let extraLines = structsLength + getTextLines(globalVars) - 1;
+        console.log(extraLines);
+        if (
+          message.lineNum > limitBeforeUniforms + uniformLines &&
+          !isCompute
+        ) {
+          extraLines += uniformLines;
+        }
+        console.log(extraLines);
+        console.log(message.lineNum);
+
+        let messageWithDetails = "";
+        if (isCompute) {
+          messageWithDetails = `Compute error (${message.lineNum}, ${message.linePos}): ${message.message}`;
+        } else {
+          messageWithDetails = `Shader error (${
+            message.lineNum - extraLines
+          }, ${message.linePos}): ${message.message}`;
+        }
+        renderLogger.logMessage(messageWithDetails, "error");
         error = error || message.type === "error";
       }
 

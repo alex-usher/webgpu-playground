@@ -51,7 +51,7 @@ fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32>
 export const structsLength = structs.split(/\r\n|\r|\n/).length + 1;
 
 const structsMessage =
-  "To see the predefined uniforms that you have available to you, click the help button above";
+  "To see the predefined uniforms that you have available to you, click the Help button under Code Actions";
 
 export const rectangleVertex = `/*${structsMessage}*/
 
