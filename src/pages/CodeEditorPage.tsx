@@ -281,7 +281,12 @@ const CodeEditorPage = () => {
             container
             direction="row"
             spacing={2}
-            style={{ minWidth: "20%", maxWidth: "65%", width: "auto" }}
+            style={{
+              minWidth: "20%",
+              maxWidth: "65%",
+              width: "auto",
+              zIndex: "2",
+            }}
             alignItems="center"
           >
             <Grid item>
@@ -335,7 +340,7 @@ const CodeEditorPage = () => {
                         <Tab label="main" value="0" />
                         <Tab label="vertices" value="1" />
                         <Tab label="colours" value="2" />
-                        <Tab label="vertex no" value="3" />
+                        <Tab label="no. of vertices" value="3" />
                       </Tabs>
                     </div>
                   </Grid>
@@ -382,18 +387,29 @@ const CodeEditorPage = () => {
             computeCode={computeCode}
           />
 
-          <div style={{ display: "flex" }}>
-            <Typography
-              variant="h5"
+          {showCode ? (
+            <></>
+          ) : (
+            <div
               style={{
-                color: "lightGrey",
-                fontSize: "3vh",
-                fontStyle: "italic",
+                width: "100%",
+                position: "absolute",
+                zIndex: "0",
               }}
             >
-              {shaderName}
-            </Typography>
-          </div>
+              <Typography
+                variant="h5"
+                style={{
+                  color: "lightGrey",
+                  fontSize: "3vh",
+                  fontStyle: "italic",
+                  textAlign: "center",
+                }}
+              >
+                {shaderName}
+              </Typography>
+            </div>
+          )}
 
           <Grid
             container
