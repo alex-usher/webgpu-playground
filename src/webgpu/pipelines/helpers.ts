@@ -70,15 +70,12 @@ export const outputMessages = async (
       for (let i = 0; i < messages.length; i++) {
         const message = messages[i];
         let extraLines = structsLength + getTextLines(globalVars) - 1;
-        console.log(extraLines);
         if (
           message.lineNum > limitBeforeUniforms + uniformLines &&
           !isCompute
         ) {
           extraLines += uniformLines;
         }
-        console.log(extraLines);
-        console.log(message.lineNum);
 
         let messageWithDetails = "";
         if (isCompute) {
