@@ -7,6 +7,9 @@ import {
   applyShiftTab,
   insertEnter,
   insertTab,
+  textareaState,
+  setTextareaState,
+  getTextareaState,
 } from "../../utils/textareaActions";
 
 
@@ -32,8 +35,7 @@ describe("Code shortcut string processing tests", () => {
   });
 
   test("Ctrl + / should toggle comments for a single line", () => {
-    textarea.selectionStart = 0;
-    textarea.selectionEnd = 0;
+    setTextareaState({ text: testValue, start: 0, end: 0 }, textarea)
     console.log(textarea.value);
     applyCtrlSlash(textarea);
     console.log(textarea.value);

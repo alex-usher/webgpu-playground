@@ -392,7 +392,8 @@ const CodeEditorPage = () => {
           ) : (
             <div
               style={{
-                width: "100%",
+                paddingLeft: "2%",
+                width: "96%",
                 position: "absolute",
                 zIndex: "0",
               }}

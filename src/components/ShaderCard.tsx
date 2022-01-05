@@ -12,9 +12,6 @@ import { ShaderProps } from "../objects/Shader";
 export const ShaderCard = ({ shader }: ShaderProps) => {
   const [isHover, setIsHover] = useState(false);
 
-  const visibility = shader.isPublic ? "Public" : "Private";
-  const color = shader.isPublic ? "#cbceef" : "#9accff";
-
   return (
     <Grid item xs={12} sx={{ width: "15em", height: "14em" }}>
       <Card
@@ -45,21 +42,13 @@ export const ShaderCard = ({ shader }: ShaderProps) => {
               align="center"
               className="shadercard-text"
               noWrap={!isHover}
-              style={{ fontWeight: 400 }}
+              style={{
+                fontWeight: 400,
+                paddingLeft: "1vh",
+                paddingRight: "1vh",
+              }}
             >
               {shader.title}
-            </Typography>
-
-            <Typography
-              variant="caption"
-              align="center"
-              className="visibility"
-              sx={{
-                display: isHover ? "inherit" : "none",
-              }}
-              color={color}
-            >
-              {visibility}
             </Typography>
           </CardContent>
         </CardActionArea>

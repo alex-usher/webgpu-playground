@@ -92,7 +92,7 @@ const ShadersPage = () => {
           fetchMoreShaders();
         }}
         hasMore={currentShaders.length <= pageLength * prevPage}
-        loader={"Loading ..."}
+        loader={<></>}
         style={{ paddingBottom: "5%", height: "60vh" }}
         height={"60vh"}
       >
