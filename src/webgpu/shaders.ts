@@ -51,7 +51,7 @@ fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32>
 export const structsLength = structs.split(/\r\n|\r|\n/).length + 1;
 
 const structsMessage =
-  "To see the predefined uniforms that you have available to you, click the help button above";
+  "To see the predefined uniforms that you have available to you, click the Help button under Code Actions";
 
 export const rectangleVertex = `/*${structsMessage}*/
 
@@ -82,7 +82,7 @@ fn fragment_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
 export const cubeVertex = `struct Uniforms {
     mvpMatrix : mat4x4<f32>;
 };
-[[binding(0), group(0)]] var<uniform> uniforms : Uniforms;
+[[binding(1), group(0)]] var<uniform> uniforms : Uniforms;
 [[stage(vertex)]]
 fn vertex_main([[location(0)]] pos: vec4<f32>, [[location(1)]] color: vec4<f32>) -> VertexOutput {
     var output: VertexOutput;

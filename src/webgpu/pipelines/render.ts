@@ -76,14 +76,13 @@ const initialiseGPU = async (
   // compute errors given priority as they are the focus of particle mesh
   if (computeCode && computeCode.length > 0) {
     const computeModule = device.createShaderModule({
-      code:
-        "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n" +
-        computeCode,
+      code: computeCode,
     });
-    if (!(await outputMessages(computeModule, renderLogger))) {
+    const computeLogger = renderLogger;
+    computeLogger.markAsCompute();
+    if (!(await outputMessages(computeModule, computeLogger))) {
       if (loggedError != "") {
-        loggedError =
-          "Compute Shader and Shader Compilations failed (shader errors shown above compute errors)";
+        loggedError = "Compute Shader and Shader Compilations failed";
       } else {
         loggedError = "Compute Shader Compilation failed";
       }
@@ -491,8 +490,8 @@ export const renderCubeShader = async (
   const uniformBindGroup = device.createBindGroup({
     layout: bindGroupLayout,
     entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: viewParamsBuffer } },
+      { binding: 0, resource: { buffer: viewParamsBuffer } },
+      { binding: 1, resource: { buffer: uniformBuffer } },
     ],
   });
 

@@ -385,9 +385,11 @@ const toggleShaderPublicity = async (
             doc(firedb, "users", user.uid, "shaders", shader.id),
             { isPublic: true }
           );
+          const publicShaderDocData = shaderDoc.data();
+          publicShaderDocData.isPublic = true;
           transaction.set(
             doc(firedb, "public-shaders", shader.id),
-            shaderDoc.data()
+            publicShaderDocData
           );
         } else {
           transaction.update(
@@ -399,9 +401,8 @@ const toggleShaderPublicity = async (
       });
       success = true;
     } else {
-      // user is not logged in. this could be the case if
-      // a guest tries to use toggle on a public/example shader.
-      // ideally should not be possible.
+      // user is not logged in.
+      // should not be possible.
       throw new loggedOutErr();
     }
   } catch (err) {
