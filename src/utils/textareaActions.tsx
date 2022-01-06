@@ -137,13 +137,16 @@ const replaceSelectionLineStart = (
   const { text, start, end } = state;
   // Handle the first line separately as it won't necessarily be preceeded by a new line
   const firstLineIndex = getCurrentLineIndex(state);
-  const findExp = typeof find == "string" ? "\n" + find : find;
+  const findExp =
+    typeof find == "string"
+      ? new RegExp("\n" + find, "g")
+      : new RegExp(find, "g");
 
   const newText =
     // Keep text before the selection the same
     text.slice(0, firstLineIndex) +
     // Replace all occurences
-    text.slice(firstLineIndex, end).replaceAll(findExp, "\n" + replace) +
+    text.slice(firstLineIndex, end).replace(findExp, "\n" + replace) +
     // Keep text after the selection the same
     text.slice(end);
 
@@ -164,4 +167,10 @@ const replaceSelectionLineStart = (
   return { text: newText, start: newStart, end: newEnd };
 };
 
-export { insertTab, insertEnter, applyShiftTab, applyCtrlSlash };
+export {
+  insertTab,
+  insertEnter,
+  applyShiftTab,
+  applyCtrlSlash,
+  setTextareaState,
+};

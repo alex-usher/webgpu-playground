@@ -191,10 +191,10 @@ const UserShaderCard = ({
               onChange={async (e) => {
                 let success = false;
                 const checked = (e.target as HTMLInputElement).checked;
-                const shaderWithCode = await getShaderCode(shader);
                 if (checked) {
                   setIsWarningOpen(true);
                 } else {
+                  const shaderWithCode = await getShaderCode(shader);
                   success = await makeShaderPrivate(shaderWithCode);
                   PublicOperationCheck(
                     success,

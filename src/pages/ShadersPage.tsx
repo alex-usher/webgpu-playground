@@ -87,12 +87,12 @@ const ShadersPage = () => {
       </Stack>
 
       <InfiniteScroll
-        dataLength={currentShaders.length}
+        dataLength={displayedShaders.length}
         next={() => {
           fetchMoreShaders();
         }}
         hasMore={currentShaders.length <= pageLength * prevPage}
-        loader={"Loading ..."}
+        loader={<></>}
         style={{ paddingBottom: "5%", height: "60vh" }}
         height={"60vh"}
       >
