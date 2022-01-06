@@ -24,7 +24,7 @@ import {
   rectangleVertexBuffer,
 } from "../webgpu/meshes/rectangle";
 import {
-  computeTempCode,
+  computeGraphicsCode,
   cubeFragment,
   cubeVertex,
   defaultComputeCode,
@@ -317,7 +317,7 @@ export const defaultParticleShader = (): Shader => {
     "Particles",
     "https://i.ibb.co/M5Z06wy/triangle.png",
     false,
-    computeTempCode,
+    computeGraphicsCode,
     MeshType.PARTICLES
   );
 };
@@ -333,7 +333,7 @@ export const defaultShader = (meshType: MeshType): Shader => {
     case MeshType.CUSTOM:
       return defaultCustomShader();
     case MeshType.PARTICLES:
-      return defaultCustomShader();
+      return defaultParticleShader();
     default:
       return defaultRectangleShader();
   }

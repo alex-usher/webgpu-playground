@@ -159,7 +159,7 @@ fn compute_main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>
 };
 `;
 
-export const computeTempCode = `[[stage(vertex)]]
+export const computeGraphicsCode = `[[stage(vertex)]]
 fn vertex_main(in: VertexInput, [[location(2)]] particlePosition: vec3<f32>) -> VertexOutput {
     var particleSize = 4.0;
     var out: VertexOutput;
