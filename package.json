@@ -105,10 +105,5 @@
       "style": "module",
       "parser": "typescript"
     }
-  },
-  "jest": {
-    "setupFilesAfterEnv": [
-      "<rootDir>/jestSetup.js"
-    ]
   }
 }
