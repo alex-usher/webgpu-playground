@@ -164,4 +164,10 @@ const replaceSelectionLineStart = (
   return { text: newText, start: newStart, end: newEnd };
 };
 
-export { insertTab, insertEnter, applyShiftTab, applyCtrlSlash };
+export {
+  insertTab,
+  insertEnter,
+  applyShiftTab,
+  applyCtrlSlash,
+  setTextareaState,
+};

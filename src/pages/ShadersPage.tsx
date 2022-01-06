@@ -87,7 +87,7 @@ const ShadersPage = () => {
       </Stack>
 
       <InfiniteScroll
-        dataLength={currentShaders.length}
+        dataLength={displayedShaders.length}
         next={() => {
           fetchMoreShaders();
         }}
