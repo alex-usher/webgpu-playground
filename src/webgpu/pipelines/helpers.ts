@@ -21,7 +21,7 @@ let titleOfFragment = "";
 let codeAfterFragment = "";
 
 export const addUniformCode = (shaderCode: string): string => {
-  const splitOnFragmentDecl = shaderCode.split("[[stage(fragment)]]");
+  const splitOnFragmentDecl = shaderCode.split("@fragment");
   codeBeforeFragment = splitOnFragmentDecl[0];
   let splitInFragmentDecl = [""];
   if (splitOnFragmentDecl.length > 1) {
@@ -35,7 +35,7 @@ export const addUniformCode = (shaderCode: string): string => {
   return (
     globalVars +
     codeBeforeFragment +
-    "[[stage(fragment)]]" +
+    "@fragment" +
     titleOfFragment +
     "{" +
     uniformVars +
