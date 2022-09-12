@@ -25,3 +25,9 @@ development build of Google Chrome (Canary) with the `unsafe-webgpu` flag enable
 
 This project was created for the (Imperial College London) 3rd Year Software Engineering project by: Anna Chen, Sophie Elliott, Rohan Gupta, Alex Usher, Apoorva Verma, Vincent Wang and Hannah
 Watson. We give thanks to [Alastair Donaldson](https://www.github.com/afd) for supervising the project.
+
+## Accessing the Repository
+
+This code has been developed using a private repository on Github. For submission, we have chosen to submit a compressed
+archive; however, we would be very happy to grant access to the repository upon request - for this, please get in touch with
+the group leader (Alex Usher) with details of the Github account to add as a collaborator.
