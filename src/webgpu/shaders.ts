@@ -118,10 +118,10 @@ struct ViewParams {
 }
 
 // Due to definition in the pipeline, these buffers should not be changed beyond renaming them.
-@group(0) @binding(0) var<storage, read> positionsIn: ParticleProperty;
-@group(0) @binding(1) var<storage, read> velocityIn: ParticleProperty;
-@group(0) @binding(2) var<storage, write> positionsOut: ParticleProperty;
-@group(0) @binding(3) var<storage, write> velocityOut: ParticleProperty;
+@group(0) @binding(0) var<storage, read_write> positionsIn: ParticleProperty;
+@group(0) @binding(1) var<storage, read_write> velocityIn: ParticleProperty;
+@group(0) @binding(2) var<storage, read_write> positionsOut: ParticleProperty;
+@group(0) @binding(3) var<storage, read_write> velocityOut: ParticleProperty;
 @group(0) @binding(4) var<uniform> m: Mass;
 
 @group(1) @binding(0) var<uniform> view_params: ViewParams;
